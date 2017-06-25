@@ -42,6 +42,16 @@ void AISTSimulatorItem_setFriction2(AISTSimulatorItem& self, Link* link1, Link* 
     self.setFriction(link1, link2, staticFriction, slipFriction);
 }
 
+void AISTSimulatorItem_setEpsilon1(AISTSimulatorItem& self, double epsilon)
+{
+    self.setEpsilon(epsilon);
+}
+
+void AISTSimulatorItem_setEpsilon2(AISTSimulatorItem& self, Link* link1, Link* link2, double epsilon)
+{
+    self.setEpsilon(link1, link2, epsilon);
+}
+
 }
 
 void exportSimulationClasses()
@@ -123,7 +133,8 @@ void exportSimulationClasses()
             .def("setMaxNumIterations", &AISTSimulatorItem::setMaxNumIterations)
             .def("setContactCorrectionDepth", &AISTSimulatorItem::setContactCorrectionDepth)
             .def("setContactCorrectionVelocityRatio", &AISTSimulatorItem::setContactCorrectionVelocityRatio)
-            .def("setEpsilon", &AISTSimulatorItem::setEpsilon)
+            .def("setEpsilon", AISTSimulatorItem_setEpsilon1)
+            .def("setEpsilon", AISTSimulatorItem_setEpsilon2)
             .def("set2Dmode", &AISTSimulatorItem::set2Dmode)
             .def("setKinematicWalkingEnabled", &AISTSimulatorItem::setKinematicWalkingEnabled)
             .def("setConstraintForceOutputEnabled", &AISTSimulatorItem::setConstraintForceOutputEnabled)

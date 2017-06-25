@@ -43,6 +43,7 @@ public:
     void setContactCorrectionDepth(double value);
     void setContactCorrectionVelocityRatio(double value);
     void setEpsilon(double epsilon);
+    void setEpsilon(Link* link1, Link* link2, double epsilon);
     void set2Dmode(bool on);
     void setKinematicWalkingEnabled(bool on);
     void setConstraintForceOutputEnabled(bool on);

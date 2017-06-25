@@ -43,6 +43,8 @@ public:
     void setCoefficientOfRestitution(double epsilon);
     double coefficientOfRestitution() const;
 
+    void setCoefficientOfRestitution(Link* link1, Link* link2, double epsilon);
+
     void setGaussSeidelErrorCriterion(double e);
     double gaussSeidelErrorCriterion();
 

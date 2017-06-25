@@ -861,6 +861,9 @@ void CFSImpl::extractConstraintPoints(const CollisionPair& collisionPair)
         } else {
             setDefaultContactAttributeValues(linkPair.attr);
         }
+        cout << "Rafa, staticFriction: " << linkPair.attr.staticFriction() << std::endl;
+        cout << "Rafa, dynamicFriction: " << linkPair.attr.dynamicFriction() << std::endl;
+        cout << "Rafa, epsilon: " << linkPair.attr.restitution() << std::endl;
         pLinkPair = &linkPair;
     }
 
@@ -1772,9 +1775,9 @@ void CFSImpl::setConstantVectorAndMuBlock()
                     } else {
                         velOffset = contactCorrectionVelocityRatio * (-1.0 / (depth + 1.0) + 1.0);
                     }
-                    b(globalIndex) = an0(globalIndex) + (constraint.normalProjectionOfRelVelocityOn0 - velOffset) * dtinv;
+                    b(globalIndex) = an0(globalIndex) + ((1 + linkPair.attr.restitution())*constraint.normalProjectionOfRelVelocityOn0 - velOffset) * dtinv;
                 } else {
-                    b(globalIndex) = an0(globalIndex) + constraint.normalProjectionOfRelVelocityOn0 * dtinv;
+                    b(globalIndex) = an0(globalIndex) + (1 + linkPair.attr.restitution())*constraint.normalProjectionOfRelVelocityOn0 * dtinv;
                 }
 
                 contactIndexToMu[globalIndex] = constraint.mu;
@@ -2470,6 +2473,13 @@ void ConstraintForceSolver::setCoefficientOfRestitution(double epsilon)
 double ConstraintForceSolver::coefficientOfRestitution() const
 {
     return impl->defaultCoefficientOfRestitution;
+}
+
+
+void ConstraintForceSolver::setCoefficientOfRestitution(Link* link1, Link* link2, double epsilon)
+{
+    CFSImpl::ContactAttributeEx& attr = impl->getOrCreateContactAttribute(link1, link2);
+    attr.setRestitution(epsilon);
 }
 
 

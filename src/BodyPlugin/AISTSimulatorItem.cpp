@@ -111,6 +111,7 @@ public:
     {
         boost::optional<double> staticFriction;
         boost::optional<double> dynamicFriction;
+        boost::optional<double> epsilon;
         boost::optional<int> collisionHandlerId;
     };
 
@@ -124,6 +125,8 @@ public:
 
     AISTSimulatorItemImpl(AISTSimulatorItem* self);
     AISTSimulatorItemImpl(AISTSimulatorItem* self, const AISTSimulatorItemImpl& org);
+    void setFriction(Link* link1, Link* link2, double staticFriction, double dynamicFriction);
+    void setEpsilon(Link* link1, Link* link2, double epsilon);
     ContactAttribute& getOrCreateContactAttribute(Link* link1, Link* link2);
     bool initializeSimulation(const std::vector<SimulationBody*>& simBodies);
     void addBody(AISTSimBody* simBody);
@@ -350,6 +353,19 @@ void AISTSimulatorItem::setEpsilon(double epsilon)
 }
 
 
+void AISTSimulatorItem::setEpsilon(Link* link1, Link* link2, double epsilon)
+{
+    impl->setEpsilon(link1, link2, epsilon);
+}
+
+
+void AISTSimulatorItemImpl::setEpsilon(Link* link1, Link* link2, double epsilon)
+{
+    ContactAttribute& attr = contactAttributeMap[IdPair<Link*>(link1, link2)];
+    attr.epsilon = epsilon;
+}
+
+
 void AISTSimulatorItem::set2Dmode(bool on)
 {
     impl->is2Dmode = on;
@@ -478,6 +494,9 @@ bool AISTSimulatorItemImpl::initializeSimulation(const std::vector<SimulationBod
                         iLink0, iLink1,
                         attr.staticFriction ? *attr.staticFriction : staticFriction,
                         attr.dynamicFriction ? *attr.dynamicFriction : dynamicFriction);
+                }
+                if(attr.epsilon != epsilon){
+                    cfs.setCoefficientOfRestitution(iLink0, iLink1, *attr.epsilon);
                 }
                 if(attr.collisionHandlerId){
                     cfs.setCollisionHandler(iLink0, iLink1, *attr.collisionHandlerId);

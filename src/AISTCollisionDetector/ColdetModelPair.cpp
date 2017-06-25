@@ -86,16 +86,24 @@ std::vector<collision_data>& ColdetModelPair::detectCollisionsSub(bool detectAll
     if (( pt0 == ColdetModel::SP_PLANE && pt1 == ColdetModel::SP_CYLINDER)
         || (pt1 == ColdetModel::SP_PLANE && pt0 == ColdetModel::SP_CYLINDER)){
         detected = detectPlaneCylinderCollisions(detectAllContacts);
+        if (detected)
+            std::cout << "Detected plane-cylinder collision" << std::endl;
     }
     else if (pt0 == ColdetModel::SP_PLANE || pt1 == ColdetModel::SP_PLANE){
         detected = detectPlaneMeshCollisions(detectAllContacts);
+        if (detected)
+            std::cout << "Detected plane-mesh collision" << std::endl;
     }
-    else if (pt0 == ColdetModel::SP_SPHERE && pt1 == ColdetModel::SP_SPHERE) {
+    else if (pt0 == ColdetModel::SP_SPHERE && pt1 == ColdetModel::SP_SPHERE){
         detected = detectSphereSphereCollisions(detectAllContacts);
+        if (detected)
+            std::cout << "Detected sphere-sphere collision" << std::endl;
     }
 	
-    else if (pt0 == ColdetModel::SP_SPHERE || pt1 == ColdetModel::SP_SPHERE) {
+    else if (pt0 == ColdetModel::SP_SPHERE || pt1 == ColdetModel::SP_SPHERE){
         detected = detectSphereMeshCollisions(detectAllContacts);
+        if (detected)
+            std::cout << "Detected sphere-mesh collision" << std::endl;          
     }
     else {
         detected = detectMeshMeshCollisions(detectAllContacts);
