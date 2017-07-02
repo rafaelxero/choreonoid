@@ -20,6 +20,7 @@ BodyState::BodyState()
 BodyState::BodyState(const Body& body)
 {
     storePositions(body);
+    storeVelocities(body);
 }
 
 
@@ -63,6 +64,24 @@ void BodyState::storePositions(const Body& body)
 
     const Link* rootLink = body.rootLink();
     setRootLinkPosition(rootLink->T());
+}
+
+
+void BodyState::setRootLinkVelocity(const Vector3& lin_velocity, const Vector3& ang_velocity)
+{
+    Data& v = data(LINK_VELOCITIES);
+    v.resize(6);
+    Eigen::Map<Vector3> vmap(&v[0]);
+    vmap = lin_velocity;
+    Eigen::Map<Vector3> wmap(&v[3]);
+    wmap = ang_velocity;
+}
+
+
+void BodyState::storeVelocities(const Body& body)
+{
+    const Link* rootLink = body.rootLink();
+    setRootLinkVelocity(rootLink->v(), rootLink->w());
 }
 
 
@@ -126,7 +145,6 @@ bool BodyState::getRootLinkPosition(Vector3& translation, Matrix3& rotation) con
 #endif
 
 
-
 bool BodyState::restorePositions(Body& io_body) const
 {
     bool isComplete = true;
@@ -160,6 +178,37 @@ bool BodyState::restorePositions(Body& io_body) const
             link->R() = Eigen::Map<const Quat>(&p[i*7 + 3]).toRotationMatrix();
         }
     }
+
+    return isComplete;
+}
+
+
+bool BodyState::getRootLinkVelocity(Vector3& lin_velocity, Vector3& ang_velocity) const
+{
+    const Data& v = data(LINK_VELOCITIES);
+    if(v.size() >= 6){
+        lin_velocity = Eigen::Map<const Vector3>(&v[0]);
+        ang_velocity = Eigen::Map<const Vector3>(&v[3]);
+        return true;
+    }
+    return false;
+}
+
+
+bool BodyState::restoreVelocities(Body& io_body) const
+{
+    bool isComplete = true;
+    
+    const Data& v = data(LINK_VELOCITIES);
+    if(v.size() < 6) {
+        isComplete = false;
+    } else {
+        Link* rootLink = io_body.rootLink();
+        rootLink->v() = Eigen::Map<const Vector3>(&v[0]);
+        rootLink->w() = Eigen::Map<const Vector3>(&v[3]);
+    }
+    
+    io_body.calcForwardKinematics(true);
 
     return isComplete;
 }
@@ -202,24 +251,28 @@ namespace cnoid {
 BodyState& operator<<(BodyState& state, const Body& body)
 {
     state.storePositions(body);
+    state.storeVelocities(body);
     return state;
 }
 
 const BodyState& operator>>(const BodyState& state, Body& body)
 {
     state.restorePositions(body);
+    state.restoreVelocities(body);
     return state;
 }
 
 Body& operator<<(Body& body, const BodyState& state)
 {
     state.restorePositions(body);
+    state.restoreVelocities(body);
     return body;
 }
 
 const Body& operator>>(const Body& body, BodyState& state)
 {
     state.storePositions(body);
+    state.storeVelocities(body);
     return body;
 }
 

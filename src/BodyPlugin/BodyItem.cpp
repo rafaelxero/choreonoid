@@ -425,6 +425,7 @@ void BodyItem::pasteKinematicState()
 void BodyItem::storeKinematicState(BodyState& state)
 {
     state.storePositions(*impl->body);
+    state.storeVelocities(*impl->body);
     state.setZMP(impl->zmp);
 }
 
@@ -441,6 +442,7 @@ bool BodyItem::restoreKinematicState(const BodyState& state)
 
     state.getZMP(impl->zmp);
     state.restorePositions(*impl->body);
+    state.restoreVelocities(*impl->body);
 
     //cout << "(currentState == state):" << (currentState == state) << endl;
     //return (currentState == state);
@@ -1164,7 +1166,13 @@ bool BodyItemImpl::store(Archive& archive)
             qs->append(initialJointPositions[i], 10, n);
         }
     }
-
+    Vector3 initialRootLinVelocity;
+    Vector3 initialRootAngVelocity;
+    if(initialState.getRootLinkVelocity(initialRootLinVelocity, initialRootAngVelocity)){
+        write(archive, "initialRootLinVelocity", initialRootLinVelocity);
+        write(archive, "initialRootAngVelocity", initialRootAngVelocity);
+    }
+    
     write(archive, "zmp", zmp);
 
     if(isOriginalModelStatic != body->isStaticModel()){
@@ -1243,6 +1251,10 @@ bool BodyItemImpl::restore(const Archive& archive)
             for(int i=0; i < nj; ++i){
                 q[i] = (*qs)[i].toDouble();
             }
+        }
+        Vector3 v, w;
+        if(read(archive, "initialRootLinVelocity", v) && read(archive, "initialRootAngVelocity", w)){
+            initialState.setRootLinkVelocity(v, w);
         }
 
         read(archive, "zmp", zmp);
