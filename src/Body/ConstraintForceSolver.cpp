@@ -861,9 +861,6 @@ void CFSImpl::extractConstraintPoints(const CollisionPair& collisionPair)
         } else {
             setDefaultContactAttributeValues(linkPair.attr);
         }
-        cout << "Rafa, staticFriction: " << linkPair.attr.staticFriction() << std::endl;
-        cout << "Rafa, dynamicFriction: " << linkPair.attr.dynamicFriction() << std::endl;
-        cout << "Rafa, epsilon: " << linkPair.attr.restitution() << std::endl;
         pLinkPair = &linkPair;
     }
 
