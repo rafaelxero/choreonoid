@@ -1,7 +1,7 @@
 format: ChoreonoidBody
 formatVersion: 1.0
 angleUnit: degree
-name: WorkPlatformStage # WRS_P_1F_cw
+name: TankPlatformStage # WRS_P_1F_cw
 
 links:
   -
@@ -11,7 +11,7 @@ links:
       -
         type: Visual
         elements:
-          Resource: { uri: "resource/WorkPlatformStage.dae" }
+          Resource: { uri: "resource/TankPlatformStage.dae" }
       -
         type: Collision
         elements:

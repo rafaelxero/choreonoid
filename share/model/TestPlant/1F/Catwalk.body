@@ -1,0 +1,213 @@
+format: ChoreonoidBody
+formatVersion: 1.0
+angleUnit: degree
+name: Catwalk # 1F_surface_2
+
+links:
+  -
+    name: BASE
+    translation: [ 0.0, 0.0, 0.0 ]
+    jointType: fixed
+    mass: 200.0
+    centerOfMass: [ 0.0, 0.0, 0.0 ]
+    inertia: [
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.0, 0.0, 1.0 ]
+    elements:
+      -
+        type: Visual
+        elements:
+          Resource: { uri: "resource/Catwalk.dae" }
+  -
+    name: CATWALK1
+    parent: BASE
+    jointType: fixed
+    elements:
+      Collision:
+        elements:
+          Transform:
+            translation: [ 0.675, 6.005, 2.63 ]
+            elements: &CATWALK1_SHAPE
+              Shape:
+                geometry: { type: Box, size: [ 1.35, 9.31, 0.1 ] }
+  -
+    name: CATWALK2
+    parent: BASE
+    jointType: fixed
+    elements:
+      Collision:
+        shape:
+          translation: [ 10.2625, 6.005, 2.63 ]
+          geometry: { type: Box, size: [ 2.524, 9.31, 0.1 ] }
+  -
+    name: CATWALK3
+    parent: BASE
+    jointType: fixed
+    elements:
+      Collision:
+        elements:
+          Transform:
+            translation: [ 19.85, 6.005, 2.63 ]
+            elements: *CATWALK1_SHAPE
+  -
+    name: CATWALK4
+    parent: BASE
+    jointType: fixed
+    elements:
+      Collision:
+        shape:
+          translation: [ 10.2625, 0.675, 2.63 ]
+          geometry: { type: Box, size: [ 20.525, 1.35, 0.1 ] }
+  -
+    name: CATWALK5
+    parent: BASE
+    jointType: fixed
+    elements:
+      Collision:
+        shape:
+          translation: [ 10.2625, 11.505, 2.63 ]
+          geometry: { type: Box, size: [ 20.525, 1.69, 0.1 ] }
+  -
+    name: STAIRS1_TOP
+    parent: BASE
+    jointType: fixed
+    elements: &STAIRS_TOP
+      Collision:
+        shape:
+          translation: [ 8.5, 1.875, 2.5825 ]
+          geometry: { type: Box, size: [ 1.0, 1.05, 0.195 ] }
+  -
+    name: STAIRS1
+    parent: BASE
+    jointType: fixed
+    elements: &STAIRS
+      Collision:
+        elements:
+          -
+            name: STAIRS2
+            type: Transform
+            translation: [ 8.5, 2.515, 2.3915 ]
+            elements: &STAIRS2
+              Shape: { geometry: { type: Box, size: [ 1.0, 0.23, 0.193 ] } } 
+          -
+            name: STAIRS3
+            type: Transform
+            translation: [ 8.5, 2.745, 2.198 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS4
+            type: Transform
+            translation: [ 8.5, 2.975, 2.007 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS5
+            type: Transform
+            translation: [ 8.5, 3.205, 1.8145 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS6
+            type: Transform
+            translation: [ 8.5, 3.435, 1.6225 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS7
+            type: Transform
+            translation: [ 8.5, 3.665, 1.4305 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS8
+            type: Transform
+            translation: [ 8.5, 3.895, 1.2385 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS9
+            type: Transform
+            translation: [ 8.5, 4.125, 1.046 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS10
+            type: Transform
+            translation: [ 8.5, 4.355, 0.854 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS11
+            type: Transform
+            translation: [ 8.5, 4.585, 0.6615 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS12
+            type: Transform
+            translation: [ 8.5, 4.815, 0.469 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS13
+            type: Transform
+            translation: [ 8.5, 5.045, 0.2765 ]
+            elements: *STAIRS2
+          -
+            name: STAIRS14
+            type: Transform
+            translation: [ 8.5, 3.617, 1.375 ]
+            rotation: [ 1, 0, 0, -39.9 ]
+            elements: &STAIRS14
+              Shape: { geometry: { type: Box, size: [ 1.0, 3.9, 0.145 ]  } }
+          -
+            name: STAIRS15
+            type: Transform
+            translation: [ 8.5, 5.15, 0.09 ]
+            elements: &STAIRS15
+              Shape: { geometry: { type: Box, size: [ 1.0, 0.02, 0.18 ] } }
+          -
+            name: STAIRS16
+            type: Transform
+            translation: [ 8.5, 5.101, 0.053 ]
+            rotation: [ 1, 0, 0, -39.9 ]
+            elements: &STAIRS16
+              Shape: { geometry: { type: Box, size: [ 1.0, 0.15, 0.02 ]  } }
+          -
+            name: STAIRS17
+            type: Transform
+            translation: [ 8.5, 5.111, 0.12 ]
+            rotation: [ 1, 0, 0, 10 ]
+            elements: &STAIRS17
+              Shape: { geometry: { type: Box, size: [ 1.0, 0.072, 0.13 ]  } }
+          -
+            name: STAIRS18
+            type: Transform
+            translation: [ 8.5, 5.13, 0.045 ]
+            elements: &STAIRS18
+              Shape: { geometry: { type: Box, size: [ 1.0, 0.03, 0.03 ]  } }
+  -
+    name: STAIRS1_BOTTOM
+    parent: BASE
+    jointType: fixed
+    elements: &STAIRS_BOTTOM
+      Collision:
+        shape:
+          translation: [ 8.5, 5.675, 0.0085 ]
+          geometry: { type: Box, size: [ 1.0, 1.07, 0.017 ] }
+  -
+    name: STAIRS2_TOP
+    parent: BASE
+    jointType: fixed
+    elements: 
+      Transform:
+        translation: [ 10.175, 0, 0 ]
+        elements: *STAIRS_TOP
+  -
+    name: STAIRS2
+    parent: BASE
+    jointType: fixed
+    elements: 
+      Transform:
+        translation: [ 10.175, 0, 0 ]
+        elements: *STAIRS
+  -
+    name: STAIRS2_BOTTOM
+    parent: BASE
+    jointType: fixed
+    elements: 
+      Transform:
+        translation: [ 10.175, 0, 0 ]
+        elements: *STAIRS_BOTTOM

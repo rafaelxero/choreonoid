@@ -1,7 +1,7 @@
 format: ChoreonoidBody
 formatVersion: 1.0
 angleUnit: degree
-name: WorkPlatformStageHandrail # WRS_P_1F_cw_handrail
+name: TankPlatformStageHandrail # WRS_P_1F_cw_handrail
 
 SILIVER: &SILVER
   material:

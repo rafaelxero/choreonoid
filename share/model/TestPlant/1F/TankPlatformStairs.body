@@ -1,7 +1,7 @@
 format: ChoreonoidBody
 formatVersion: 1.0
 angleUnit: degree
-name: WorkPlatformStairs # WRS_P_1F_cw_stears_1
+name: TankPlatformStairs # WRS_P_1F_cw_stears_1
 
 links:
   -
@@ -20,7 +20,7 @@ links:
         elements:
           Resource:
             translation: [ -4.06, -4.7455, 0 ]
-            uri: "resource/WorkPlatformStairs.dae"
+            uri: "resource/TankPlatformStairs.dae"
       -
         type: Collision
         elements:

@@ -68,12 +68,12 @@ items:
                 isEditable: false
             - 
               id: 5
-              name: "WorkPlatformStage"
+              name: "Catwalk"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStage.body"
-                currentBaseLink: "STAGE"
+                modelFile: "${PROJECT_DIR}/1F/Catwalk.body"
+                currentBaseLink: "BASE"
                 rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
                   1, 0, 0, 
@@ -91,19 +91,19 @@ items:
                 isEditable: false
             - 
               id: 6
-              name: "WorkPlatformStairs1"
+              name: "PipeG"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairs.body"
-                currentBaseLink: "STAIRS"
-                rootPosition: [ 4.06, 4.7455, 0 ]
+                modelFile: "${PROJECT_DIR}/1F/PipeG.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
                   0, 0, 1 ]
                 jointPositions: [  ]
-                initialRootPosition: [ 4.06, 4.7455, 0 ]
+                initialRootPosition: [ 0, 0, 0 ]
                 initialRootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
@@ -114,19 +114,19 @@ items:
                 isEditable: false
             - 
               id: 7
-              name: "WorkPlatformStairs1Handrails"
+              name: "Ramp.body"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairsHandrails.body"
+                modelFile: "${PROJECT_DIR}/1F/Ramp.body"
                 currentBaseLink: "BASE"
-                rootPosition: [ 4.06, 4.7455, 0 ]
+                rootPosition: [ 0, 0, -0.015 ]
                 rootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
                   0, 0, 1 ]
                 jointPositions: [  ]
-                initialRootPosition: [ 4.06, 4.7455, 0 ]
+                initialRootPosition: [ 0, 0, -0.015 ]
                 initialRootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
@@ -137,22 +137,22 @@ items:
                 isEditable: false
             - 
               id: 8
-              name: "WorkPlatformStairs2"
+              name: "Platform"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairs.body"
-                currentBaseLink: "STAIRS"
-                rootPosition: [ 7.061, 7.03, 0 ]
+                modelFile: "${PROJECT_DIR}/1F/Platform.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
-                  -1, -1.2246468e-16, 0, 
-                  1.2246468e-16, -1, 0, 
+                  1, 0, 0, 
+                  0, 1, 0, 
                   0, 0, 1 ]
                 jointPositions: [  ]
-                initialRootPosition: [ 7.061, 7.03, 0 ]
+                initialRootPosition: [ 0, 0, 0 ]
                 initialRootAttitude: [ 
-                  -1, -1.2246468e-16, 0, 
-                  1.2246468e-16, -1, 0, 
+                  1, 0, 0, 
+                  0, 1, 0, 
                   0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
@@ -160,22 +160,22 @@ items:
                 isEditable: false
             - 
               id: 9
-              name: "WorkPlatformStairs2Handrails"
+              name: "SteelPlae"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairsHandrails.body"
+                modelFile: "${PROJECT_DIR}/1F/SteelPlate.body"
                 currentBaseLink: "BASE"
-                rootPosition: [ 7.061, 7.03, 0 ]
+                rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
-                  -1, -1.2246468e-16, 0, 
-                  1.2246468e-16, -1, 0, 
+                  1, 0, 0, 
+                  0, 1, 0, 
                   0, 0, 1 ]
                 jointPositions: [  ]
-                initialRootPosition: [ 7.061, 7.03, 0 ]
+                initialRootPosition: [ 0, 0, 0 ]
                 initialRootAttitude: [ 
-                  -1, -1.2246468e-16, 0, 
-                  1.2246468e-16, -1, 0, 
+                  1, 0, 0, 
+                  0, 1, 0, 
                   0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
@@ -183,6 +183,75 @@ items:
                 isEditable: false
             - 
               id: 10
+              name: "Grating"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/Grating.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 11
+              name: "ButtonBox"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/ButtonBox.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 12
+              name: "SwitchBoard"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/SwitchBoard.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 13
               name: "TankA"
               plugin: Body
               class: BodyItem
@@ -205,12 +274,35 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 11
-              name: "WorkPlatformStageHandrail"
+              id: 14
+              name: "TankPlatformStage"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStageHandrails.body"
+                modelFile: "${PROJECT_DIR}/1F/TankPlatformStage.body"
+                currentBaseLink: "STAGE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 15
+              name: "TankPlatformStageHandrail"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/TankPlatformStageHandrails.body"
                 currentBaseLink: "BASE"
                 rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
@@ -227,29 +319,98 @@ items:
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: false
-    - 
-      id: 12
-      name: "WorkPlatformHandrail"
-      plugin: Body
-      class: BodyItem
-      data: 
-        modelFile: "${PROJECT_DIR}/1F/resource/WorkPlatformHandrail.dae"
-        currentBaseLink: "Root"
-        rootPosition: [ 0, 0, 0 ]
-        rootAttitude: [ 
-          1, 0, 0, 
-          0, 1, 0, 
-          0, 0, 1 ]
-        jointPositions: [  ]
-        initialRootPosition: [ 0, 0, 0 ]
-        initialRootAttitude: [ 
-          1, 0, 0, 
-          0, 1, 0, 
-          0, 0, 1 ]
-        zmp: [ 0, 0, 0 ]
-        collisionDetection: true
-        selfCollisionDetection: false
-        isEditable: false
+            - 
+              id: 16
+              name: "TankPlatformStairs1"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/TankPlatformStairs.body"
+                currentBaseLink: "STAIRS"
+                rootPosition: [ 4.06, 4.7455, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 4.06, 4.7455, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 17
+              name: "TankPlatformStairs1Handrails"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/TankPlatformStairsHandrails.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 4.06, 4.7455, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 4.06, 4.7455, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 18
+              name: "TankPlatformStairs2"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/TankPlatformStairs.body"
+                currentBaseLink: "STAIRS"
+                rootPosition: [ 7.061, 7.03, 0 ]
+                rootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 7.061, 7.03, 0 ]
+                initialRootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 19
+              name: "TankPlatformStairs2Handrails"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/TankPlatformStairsHandrails.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 7.061, 7.03, 0 ]
+                rootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 7.061, 7.03, 0 ]
+                initialRootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
 views: 
   - 
     id: 0
@@ -262,8 +423,8 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 3, 4, 5, 6, 8, 10, 12 ]
-      expanded: [ 1, 2 ]
+      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
+      expanded: [ 1, 2, 12 ]
   - 
     id: 2
     plugin: Base
@@ -275,7 +436,7 @@ views:
     class: SceneView
     mounted: true
     state: 
-      editMode: false
+      editMode: true
       viewpointControlMode: thirdPerson
       collisionLines: false
       polygonMode: fill
@@ -313,12 +474,12 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ 7.66528662, 5.26388194, 1.85008864 ]
-          direction: [ -0.487065143, 0.842875843, -0.228752837 ]
-          up: [ -0.114452289, 0.198061945, 0.973484535 ]
+          eye: [ -5.79061797, 0.555215861, 1.6412475 ]
+          direction: [ 0.888791148, 0.457329821, 0.0299954995 ]
+          up: [ -0.0266717358, -0.0137240118, 0.999550034 ]
         - 
           camera: [ System, Orthographic ]
-          orthoHeight: 9.44735
+          orthoHeight: 1.6417
           near: 0.01
           far: 100
       backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
@@ -357,11 +518,8 @@ views:
       currentBodyItem: 11
       bodyItems: 
         - 
-          id: 6
-          selectedLinks: [ 0 ]
-        - 
-          id: 11
-          selectedLinks: [ 1, 2, 3, 4 ]
+          id: 5
+          selectedLinks: [ 4 ]
   - 
     id: 7
     plugin: Multicopter
@@ -491,6 +649,41 @@ Body:
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
+      - 
+        bodyItem: 13
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 14
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 15
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 16
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 17
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 18
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 19
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
     staticModelEditing: true
   "KinematicFaultChecker": 
     checkJointPositions: true
@@ -538,7 +731,7 @@ viewAreas:
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 588, 1085 ]
+              sizes: [ 0, 1673 ]
               children: 
                 - 
                   type: pane
