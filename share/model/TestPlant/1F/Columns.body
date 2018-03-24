@@ -1,0 +1,102 @@
+format: ChoreonoidBody
+formatVersion: 1.0
+angleUnit: degree
+name: Columns # 1F_pillar
+
+COLUMN: &COLUMN # 1F_pillar.dae
+  RigidBody:
+    mass: 200.0
+    inertia: [
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.0, 0.0, 1.0 ]
+    centerOfMass: [ 0.0, 0.0, 0.0 ]
+    elements:
+      Shape:
+        geometry: { type: Box, size: [ 0.348, 0.35, 5.0 ] }
+        appearance:
+          material:
+            diffuseColor: [ 0.56, 0.56, 0.56 ]
+            specularColor: [ 0.56, 0.56, 0.56 ]
+            shininess: 0.15
+
+links:
+  -
+    name: COLUMN1
+    jointType: fixed
+    elements:
+      Transform:
+        translation: [ 0.176, 0.175, 2.5 ]        
+        elements: *COLUMN
+  -
+    name: COLUMN2
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 5.974, 0.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN3
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 10.349, 0.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN4
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 16.149, 0.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN5
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 20.349, 0.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN6
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 0.176, 5.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN7
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 10.351, 5.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN8
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 20.349, 5.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN9
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 0.175, 12.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN10
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 5.974, 12.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN11
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 10.349, 12.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN12
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 16.149, 12.175, 2.5 ]
+    elements: *COLUMN
+  -
+    name: COLUMN13
+    parent: COLUMN1
+    jointType: fixed
+    translation: [ 20.349, 12.175, 2.5 ]
+    elements: *COLUMN
