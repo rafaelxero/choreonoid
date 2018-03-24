@@ -66,6 +66,190 @@ items:
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: false
+            - 
+              id: 5
+              name: "WorkPlatformStage"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStage.body"
+                currentBaseLink: "STAGE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 6
+              name: "WorkPlatformStairs1"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairs.body"
+                currentBaseLink: "STAIRS"
+                rootPosition: [ 4.06, 4.7455, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 4.06, 4.7455, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 7
+              name: "WorkPlatformStairs1Handrails"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairsHandrails.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 4.06, 4.7455, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 4.06, 4.7455, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 8
+              name: "WorkPlatformStairs2"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairs.body"
+                currentBaseLink: "STAIRS"
+                rootPosition: [ 7.061, 7.03, 0 ]
+                rootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 7.061, 7.03, 0 ]
+                initialRootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 9
+              name: "WorkPlatformStairs2Handrails"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStairsHandrails.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 7.061, 7.03, 0 ]
+                rootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 7.061, 7.03, 0 ]
+                initialRootAttitude: [ 
+                  -1, -1.2246468e-16, 0, 
+                  1.2246468e-16, -1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 10
+              name: "TankA"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/TankA.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 11
+              name: "WorkPlatformStageHandrail"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/WorkPlatformStageHandrails.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+    - 
+      id: 12
+      name: "WorkPlatformHandrail"
+      plugin: Body
+      class: BodyItem
+      data: 
+        modelFile: "${PROJECT_DIR}/1F/resource/WorkPlatformHandrail.dae"
+        currentBaseLink: "Root"
+        rootPosition: [ 0, 0, 0 ]
+        rootAttitude: [ 
+          1, 0, 0, 
+          0, 1, 0, 
+          0, 0, 1 ]
+        jointPositions: [  ]
+        initialRootPosition: [ 0, 0, 0 ]
+        initialRootAttitude: [ 
+          1, 0, 0, 
+          0, 1, 0, 
+          0, 0, 1 ]
+        zmp: [ 0, 0, 0 ]
+        collisionDetection: true
+        selfCollisionDetection: false
+        isEditable: false
 views: 
   - 
     id: 0
@@ -78,8 +262,7 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      selected: [ 2 ]
-      checked: [ 3, 4 ]
+      checked: [ 3, 4, 5, 6, 8, 10, 12 ]
       expanded: [ 1, 2 ]
   - 
     id: 2
@@ -104,7 +287,7 @@ views:
       worldLightAmbient: 0.3
       additionalLights: true
       fog: true
-      floorGrid: true
+      floorGrid: false
       floorGridSpan: 10
       floorGridInterval: 0.5
       xzGridSpan: 10
@@ -130,12 +313,12 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ -4.48141225, -16.7805695, 11.2728111 ]
-          direction: [ 0.55674694, 0.764871862, -0.324043021 ]
-          up: [ 0.190699667, 0.261987627, 0.946042346 ]
+          eye: [ 7.66528662, 5.26388194, 1.85008864 ]
+          direction: [ -0.487065143, 0.842875843, -0.228752837 ]
+          up: [ -0.114452289, 0.198061945, 0.973484535 ]
         - 
           camera: [ System, Orthographic ]
-          orthoHeight: 2.70671
+          orthoHeight: 9.44735
           near: 0.01
           far: 100
       backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
@@ -163,6 +346,7 @@ views:
       spinBox: true
       slider: true
       labelOnLeft: true
+      currentBodyItem: 11
   - 
     id: 6
     plugin: Body
@@ -170,6 +354,14 @@ views:
     mounted: true
     state: 
       listingMode: "Link List"
+      currentBodyItem: 11
+      bodyItems: 
+        - 
+          id: 6
+          selectedLinks: [ 0 ]
+        - 
+          id: 11
+          selectedLinks: [ 1, 2, 3, 4 ]
   - 
     id: 7
     plugin: Multicopter
@@ -181,8 +373,8 @@ views:
     class: RTSNameServerView
     mounted: true
     state: 
-      host: 
-      port: 0
+      host: localhost
+      port: 2809
   - 
     id: 9
     plugin: Python
@@ -207,8 +399,43 @@ toolbars:
     snapDistance: 0.025
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
+  "BodyBar": 
+    current: 11
   "LeggedBodyBar": 
     stanceWidth: 0.15
+  "BodyMotionGenerationBar": 
+    autoGenerationForNewBody: true
+    balancer: false
+    autoGeneration: false
+    timeScaleRatio: 1
+    preInitialDuration: 1
+    postFinalDuration: 1
+    onlyTimeBarRange: false
+    makeNewBodyItem: true
+    stealthyStepMode: true
+    stealthyHeightRatioThresh: 2
+    flatLiftingHeight: 0.005
+    flatLandingHeight: 0.005
+    impactReductionHeight: 0.005
+    impactReductionTime: 0.04
+    autoZmp: true
+    minZmpTransitionTime: 0.1
+    zmpCenteringTimeThresh: 0.03
+    zmpTimeMarginBeforeLiftingSpin: 0
+    zmpMaxDistanceFromCenter: 0.02
+    allLinkPositions: false
+    lipSyncMix: false
+    timeToStartBalancer: 0
+    balancerIterations: 2
+    plainBalancerMode: false
+    boundaryConditionType: position
+    boundarySmootherType: quintic
+    boundarySmootherTime: 0.5
+    boundaryCmAdjustment: false
+    boundaryCmAdjustmentTime: 1
+    waistHeightRelaxation: false
+    gravity: 9.8
+    dynamicsTimeRatio: 1
 Body: 
   "BodyMotionEngine": 
     updateJointVelocities: false
@@ -221,6 +448,46 @@ Body:
         showZmp: false
       - 
         bodyItem: 4
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 5
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 6
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 7
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 8
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 9
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 10
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 11
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 12
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
@@ -248,12 +515,12 @@ viewAreas:
     contents: 
       type: splitter
       orientation: horizontal
-      sizes: [ 326, 1588 ]
+      sizes: [ 419, 1679 ]
       children: 
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 470, 470 ]
+          sizes: [ 692, 691 ]
           children: 
             - 
               type: pane
@@ -262,16 +529,16 @@ viewAreas:
             - 
               type: pane
               views: [ 0, 6, 8 ]
-              current: 0
+              current: 6
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 671, 269 ]
+          sizes: [ 987, 396 ]
           children: 
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 688, 894 ]
+              sizes: [ 588, 1085 ]
               children: 
                 - 
                   type: pane
