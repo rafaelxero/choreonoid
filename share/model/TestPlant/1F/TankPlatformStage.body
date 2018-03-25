@@ -7,6 +7,7 @@ links:
   -
     name: STAGE
     jointType: fixed
+    material: Ground
     elements:
       -
         type: Visual

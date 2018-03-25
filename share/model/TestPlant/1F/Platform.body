@@ -20,6 +20,7 @@ links:
       1.0, 0.0, 0.0,
       0.0, 1.0, 0.0,
       0.0, 0.0, 1.0 ]
+    material: Ground
     elements:
       -
         name: BOX1
@@ -33,6 +34,7 @@ links:
     name: STAIRS1
     parent: BASE
     jointType: fixed
+    material: Ground
     elements:
           -
             name: BOX2
@@ -90,6 +92,7 @@ links:
     name: STAIRS2
     parent: BASE
     jointType: fixed
+    material: Ground
     elements:
           -
             name: BOX4

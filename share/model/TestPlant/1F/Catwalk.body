@@ -14,6 +14,7 @@ links:
       1.0, 0.0, 0.0,
       0.0, 1.0, 0.0,
       0.0, 0.0, 1.0 ]
+    material: Ground
     elements:
       -
         type: Visual
@@ -23,6 +24,7 @@ links:
     name: CATWALK1
     parent: BASE
     jointType: fixed
+    material: Ground
     elements:
       Collision:
         elements:
@@ -35,6 +37,7 @@ links:
     name: CATWALK2
     parent: BASE
     jointType: fixed
+    material: Ground
     elements:
       Collision:
         shape:
@@ -44,6 +47,7 @@ links:
     name: CATWALK3
     parent: BASE
     jointType: fixed
+    material: Ground
     elements:
       Collision:
         elements:
@@ -54,6 +58,7 @@ links:
     name: CATWALK4
     parent: BASE
     jointType: fixed
+    material: Ground
     elements:
       Collision:
         shape:
@@ -63,6 +68,7 @@ links:
     name: CATWALK5
     parent: BASE
     jointType: fixed
+    material: Ground
     elements:
       Collision:
         shape:
@@ -72,6 +78,7 @@ links:
     name: STAIRS1_TOP
     parent: BASE
     jointType: fixed
+    material: Ground
     elements: &STAIRS_TOP
       Collision:
         shape:
@@ -81,6 +88,7 @@ links:
     name: STAIRS1
     parent: BASE
     jointType: fixed
+    material: Ground
     elements: &STAIRS
       Collision:
         elements:
@@ -182,6 +190,7 @@ links:
     name: STAIRS1_BOTTOM
     parent: BASE
     jointType: fixed
+    material: Ground
     elements: &STAIRS_BOTTOM
       Collision:
         shape:
@@ -191,6 +200,7 @@ links:
     name: STAIRS2_TOP
     parent: BASE
     jointType: fixed
+    material: Ground
     elements: 
       Transform:
         translation: [ 10.175, 0, 0 ]
@@ -199,6 +209,7 @@ links:
     name: STAIRS2
     parent: BASE
     jointType: fixed
+    material: Ground
     elements: 
       Transform:
         translation: [ 10.175, 0, 0 ]
@@ -207,6 +218,7 @@ links:
     name: STAIRS2_BOTTOM
     parent: BASE
     jointType: fixed
+    material: Ground
     elements: 
       Transform:
         translation: [ 10.175, 0, 0 ]
