@@ -56,9 +56,12 @@ CAMERA_MCM-4350FISH: &CAMERA_MCM-4350FISH
   type: Camera
   format: COLOR
   fieldOfView: 90
-  width: 1280
-  height: 720
-  frameRate: 30
+  #width: 1280
+  #height: 720
+  #frameRate: 30
+  width: 640
+  height: 480
+  frameRate: 10
   elements:
     RigidBody:
       centerOfMass: [ -0.00003, 0.00640, 0.00007 ]

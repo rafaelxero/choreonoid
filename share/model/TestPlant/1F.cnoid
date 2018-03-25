@@ -206,6 +206,29 @@ items:
                 isEditable: false
             - 
               id: 11
+              name: "PipeL"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeL.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 12
               name: "ButtonBox"
               plugin: Body
               class: BodyItem
@@ -228,7 +251,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 12
+              id: 13
               name: "SwitchBoard"
               plugin: Body
               class: BodyItem
@@ -251,7 +274,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 13
+              id: 14
               name: "TankA"
               plugin: Body
               class: BodyItem
@@ -274,7 +297,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 14
+              id: 15
               name: "TankPlatformStage"
               plugin: Body
               class: BodyItem
@@ -297,7 +320,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 15
+              id: 16
               name: "TankPlatformStageHandrail"
               plugin: Body
               class: BodyItem
@@ -320,7 +343,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 16
+              id: 17
               name: "TankPlatformStairs1"
               plugin: Body
               class: BodyItem
@@ -343,7 +366,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 17
+              id: 18
               name: "TankPlatformStairs1Handrails"
               plugin: Body
               class: BodyItem
@@ -366,7 +389,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 18
+              id: 19
               name: "TankPlatformStairs2"
               plugin: Body
               class: BodyItem
@@ -389,7 +412,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 19
+              id: 20
               name: "TankPlatformStairs2Handrails"
               plugin: Body
               class: BodyItem
@@ -411,6 +434,29 @@ items:
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: false
+            - 
+              id: 21
+              name: "FireHydrant"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/FireHydrant.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
 views: 
   - 
     id: 0
@@ -423,8 +469,8 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
-      expanded: [ 1, 2, 12 ]
+      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 ]
+      expanded: [ 1, 2, 13 ]
   - 
     id: 2
     plugin: Base
@@ -436,7 +482,7 @@ views:
     class: SceneView
     mounted: true
     state: 
-      editMode: true
+      editMode: false
       viewpointControlMode: thirdPerson
       collisionLines: false
       polygonMode: fill
@@ -474,12 +520,12 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ -5.79061797, 0.555215861, 1.6412475 ]
-          direction: [ 0.888791148, 0.457329821, 0.0299954995 ]
-          up: [ -0.0266717358, -0.0137240118, 0.999550034 ]
+          eye: [ -1.38689051, 10.9868718, 2.09331441 ]
+          direction: [ 0.884158058, -0.460302261, -0.0799146922 ]
+          up: [ 0.0708839266, -0.0369029399, 0.996801706 ]
         - 
           camera: [ System, Orthographic ]
-          orthoHeight: 1.6417
+          orthoHeight: 0.775485
           near: 0.01
           far: 100
       backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
@@ -522,11 +568,6 @@ views:
           selectedLinks: [ 4 ]
   - 
     id: 7
-    plugin: Multicopter
-    class: MulticopterMonitorView
-    mounted: true
-  - 
-    id: 8
     plugin: OpenRTM
     class: RTSNameServerView
     mounted: true
@@ -534,7 +575,7 @@ views:
       host: localhost
       port: 2809
   - 
-    id: 9
+    id: 8
     plugin: Python
     class: PythonConsoleView
     mounted: true
@@ -684,6 +725,16 @@ Body:
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
+      - 
+        bodyItem: 20
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 21
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
     staticModelEditing: true
   "KinematicFaultChecker": 
     checkJointPositions: true
@@ -708,12 +759,12 @@ viewAreas:
     contents: 
       type: splitter
       orientation: horizontal
-      sizes: [ 419, 1679 ]
+      sizes: [ 382, 1532 ]
       children: 
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 692, 691 ]
+          sizes: [ 592, 348 ]
           children: 
             - 
               type: pane
@@ -721,17 +772,17 @@ viewAreas:
               current: 1
             - 
               type: pane
-              views: [ 0, 6, 8 ]
+              views: [ 0, 6, 7 ]
               current: 6
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 987, 396 ]
+          sizes: [ 940, 0 ]
           children: 
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 0, 1673 ]
+              sizes: [ 0, 1526 ]
               children: 
                 - 
                   type: pane
@@ -743,7 +794,7 @@ viewAreas:
                   current: 3
             - 
               type: pane
-              views: [ 2, 7, 9 ]
+              views: [ 2, 8 ]
               current: 2
 layoutOfToolBars: 
   rows: 

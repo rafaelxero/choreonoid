@@ -128,6 +128,7 @@ items:
           class: GLVisionSimulatorItem
           data: 
             enabled: true
+            targetSensors: [ FRONT_CAMERA ]
             maxFrameRate: 1000
             maxLatency: 1
             recordVisionData: false
@@ -473,12 +474,12 @@ viewAreas:
     contents: 
       type: splitter
       orientation: horizontal
-      sizes: [ 334, 1420 ]
+      sizes: [ 364, 1550 ]
       children: 
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 578, 578 ]
+          sizes: [ 470, 470 ]
           children: 
             - 
               type: pane
@@ -491,7 +492,7 @@ viewAreas:
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 828, 328 ]
+          sizes: [ 673, 267 ]
           children: 
             - 
               type: pane
