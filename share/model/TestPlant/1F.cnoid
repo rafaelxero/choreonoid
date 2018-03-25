@@ -551,6 +551,52 @@ items:
                 isEditable: false
             - 
               id: 26
+              name: "PipeP2"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeP2.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0.41, 1.7, -0.16 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0.41, 1.7, -0.16 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 27
+              name: "PipePS"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipePS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0.04, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0.04, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 28
               name: "PipeY"
               plugin: Body
               class: BodyItem
@@ -573,7 +619,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 27
+              id: 29
               name: "PipeBG1"
               plugin: Body
               class: BodyItem
@@ -596,7 +642,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 28
+              id: 30
               name: "PipeBG2"
               plugin: Body
               class: BodyItem
@@ -619,7 +665,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 29
+              id: 31
               name: "PipeBG3"
               plugin: Body
               class: BodyItem
@@ -653,8 +699,9 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 ]
-      expanded: [ 1, 2, 12 ]
+      selected: [ 2 ]
+      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 ]
+      expanded: [ 1, 12, 25, 28 ]
   - 
     id: 2
     plugin: Base
@@ -704,12 +751,12 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ 7.38192615, 22.0312637, 6.58532092 ]
-          direction: [ -0.0373742205, -0.881165547, -0.471328385 ]
-          up: [ -0.0199732131, -0.470904999, 0.881957796 ]
+          eye: [ 13.2102754, 8.81981889, 1.22007683 ]
+          direction: [ -0.939914822, -0.33416781, -0.0699428457 ]
+          up: [ -0.0659017106, -0.0234300277, 0.997551 ]
         - 
           camera: [ System, Orthographic ]
-          orthoHeight: 9.44734
+          orthoHeight: 12.1306
           near: 0.01
           far: 100
       backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
@@ -737,7 +784,7 @@ views:
       spinBox: true
       slider: true
       labelOnLeft: true
-      currentBodyItem: 29
+      currentBodyItem: 31
   - 
     id: 6
     plugin: Body
@@ -745,7 +792,7 @@ views:
     mounted: true
     state: 
       listingMode: "Link Tree"
-      currentBodyItem: 29
+      currentBodyItem: 31
       bodyItems: 
         - 
           id: 5
@@ -754,23 +801,29 @@ views:
           id: 10
           selectedLinks: [ 1 ]
         - 
+          id: 21
+          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6 ]
+        - 
           id: 24
           selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
         - 
-          id: 29
+          id: 31
           selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
         - 
-          id: 28
-          selectedLinks: [ 8 ]
-        - 
-          id: 21
-          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6 ]
+          id: 26
+          selectedLinks: [ 0 ]
         - 
           id: 25
           selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 ]
         - 
-          id: 26
+          id: 30
+          selectedLinks: [ 8 ]
+        - 
+          id: 28
           selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
+        - 
+          id: 27
+          selectedLinks: [ 0 ]
   - 
     id: 7
     plugin: OpenRTM
@@ -804,7 +857,7 @@ toolbars:
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
   "BodyBar": 
-    current: 29
+    current: 31
   "LeggedBodyBar": 
     stanceWidth: 0.15
   "BodyMotionGenerationBar": 
@@ -980,6 +1033,16 @@ Body:
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
+      - 
+        bodyItem: 30
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 31
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
     staticModelEditing: true
   "KinematicFaultChecker": 
     checkJointPositions: true
@@ -1004,7 +1067,7 @@ viewAreas:
     contents: 
       type: splitter
       orientation: horizontal
-      sizes: [ 382, 1532 ]
+      sizes: [ 310, 1604 ]
       children: 
         - 
           type: splitter
@@ -1027,7 +1090,7 @@ viewAreas:
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 0, 1526 ]
+              sizes: [ 0, 1598 ]
               children: 
                 - 
                   type: pane
