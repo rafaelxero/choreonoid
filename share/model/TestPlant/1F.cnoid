@@ -91,29 +91,6 @@ items:
                 isEditable: false
             - 
               id: 6
-              name: "PipeG"
-              plugin: Body
-              class: BodyItem
-              data: 
-                modelFile: "${PROJECT_DIR}/1F/PipeG.body"
-                currentBaseLink: "BASE"
-                rootPosition: [ 0, 0, 0 ]
-                rootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
-                jointPositions: [  ]
-                initialRootPosition: [ 0, 0, 0 ]
-                initialRootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
-                zmp: [ 0, 0, 0 ]
-                collisionDetection: true
-                selfCollisionDetection: false
-                isEditable: false
-            - 
-              id: 7
               name: "Ramp.body"
               plugin: Body
               class: BodyItem
@@ -136,7 +113,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 8
+              id: 7
               name: "Platform"
               plugin: Body
               class: BodyItem
@@ -159,7 +136,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 9
+              id: 8
               name: "SteelPlae"
               plugin: Body
               class: BodyItem
@@ -182,7 +159,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 10
+              id: 9
               name: "Grating"
               plugin: Body
               class: BodyItem
@@ -205,7 +182,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 11
+              id: 10
               name: "PipeL"
               plugin: Body
               class: BodyItem
@@ -228,7 +205,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 12
+              id: 11
               name: "ButtonBox"
               plugin: Body
               class: BodyItem
@@ -251,7 +228,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 13
+              id: 12
               name: "SwitchBoard"
               plugin: Body
               class: BodyItem
@@ -274,7 +251,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 14
+              id: 13
               name: "TankA"
               plugin: Body
               class: BodyItem
@@ -297,7 +274,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 15
+              id: 14
               name: "TankPlatformStage"
               plugin: Body
               class: BodyItem
@@ -320,7 +297,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 16
+              id: 15
               name: "TankPlatformStageHandrail"
               plugin: Body
               class: BodyItem
@@ -343,7 +320,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 17
+              id: 16
               name: "TankPlatformStairs1"
               plugin: Body
               class: BodyItem
@@ -366,7 +343,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 18
+              id: 17
               name: "TankPlatformStairs1Handrails"
               plugin: Body
               class: BodyItem
@@ -389,7 +366,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 19
+              id: 18
               name: "TankPlatformStairs2"
               plugin: Body
               class: BodyItem
@@ -412,7 +389,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
-              id: 20
+              id: 19
               name: "TankPlatformStairs2Handrails"
               plugin: Body
               class: BodyItem
@@ -435,12 +412,219 @@ items:
                 selfCollisionDetection: false
                 isEditable: false
             - 
+              id: 20
+              name: "PipeG"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeG.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
               id: 21
+              name: "PipeB"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeB.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 22
               name: "FireHydrant"
               plugin: Body
               class: BodyItem
               data: 
                 modelFile: "${PROJECT_DIR}/1F/FireHydrant.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 23
+              name: "TankB"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/TankB.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0.03, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0.03, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 24
+              name: "Pump"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/Pump.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 25
+              name: "PipeP1"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeP1.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0.4, 2.69, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0.4, 2.69, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 26
+              name: "PipeY"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeY.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 27
+              name: "PipeBG1"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeBG1.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 28
+              name: "PipeBG2"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeBG2.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: false
+            - 
+              id: 29
+              name: "PipeBG3"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${PROJECT_DIR}/1F/PipeBG3.body"
                 currentBaseLink: "BASE"
                 rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
@@ -469,8 +653,8 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 ]
-      expanded: [ 1, 2, 13 ]
+      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 ]
+      expanded: [ 1, 2, 12 ]
   - 
     id: 2
     plugin: Base
@@ -520,12 +704,12 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ -1.38689051, 10.9868718, 2.09331441 ]
-          direction: [ 0.884158058, -0.460302261, -0.0799146922 ]
-          up: [ 0.0708839266, -0.0369029399, 0.996801706 ]
+          eye: [ 7.38192615, 22.0312637, 6.58532092 ]
+          direction: [ -0.0373742205, -0.881165547, -0.471328385 ]
+          up: [ -0.0199732131, -0.470904999, 0.881957796 ]
         - 
           camera: [ System, Orthographic ]
-          orthoHeight: 0.775485
+          orthoHeight: 9.44734
           near: 0.01
           far: 100
       backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
@@ -553,19 +737,40 @@ views:
       spinBox: true
       slider: true
       labelOnLeft: true
-      currentBodyItem: 11
+      currentBodyItem: 29
   - 
     id: 6
     plugin: Body
     class: LinkSelectionView
     mounted: true
     state: 
-      listingMode: "Link List"
-      currentBodyItem: 11
+      listingMode: "Link Tree"
+      currentBodyItem: 29
       bodyItems: 
         - 
           id: 5
           selectedLinks: [ 4 ]
+        - 
+          id: 10
+          selectedLinks: [ 1 ]
+        - 
+          id: 24
+          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
+        - 
+          id: 29
+          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
+        - 
+          id: 28
+          selectedLinks: [ 8 ]
+        - 
+          id: 21
+          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6 ]
+        - 
+          id: 25
+          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 ]
+        - 
+          id: 26
+          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
   - 
     id: 7
     plugin: OpenRTM
@@ -599,7 +804,7 @@ toolbars:
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
   "BodyBar": 
-    current: 11
+    current: 29
   "LeggedBodyBar": 
     stanceWidth: 0.15
   "BodyMotionGenerationBar": 
@@ -735,6 +940,46 @@ Body:
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
+      - 
+        bodyItem: 22
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 23
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 24
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 25
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 26
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 27
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 28
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 29
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
     staticModelEditing: true
   "KinematicFaultChecker": 
     checkJointPositions: true
@@ -764,7 +1009,7 @@ viewAreas:
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 592, 348 ]
+          sizes: [ 560, 380 ]
           children: 
             - 
               type: pane
@@ -777,7 +1022,7 @@ viewAreas:
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 940, 0 ]
+          sizes: [ 833, 107 ]
           children: 
             - 
               type: splitter
