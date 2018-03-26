@@ -82,7 +82,7 @@ items:
             recordCollisionData: false
             controllerOptions: ""
             Gravity: [ 0, 0, -9.80665 ]
-            NumThreads: 1
+            NumThreads: 6
             ContactReduction: true
             ContactReductionBinResolution: 3
             ContactReductionThreshhold: 12
