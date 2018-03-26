@@ -1,0 +1,147 @@
+format: ChoreonoidBody
+formatVersion: 1.0
+angleUnit: degree
+name: Chimney
+
+links:
+  -
+    name: Floor
+    jointType: fixed
+    mass: 200.0
+    inertia: [
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.0, 0.0, 1.0 ]
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Floor.dae"
+  -
+    name: COLUMNS
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Columns.dae"
+  -
+    name: Floor2
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Floor2.dae"
+  -
+    name: Floor3
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Floor3.dae"
+  -
+    name: Floor4
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Floor4.dae"
+  -
+    name: Floor5
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Floor5.dae"
+  -
+    name: Handrails
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Handrails.dae"
+  -
+    name: Chimney1
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney1.dae"
+  -
+    name: Chimney1Ladder
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney1Ladder.dae"
+  -
+    name: Chimney1Stage
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney1Stage.dae"
+  -
+    name: Chimney1StageHandrails
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney1StageHandrails.dae"
+  -
+    name: Chimney2
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney2.dae"
+  -
+    name: Chimney2Ladder
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney2Ladder.dae"
+  -
+    name: Chimney2Stage
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney2Stage.dae"
+  -
+    name: Chimney2StageHandrails
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney2StageHandrails.dae"
+  -
+    name: Chimney3
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney3.dae"
+  -
+    name: Chimney3Ladder
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 20.4 ]
+        uri: "resource/Chimney3Ladder.dae"
+

@@ -1,0 +1,42 @@
+format: ChoreonoidBody
+formatVersion: 1.0
+angleUnit: degree
+name: 2F
+
+links:
+  -
+    name: Floor
+    jointType: fixed
+    mass: 200.0
+    inertia: [
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.0, 0.0, 1.0 ]
+    elements:
+      Resource: 
+        translation: [ 0, 0, 5.1 ]
+        uri: "resource/Floor.dae"
+  -
+    name: COLUMNS
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 0, 0, 5.1 ]
+        uri: "resource/Columns.dae"
+  -
+    name: Floor2
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 10.175, 0, 4.9 ]
+        uri: "resource/Floor2.dae"
+  -
+    name: Handrails
+    parent: Floor
+    jointType: fixed
+    elements:
+      Resource: 
+        translation: [ 0, 0, 4.9 ]
+        uri: "resource/Handrails.dae"
