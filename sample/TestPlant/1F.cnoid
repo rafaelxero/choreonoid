@@ -649,21 +649,22 @@ items:
               data: 
                 modelFile: "${SHARE}/model/TestPlant/1F/PipeBG2.body"
                 currentBaseLink: "BASE"
-                rootPosition: [ 0, 0, 0 ]
+                rootPosition: [ 8.23, 10.445, 0 ]
                 rootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
                   0, 0, 1 ]
-                jointPositions: [  ]
-                initialRootPosition: [ 0, 0, 0 ]
+                jointPositions: [  0.000000 ]
+                initialRootPosition: [ 8.23, 10.445, 0 ]
                 initialRootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
                   0, 0, 1 ]
+                initialJointPositions: [  0.000000 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
-                isEditable: false
+                isEditable: true
             - 
               id: 31
               name: "PipeBG3"
@@ -750,9 +751,9 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ 13.2102754, 8.81981889, 1.22007683 ]
-          direction: [ -0.939914822, -0.33416781, -0.0699428457 ]
-          up: [ -0.0659017107, -0.0234300277, 0.997551 ]
+          eye: [ 19.6125055, 18.9085864, 4.00709973 ]
+          direction: [ -0.880901865, -0.460391823, -0.109778298 ]
+          up: [ -0.0972919306, -0.0508483533, 0.993956098 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 12.1306
@@ -810,7 +811,7 @@ views:
           far: 100
           eye: [ 18.6393745, 7.22949869, 1.37028264 ]
           direction: [ -0.999732815, -0.0136448198, 0.0186579001 ]
-          up: [ 0.0186561625, 0.000254628008, 0.999825926 ]
+          up: [ 0.0186561625, 0.000254628009, 0.999825926 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 20
@@ -841,7 +842,7 @@ views:
       spinBox: true
       slider: true
       labelOnLeft: true
-      currentBodyItem: 31
+      currentBodyItem: 30
   - 
     id: 7
     plugin: Body
@@ -849,35 +850,32 @@ views:
     mounted: true
     state: 
       listingMode: "Link Tree"
-      currentBodyItem: 31
+      currentBodyItem: 30
       bodyItems: 
         - 
           id: 5
           selectedLinks: [ 4 ]
         - 
+          id: 28
+          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
+        - 
           id: 10
           selectedLinks: [ 1 ]
-        - 
-          id: 21
-          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6 ]
-        - 
-          id: 24
-          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
-        - 
-          id: 25
-          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 ]
         - 
           id: 27
           selectedLinks: [ 0 ]
         - 
-          id: 28
-          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
-        - 
-          id: 30
-          selectedLinks: [ 8 ]
+          id: 21
+          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6 ]
         - 
           id: 26
           selectedLinks: [ 0 ]
+        - 
+          id: 25
+          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 ]
+        - 
+          id: 24
+          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
         - 
           id: 31
           selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
@@ -918,7 +916,7 @@ toolbars:
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
   "BodyBar": 
-    current: 31
+    current: 30
   "LeggedBodyBar": 
     stanceWidth: 0.15
   "BodyMotionGenerationBar": 

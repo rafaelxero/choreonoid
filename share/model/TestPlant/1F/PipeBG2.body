@@ -6,10 +6,12 @@ name: PipeBG2 # WRS_P_1F_pipe_b_g_2
 ATTACHMENT_1: &ATTACHMENT_1
   Shape: { geometry: { type: Cylinder, radius: 0.0925, height: 0.036 } }
 
+OFFSET: &OFFSET [ -8.23, -10.445, 0 ]
 
 links:
   -
     name: BASE
+    translation: [ 8.23, 10.445, 0 ]
     jointType: fixed
     mass: 200.0
     inertia: [
@@ -18,10 +20,53 @@ links:
       0.0, 0.0, 1.0 ]
     elements:
       Visual:
-        resource: { uri: "resource/PipeBG2.dae" }
+        resource:
+          translation: *OFFSET
+          uri: "resource/PipeBG2.dae"
+  -
+    name: PIPE1_VALVE
+    parent: BASE
+    jointType: fixed
+    translation: [ 0.292, 0.2925, 0.787 ]
+    elements:
+      Collision:
+        resource: { uri: "resource/valves.yaml", node: VALVE_226_COLLISION }
+  -
+    name: PIPE1_VALVE_HANDLE
+    parent: PIPE1_VALVE
+    jointType: revolute
+    jointAxis: X
+    jointId: 0
+    # For the friction for AGX
+    jointMotor: true
+    jointMotorCompliance: 0.9
+    elements:
+      Resource:
+        uri: "resource/valves.yaml"
+        node: VALVE_HANDLE_213_RIGID_BODY
+      Visual:
+        elements:
+          Transform:
+            translation: [ 0.105, -0.1063, 0.1065 ]
+            elements:
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1126 }
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1138 }
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1132 }
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1162 }
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1156 }
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1150 }
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1144 }
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1168 }
+      Collision:
+        elements:
+          Transform:
+            translation: [ 0.12, 0, 0 ]
+            rotation: [ 0, 1, 0, 90 ]
+            elements: { type: Resource, uri: "resource/valves.yaml", node: HANDLE_213_COLLISION }
   -
     name: PIPE1-1
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -42,6 +87,7 @@ links:
   -
     name: PIPE1-2
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -147,6 +193,7 @@ links:
   -
     name: PIPE1-3
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -173,6 +220,7 @@ links:
   -
     name: PIPE1_METER
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -237,6 +285,7 @@ links:
   -
     name: PIPE2-1
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -256,6 +305,7 @@ links:
   -
     name: PIPE2-2
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -365,6 +415,7 @@ links:
   -
     name: PIPE2-3
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -390,6 +441,7 @@ links:
   -
     name: PIPE2_METER
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -446,8 +498,42 @@ links:
             rotation: [ 0, 0, 1, 90 ]
             elements: *METER_DISPLAY_1
   -
+    name: PIPE3_VALVE
+    parent: BASE
+    jointType: fixed
+    translation: [ 0.288, -0.3, 0.787 ]
+    elements:
+      Collision:
+        resource: { uri: "resource/valves.yaml", node: VALVE_226_COLLISION }
+  -
+    name: PIPE3_VALVE_HANDLE
+    parent: PIPE3_VALVE
+    jointType: fixed # revolute
+    jointAxis: X
+    jointId: 1
+    # For the friction for AGX
+    jointMotor: true
+    jointMotorCompliance: 0.9
+    elements:
+      Resource:
+        uri: "resource/valves.yaml"
+        node: VALVE_HANDLE_213_RIGID_BODY
+      Visual:
+        elements:
+          Transform:
+            translation: [ 0.105, -0.1063, 0.1065 ]
+            elements_:
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1064 }
+      Collision:
+        elements:
+          Transform:
+            translation: [ 0.117, 0, 0 ]
+            rotation: [ 0, 1, 0, 90 ]
+            elements: { type: Resource, uri: "resource/valves.yaml", node: HANDLE_213_COLLISION }
+  -
     name: PIPE3-1
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -467,6 +553,7 @@ links:
   -
     name: PIPE3-2
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -576,6 +663,7 @@ links:
   -
     name: PIPE3-3
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
@@ -606,6 +694,7 @@ links:
   -
     name: PIPE3_METER
     parent: BASE
+    translation: *OFFSET
     jointType: fixed
     elements:
       Collision:
