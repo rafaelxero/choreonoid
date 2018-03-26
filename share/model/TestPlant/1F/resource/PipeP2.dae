@@ -1594,10 +1594,10 @@
     </library_effects>
     <library_images>
         <image id="ID27">
-            <init_from>WRS_P_1F_pipe_p_2/__________2017-01-30_15.31.52.png</init_from>
+            <init_from>Meter.png</init_from>
         </image>
         <image id="ID40">
-            <init_from>WRS_P_1F_pipe_p_2/Metal_Rusted.jpg</init_from>
+            <init_from>MetalRusted.jpg</init_from>
         </image>
     </library_images>
     <library_nodes>

@@ -198,7 +198,7 @@
     </library_effects>
     <library_images>
         <image id="ID12">
-            <init_from>chimney_F_surface_5/Polished_Concrete_Old.jpg</init_from>
+            <init_from>PolishedConcreteOld.jpg</init_from>
         </image>
     </library_images>
     <scene>
