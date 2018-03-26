@@ -230,7 +230,7 @@ views:
     class: RTSNameServerView
     mounted: true
     state: 
-      host: 192.168.43.190
+      host: localhost
       port: 2809
   - 
     id: 11
