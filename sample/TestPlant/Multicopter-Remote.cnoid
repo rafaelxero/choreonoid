@@ -40,8 +40,32 @@ items:
             controller: "MulticopterController.so"
             baseDirectory: "Controller directory"
             reloading: false
+          children:
+            - 
+              id: 3
+              name: "MulticopterJoystickInput"
+              plugin: Body
+              class: SimpleControllerItem
+              data: 
+                isNoDelayMode: true
+                controllerOptions: ""
+                controller: "RemoteJoystickInputController.so"
+                baseDirectory: "Controller directory"
+                reloading: false
         - 
-          id: 3
+          id: 4
+          name: "VisionIoSensorRTC"
+          plugin: OpenRTM
+          class: BodyIoRTCItem
+          data: 
+            isNoDelayMode: true
+            controllerOptions: ""
+            module: "VisionSensorIoRTC.so"
+            baseDirectory: "RTC directory"
+            instanceName: ""
+            periodicRate: 0
+        - 
+          id: 5
           name: "BodyTrackingCamera"
           plugin: Body
           class: BodyTrackingCameraItem
@@ -50,75 +74,93 @@ items:
             nearClipDistance: 0.01
             farClipDistance: 100
     - 
-      id: 4
-      name: "MulticopterSimulator"
-      plugin: Multicopter
-      class: MulticopterSimulatorItem
+      id: 6
+      name: "GLVisionSimulator"
+      plugin: Body
+      class: GLVisionSimulatorItem
       data: 
         enabled: true
-        Fluid Density[kg/m^3]: 1.293
-        Viscosity[Pa･s]: 1.7e-05
-        Fluid Velocity[m/s]: [ 0, 0, 0 ]
-        Air Definition File: ""
-        Wall Effect: false
-        Ground Effect: false
-        Output Parameter: false
-        Output Time Step[s]: 1
+        maxFrameRate: 1000
+        maxLatency: 1
+        recordVisionData: false
+        threadMode: Sensor
+        bestEffort: false
+        allSceneObjects: false
+        rangeSensorPrecisionRatio: 2
+        depthError: 0
+        enableHeadLight: true
+        enableAdditionalLights: true
       children: 
         - 
-          id: 6
-          name: "AGXSimulator"
-          plugin: AGXDynamics
-          class: AGXSimulatorItem
-          data: 
-            timestep: 0.005
-            realtimeSync: true
-            recording: "full"
-            timeRangeMode: "Unlimited"
-            timeLength: 180
-            allLinkPositionOutputMode: true
-            deviceStateOutput: true
-            controllerThreads: true
-            recordCollisionData: false
-            controllerOptions: ""
-            Gravity: [ 0, 0, -9.80665 ]
-            NumThreads: 1
-            ContactReduction: true
-            ContactReductionBinResolution: 3
-            ContactReductionThreshhold: 12
-            ContactWarmstarting: false
-            AutoSleep: false
-            SaveToAGXFileOnStart: false
-        - 
           id: 7
-          name: "AISTSimulator"
-          plugin: Body
-          class: AISTSimulatorItem
+          name: "MulticopterSimulator"
+          plugin: Multicopter
+          class: MulticopterSimulatorItem
           data: 
-            timestep: 0.005
-            realtimeSync: true
-            recording: "full"
-            timeRangeMode: "Unlimited"
-            timeLength: 180
-            allLinkPositionOutputMode: true
-            deviceStateOutput: true
-            controllerThreads: true
-            recordCollisionData: false
-            controllerOptions: ""
-            dynamicsMode: "Forward dynamics"
-            integrationMode: "Euler"
-            gravity: [ 0, 0, -9.80665 ]
-            staticFriction: 1
-            dynamicFriction: 1
-            cullingThresh: 0.005
-            contactCullingDepth: 0.05
-            errorCriterion: 0.001
-            maxNumIterations: 1000
-            contactCorrectionDepth: 0.0001
-            contactCorrectionVelocityRatio: 1
-            kinematicWalking: false
-            2Dmode: false
-            oldAccelSensorMode: false
+            enabled: true
+            Fluid Density[kg/m^3]: 1.293
+            Viscosity[Pa･s]: 1.7e-05
+            Fluid Velocity[m/s]: [ 0, 0, 0 ]
+            Air Definition File: ""
+            Wall Effect: false
+            Ground Effect: false
+            Output Parameter: false
+            Output Time Step[s]: 1
+          children: 
+            - 
+              id: 8
+              name: "AGXSimulator"
+              plugin: AGXDynamics
+              class: AGXSimulatorItem
+              data: 
+                timestep: 0.005
+                realtimeSync: true
+                recording: "full"
+                timeRangeMode: "Unlimited"
+                timeLength: 180
+                allLinkPositionOutputMode: true
+                deviceStateOutput: true
+                controllerThreads: true
+                recordCollisionData: false
+                controllerOptions: ""
+                Gravity: [ 0, 0, -9.80665 ]
+                NumThreads: 1
+                ContactReduction: true
+                ContactReductionBinResolution: 3
+                ContactReductionThreshhold: 12
+                ContactWarmstarting: false
+                AutoSleep: false
+                SaveToAGXFileOnStart: false
+            - 
+              id: 9
+              name: "AISTSimulator"
+              plugin: Body
+              class: AISTSimulatorItem
+              data: 
+                timestep: 0.005
+                realtimeSync: true
+                recording: "full"
+                timeRangeMode: "Unlimited"
+                timeLength: 180
+                allLinkPositionOutputMode: true
+                deviceStateOutput: true
+                controllerThreads: true
+                recordCollisionData: false
+                controllerOptions: ""
+                dynamicsMode: "Forward dynamics"
+                integrationMode: "Euler"
+                gravity: [ 0, 0, -9.80665 ]
+                staticFriction: 1
+                dynamicFriction: 1
+                cullingThresh: 0.005
+                contactCullingDepth: 0.05
+                errorCriterion: 0.001
+                maxNumIterations: 1000
+                contactCorrectionDepth: 0.0001
+                contactCorrectionVelocityRatio: 1
+                kinematicWalking: false
+                2Dmode: false
+                oldAccelSensorMode: false
 views: 
   - 
     id: 1
@@ -126,9 +168,9 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      selected: [ 6 ]
-      checked: [ 1, 3 ]
-      expanded: [ 1, 4 ]
+      selected: [ 8 ]
+      checked: [ 1, 5 ]
+      expanded: [ 1, 2, 6, 7 ]
   - 
     id: 3
     plugin: Base
