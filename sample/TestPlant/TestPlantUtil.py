@@ -1,7 +1,7 @@
 import os
 import cnoid.Base
 
-def loadProject(worldProject, simulatorProject, robotProject):
+def loadProject(worldProject, robotProject):
 
     directory = os.path.dirname(os.path.realpath(__file__))
     
@@ -10,8 +10,6 @@ def loadProject(worldProject, simulatorProject, robotProject):
     pm.loadProject(os.path.join(directory, worldProject + ".cnoid"))
 
     worldItem = cnoid.Base.Item.find("World")
-
-    pm.loadProject(os.path.join(directory, simulatorProject + ".cnoid"), worldItem)
 
     pm.loadProject(os.path.join(directory, robotProject + ".cnoid"), worldItem)
 

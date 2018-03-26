@@ -58,8 +58,31 @@ items:
                 controller: "Jaco2Controller.so"
                 baseDirectory: "Controller directory"
                 reloading: true
+            - 
+              id: 4
+              name: "AizuSpider-JoystickInput"
+              plugin: Body
+              class: SimpleControllerItem
+              data: 
+                isNoDelayMode: true
+                controllerOptions: ""
+                controller: "RemoteJoystickInputController.so"
+                baseDirectory: "Controller directory"
+                reloading: false
         - 
-          id: 4
+          id: 5
+          name: "VisionIoSensorRTC"
+          plugin: OpenRTM
+          class: BodyIoRTCItem
+          data: 
+            isNoDelayMode: true
+            controllerOptions: ""
+            module: "VisionSensorIoRTC.so"
+            baseDirectory: "RTC directory"
+            instanceName: ""
+            periodicRate: 0
+        - 
+          id: 6
           name: "BodyTrackingCamera"
           plugin: Body
           class: BodyTrackingCameraItem
@@ -67,8 +90,9 @@ items:
             keepRelativeAttitude: true
             nearClipDistance: 0.01
             farClipDistance: 100
+
     - 
-      id: 5
+      id: 7
       name: "AGXSimulator"
       plugin: AGXDynamics
       class: AGXSimulatorItem
@@ -91,6 +115,25 @@ items:
         ContactWarmstarting: true
         AutoSleep: false
         SaveToAGXFileOnStart: false
+      children: 
+        - 
+          id: 8
+          name: "GLVisionSimulator"
+          plugin: Body
+          class: GLVisionSimulatorItem
+          data: 
+            enabled: true
+            targetSensors: [ FRONT_CAMERA ]
+            maxFrameRate: 1000
+            maxLatency: 1
+            recordVisionData: false
+            threadMode: Sensor
+            bestEffort: false
+            allSceneObjects: false
+            rangeSensorPrecisionRatio: 2
+            depthError: 0
+            enableHeadLight: true
+            enableAdditionalLights: true
 views: 
   - 
     id: 1
@@ -98,8 +141,8 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 1, 3, 4 ]
-      expanded: [ 1, 2 ]
+      checked: [ 1, 3, 6 ]
+      expanded: [ 1, 2, 7 ]
   - 
     id: 2
     plugin: Base
