@@ -699,7 +699,6 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      selected: [ 2 ]
       checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 ]
       expanded: [ 1, 12, 25, 28 ]
   - 
@@ -753,7 +752,7 @@ views:
           far: 100
           eye: [ 13.2102754, 8.81981889, 1.22007683 ]
           direction: [ -0.939914822, -0.33416781, -0.0699428457 ]
-          up: [ -0.0659017106, -0.0234300277, 0.997551 ]
+          up: [ -0.0659017107, -0.0234300277, 0.997551 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 12.1306
@@ -766,13 +765,71 @@ views:
       dedicatedItemTreeViewChecks: false
   - 
     id: 4
+    name: "Camera Scene"
+    plugin: Base
+    class: SceneView
+    mounted: true
+    state: 
+      editMode: false
+      viewpointControlMode: thirdPerson
+      collisionLines: false
+      polygonMode: fill
+      defaultHeadLight: true
+      defaultHeadLightIntensity: 0.75
+      headLightLightingFromBack: false
+      worldLight: true
+      worldLightIntensity: 0.5
+      worldLightAmbient: 0.3
+      additionalLights: true
+      fog: true
+      floorGrid: true
+      floorGridSpan: 10
+      floorGridInterval: 0.5
+      xzGridSpan: 10
+      xzGridInterval: 0.5
+      xzGrid: false
+      yzGridSpan: 10
+      yzGridInterval: 0.5
+      texture: true
+      lineWidth: 1
+      pointSize: 1
+      normalVisualization: false
+      normalLength: 0.01
+      coordinateAxes: true
+      fpsTestIteration: 1
+      showFPS: false
+      enableNewDisplayListDoubleRendering: false
+      useBufferForPicking: true
+      upsideDown: false
+      cameras: 
+        - 
+          camera: [ System, Perspective ]
+          isCurrent: true
+          fieldOfView: 0.698132
+          near: 0.01
+          far: 100
+          eye: [ 18.6393745, 7.22949869, 1.37028264 ]
+          direction: [ -0.999732815, -0.0136448198, 0.0186579001 ]
+          up: [ 0.0186561625, 0.000254628008, 0.999825926 ]
+        - 
+          camera: [ System, Orthographic ]
+          orthoHeight: 20
+          near: 0.01
+          far: 100
+      backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
+      gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
+      xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
+      yzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
+      dedicatedItemTreeViewChecks: false
+  - 
+    id: 5
     plugin: Body
     class: BodyLinkView
     mounted: true
     state: 
       showRotationMatrix: false
   - 
-    id: 5
+    id: 6
     plugin: Body
     class: JointSliderView
     mounted: true
@@ -786,7 +843,7 @@ views:
       labelOnLeft: true
       currentBodyItem: 31
   - 
-    id: 6
+    id: 7
     plugin: Body
     class: LinkSelectionView
     mounted: true
@@ -807,25 +864,29 @@ views:
           id: 24
           selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
         - 
-          id: 31
-          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
-        - 
-          id: 26
-          selectedLinks: [ 0 ]
-        - 
           id: 25
           selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 ]
         - 
-          id: 30
-          selectedLinks: [ 8 ]
+          id: 27
+          selectedLinks: [ 0 ]
         - 
           id: 28
           selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
         - 
-          id: 27
+          id: 30
+          selectedLinks: [ 8 ]
+        - 
+          id: 26
           selectedLinks: [ 0 ]
+        - 
+          id: 31
+          selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
   - 
-    id: 7
+    id: 8
+    plugin: Multicopter
+    class: MulticopterMonitorView
+  - 
+    id: 9
     plugin: OpenRTM
     class: RTSNameServerView
     mounted: true
@@ -833,7 +894,7 @@ views:
       host: localhost
       port: 2809
   - 
-    id: 8
+    id: 10
     plugin: Python
     class: PythonConsoleView
     mounted: true
@@ -1067,7 +1128,7 @@ viewAreas:
     contents: 
       type: splitter
       orientation: horizontal
-      sizes: [ 310, 1604 ]
+      sizes: [ 283, 1631 ]
       children: 
         - 
           type: splitter
@@ -1080,21 +1141,21 @@ viewAreas:
               current: 1
             - 
               type: pane
-              views: [ 0, 6, 7 ]
-              current: 6
+              views: [ 0, 7, 9 ]
+              current: 7
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 833, 107 ]
+          sizes: [ 807, 133 ]
           children: 
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 0, 1598 ]
+              sizes: [ 748, 877 ]
               children: 
                 - 
                   type: pane
-                  views: [ 4, 5 ]
+                  views: [ 5, 6, 4 ]
                   current: 4
                 - 
                   type: pane
@@ -1102,7 +1163,7 @@ viewAreas:
                   current: 3
             - 
               type: pane
-              views: [ 2, 8 ]
+              views: [ 2, 10 ]
               current: 2
 layoutOfToolBars: 
   rows: 
