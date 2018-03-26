@@ -9,6 +9,12 @@ SILVER: &SILVER
     specularColor: [ 0.96, 0.96, 0.96 ]
     shininess: 0.12
     
+BLACK: &BLACK
+  material:
+    diffuseColor: [ 0.34, 0.34, 0.34 ]
+    specularColor: [ 0.34, 0.34, 0.34 ]
+    shininess: 0.12
+    
 HANDRAIL_1: &HANDRAIL_1
   Shape:
     geometry: { type: Cylinder, radius: 0.017, height: 5.45 }
@@ -92,26 +98,32 @@ HANDRAIL_695: &HANDRAIL_695
 DOOR_FRAME_1: &DOOR_FRAME_1
   Shape:
     geometry: { type: Box, size: [ 0.045, 0.96, 0.045 ] }
+    appearance: *BLACK
     
 DOOR_FRAME_3: &DOOR_FRAME_3
   Shape:
     geometry: { type: Box, size: [ 0.045, 0.045, 1.8 ] }
+    appearance: *BLACK
     
 DOOR_1: &DOOR_1
   Shape:
     geometry: { type: Box, size: [ 0.03, 0.87, 1.8 ] }
+    appearance: *BLACK
 
 DOOR_KNOB_1: &DOOR_KNOB_1
   Shape:
     geometry: { type: Cylinder, radius: 0.025, height: 0.005 }
+    appearance: *SILVER
 
 DOOR_KNOB_2: &DOOR_KNOB_2
   Shape:
     geometry: { type: Cylinder, radius: 0.01, height: 0.0505 }
+    appearance: *SILVER
 
 DOOR_KNOB_3: &DOOR_KNOB_3
   Shape:
     geometry: { type: Box, size: [ 0.015, 0.1, 0.03 ] }
+    appearance: *SILVER
 
 links:
   -
@@ -5149,8 +5161,7 @@ links:
         name: DOOR_1
         type: Transform
         translation: [ 10.3267, 0.8585, 3.4474 ]
-        elements:
-          Shape: { geometry: { type: Box, size: [ 0.03, 0.87, 1.8 ] } }
+        elements: *DOOR_1
       -
         name: DOOR_KNOB_1
         type: Transform
