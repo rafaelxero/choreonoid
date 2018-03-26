@@ -3,6 +3,8 @@ formatVersion: 1.0
 angleUnit: degree
 name: Handrails #1F_handrail
 
+OFFSET: &OFFSET [ 0, 0, 0.18 ]
+
 SILVER: &SILVER
   material:
     diffuseColor: [ 0.96, 0.96, 0.96 ]
@@ -849,7 +851,7 @@ links:
     name: HANDRAIL_4
     parent: BASE
     jointType: fixed
-    elements:
+    elements_: # disabled
       -
         name: HANDRAIL_117
         type: Transform
@@ -1825,6 +1827,7 @@ links:
     name: HANDRAIL_8
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_277
@@ -2046,6 +2049,7 @@ links:
     name: HANDRAIL_9
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_313
@@ -2267,6 +2271,7 @@ links:
     name: HANDRAIL_10
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_349
@@ -2534,6 +2539,7 @@ links:
     name: HANDRAIL_11
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_393
@@ -2694,6 +2700,7 @@ links:
     name: HANDRAIL_12
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_437
@@ -2961,6 +2968,7 @@ links:
     name: HANDRAIL_13
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_481
@@ -3182,6 +3190,7 @@ links:
     name: HANDRAIL_14
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_517
@@ -3403,6 +3412,7 @@ links:
     name: HANDRAIL_15
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_553
@@ -3570,6 +3580,7 @@ links:
     name: HANDRAIL_16
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_577
@@ -3808,6 +3819,7 @@ links:
     name: HANDRAIL_17
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_616
@@ -3999,6 +4011,7 @@ links:
     name: HANDRAIL_18
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_647
@@ -4213,6 +4226,7 @@ links:
     name: HANDRAIL_19
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_705
@@ -4380,6 +4394,7 @@ links:
     name: HANDRAIL_20
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_732
@@ -4618,6 +4633,7 @@ links:
     name: HANDRAIL_21
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_771
@@ -4809,6 +4825,7 @@ links:
     name: HANDRAIL_22
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_803
@@ -5023,6 +5040,7 @@ links:
     name: HANDRAIL_23
     parent: BASE
     jointType: fixed
+    translation: *OFFSET
     elements:
       -
         name: HANDRAIL_419
@@ -5118,7 +5136,7 @@ links:
   -
     name: DOOR_FRAME
     parent: BASE
-    translation: [ 0.0, 0.0, 0.0 ]
+    translation: *OFFSET
     jointType: fixed
     mass: 10.0
     centerOfMass: [ 0.0, 0.0, 0.0 ]
