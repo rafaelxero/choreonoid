@@ -30,9 +30,7 @@ links:
     translation: [ 0.292, 0.2925, 0.787 ]
     elements:
       Collision:
-        resource:
-          uri: "resource/valves.yaml"
-          node: VALVE_226_COLLISION
+        resource: { uri: "resource/valves.yaml", node: VALVE_226_COLLISION }
   -
     name: PIPE1_VALVE_HANDLE
     parent: PIPE1_VALVE
@@ -64,10 +62,7 @@ links:
           Transform:
             translation: [ 0.12, 0, 0 ]
             rotation: [ 0, 1, 0, 90 ]
-            elements:
-              Resource:
-                uri: "resource/valves.yaml"
-                node: HANDLE_213_COLLISION
+            elements: { type: Resource, uri: "resource/valves.yaml", node: HANDLE_213_COLLISION }
   -
     name: PIPE1-1
     parent: BASE
@@ -502,6 +497,39 @@ links:
             translation: [ 8.5165, 10.5505, 1.1775 ]
             rotation: [ 0, 0, 1, 90 ]
             elements: *METER_DISPLAY_1
+  -
+    name: PIPE3_VALVE
+    parent: BASE
+    jointType: fixed
+    translation: [ 0.288, -0.3, 0.787 ]
+    elements:
+      Collision:
+        resource: { uri: "resource/valves.yaml", node: VALVE_226_COLLISION }
+  -
+    name: PIPE3_VALVE_HANDLE
+    parent: PIPE3_VALVE
+    jointType: fixed # revolute
+    jointAxis: X
+    jointId: 1
+    # For the friction for AGX
+    jointMotor: true
+    jointMotorCompliance: 0.9
+    elements:
+      Resource:
+        uri: "resource/valves.yaml"
+        node: VALVE_HANDLE_213_RIGID_BODY
+      Visual:
+        elements:
+          Transform:
+            translation: [ 0.105, -0.1063, 0.1065 ]
+            elements_:
+              - { type: Resource, uri: "resource/PipeBG2.dae", node: ID1064 }
+      Collision:
+        elements:
+          Transform:
+            translation: [ 0.117, 0, 0 ]
+            rotation: [ 0, 1, 0, 90 ]
+            elements: { type: Resource, uri: "resource/valves.yaml", node: HANDLE_213_COLLISION }
   -
     name: PIPE3-1
     parent: BASE
