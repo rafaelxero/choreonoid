@@ -5138,10 +5138,7 @@ links:
   -
     name: DOOR
     parent: DOOR_FRAME
-#    jointType: fixed
-    jointType: revolute
-    jointAxis: Z
-    jointRange: [ -160, 0 ]
+    jointType: fixed
     mass: 10.0
     inertia: [
       1.0, 0.0, 0.0,
