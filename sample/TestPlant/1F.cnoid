@@ -683,7 +683,7 @@ items:
                   1, 0, 0, 
                   0, 1, 0, 
                   0, 0, 1 ]
-                initialJointPositions: [  0.000000 ]
+                initialJointPositions: [  0.000000,  0.000000 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
@@ -711,6 +711,242 @@ items:
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: false
+        - 
+          id: 33
+          name: "Debris"
+          plugin: Base
+          class: FolderItem
+          children: 
+            - 
+              id: 34
+              name: "Debris-S"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 14.0423041, 7.69355488, 0.02 ]
+                rootAttitude: [ 
+                  0.899024123, -0.437899104, 0, 
+                  0.437899104, 0.899024123, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 14.0423041, 7.69355488, 0.02 ]
+                initialRootAttitude: [ 
+                  0.899024123, -0.437899104, 0, 
+                  0.437899104, 0.899024123, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 35
+              name: "Debris-S"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 14.8188889, 6.9035799, 0.02 ]
+                rootAttitude: [ 
+                  0.409424703, 0.912343912, 0, 
+                  -0.912343912, 0.409424703, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 14.8188889, 6.9035799, 0.02 ]
+                initialRootAttitude: [ 
+                  0.409424703, 0.912343912, 0, 
+                  -0.912343912, 0.409424703, -0, 
+                  -0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 36
+              name: "Debris-S"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 14.963608, 7.89425706, 0.02 ]
+                rootAttitude: [ 
+                  0.0406615509, 0.999172977, 0, 
+                  -0.999172977, 0.0406615509, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 14.963608, 7.89425706, 0.02 ]
+                initialRootAttitude: [ 
+                  0.0406615509, 0.999172977, 0, 
+                  -0.999172977, 0.0406615509, -0, 
+                  -0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 37
+              name: "Debris-S"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 14.3175065, 7.5, 0.02 ]
+                rootAttitude: [ 
+                  0.793590095, -0.608452759, 0, 
+                  0.608452759, 0.793590095, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 14.3175065, 7.5, 0.02 ]
+                initialRootAttitude: [ 
+                  0.793590095, -0.608452759, 0, 
+                  0.608452759, 0.793590095, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 38
+              name: "Debris-S"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 15, 8.62395386, 0.02 ]
+                rootAttitude: [ 
+                  0.95673993, 0.290944509, 0, 
+                  -0.290944509, 0.95673993, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 15, 8.62395386, 0.02 ]
+                initialRootAttitude: [ 
+                  0.95673993, 0.290944509, 0, 
+                  -0.290944509, 0.95673993, -0, 
+                  -0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 39
+              name: "Debris-S"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 14.0330233, 8.95903614, 0.02 ]
+                rootAttitude: [ 
+                  0.428845058, -0.903378059, 0, 
+                  0.903378059, 0.428845058, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 14.0330233, 8.95903614, 0.02 ]
+                initialRootAttitude: [ 
+                  0.428845058, -0.903378059, 0, 
+                  0.903378059, 0.428845058, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 40
+              name: "Debris-S"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisS.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 14.6978553, 9.2857273, 0.02 ]
+                rootAttitude: [ 
+                  0.687091691, -0.726570718, 0, 
+                  0.726570718, 0.687091691, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 14.6978553, 9.2857273, 0.02 ]
+                initialRootAttitude: [ 
+                  0.687091691, -0.726570718, 0, 
+                  0.726570718, 0.687091691, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 41
+              name: "Debris-L"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisL.body"
+                currentBaseLink: "body"
+                rootPosition: [ 12.0578928, 5.97264844, 0.25 ]
+                rootAttitude: [ 
+                  0.817488397, 0, 0.575945068, 
+                  0.575945068, 6.123234e-17, -0.817488397, 
+                  -3.52664642e-17, 1, 5.00567274e-17 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 12.0578928, 5.97264844, 0.25 ]
+                initialRootAttitude: [ 
+                  0.817488397, 5.55111512e-17, 0.575945068, 
+                  0.575945068, -2.22044605e-16, -0.817488397, 
+                  5.55111512e-17, 1, -2.22044605e-16 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 42
+              name: "Debris-L"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisL.body"
+                currentBaseLink: "body"
+                rootPosition: [ 17.0132031, 9.94667957, 0.25 ]
+                rootAttitude: [ 
+                  0.726870479, -0.686774567, 0, 
+                  0.686774567, 0.726870479, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 17.0132031, 9.94667957, 0.25 ]
+                initialRootAttitude: [ 
+                  0.726870479, -0.686774567, 0, 
+                  0.686774567, 0.726870479, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
+            - 
+              id: 43
+              name: "Debris-L"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/WRS2018/DebrisL.body"
+                currentBaseLink: "body"
+                rootPosition: [ 17, 6.64132296, 0.25 ]
+                rootAttitude: [ 
+                  0.825809354, 6.16297582e-33, -0.563949387, 
+                  0.563949387, 6.123234e-17, 0.825809354, 
+                  3.45319406e-17, -1, 5.05662391e-17 ]
+                jointPositions: [  ]
+                initialRootPosition: [ 17, 6.64132296, 0.25 ]
+                initialRootAttitude: [ 
+                  0.825809354, 0, -0.563949387, 
+                  0.563949387, -2.22044605e-16, 0.825809354, 
+                  0, -1, -2.22044605e-16 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
 views: 
   - 
     id: 0
@@ -723,7 +959,7 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 ]
+      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43 ]
       expanded: [ 1, 13, 26, 29 ]
   - 
     id: 2
@@ -774,9 +1010,9 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ 16.6466035, 9.46670816, 1.34965923 ]
-          direction: [ -0.957021096, -0.287248108, -0.0399893328 ]
-          up: [ -0.038301272, -0.0114960558, 0.999200107 ]
+          eye: [ 13.3898205, 8.58234321, 1.58835952 ]
+          direction: [ -0.949842998, -0.223995787, -0.218229618 ]
+          up: [ -0.212403336, -0.0500898069, 0.975897451 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 12.1306
@@ -834,7 +1070,7 @@ views:
           far: 100
           eye: [ 18.6393745, 7.22949869, 1.37028264 ]
           direction: [ -0.999732815, -0.0136448198, 0.0186579001 ]
-          up: [ 0.0186561625, 0.000254628011, 0.999825926 ]
+          up: [ 0.0186561625, 0.000254628012, 0.999825926 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 20
@@ -865,7 +1101,7 @@ views:
       spinBox: true
       slider: true
       labelOnLeft: true
-      currentBodyItem: 6
+      currentBodyItem: 41
   - 
     id: 7
     plugin: Body
@@ -873,7 +1109,7 @@ views:
     mounted: true
     state: 
       listingMode: "Link Tree"
-      currentBodyItem: 6
+      currentBodyItem: 41
       bodyItems: 
         - 
           id: 3
@@ -888,11 +1124,14 @@ views:
           id: 22
           selectedLinks: [ 0, 1, 2, 3, 4, 5, 6 ]
         - 
+          id: 26
+          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 ]
+        - 
+          id: 28
+          selectedLinks: [ 0 ]
+        - 
           id: 25
           selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
-        - 
-          id: 29
-          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
         - 
           id: 27
           selectedLinks: [ 0 ]
@@ -900,11 +1139,8 @@ views:
           id: 32
           selectedLinks: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
         - 
-          id: 26
-          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 ]
-        - 
-          id: 28
-          selectedLinks: [ 0 ]
+          id: 29
+          selectedLinks: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
   - 
     id: 8
     plugin: Multicopter
@@ -942,7 +1178,7 @@ toolbars:
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
   "BodyBar": 
-    current: 6
+    current: 41
   "LeggedBodyBar": 
     stanceWidth: 0.15
   "BodyMotionGenerationBar": 
@@ -1133,6 +1369,56 @@ Body:
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
+      - 
+        bodyItem: 34
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 35
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 36
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 37
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 38
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 39
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 40
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 41
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 42
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
+      - 
+        bodyItem: 43
+        showCenterOfMass: false
+        showPpcom: false
+        showZmp: false
     staticModelEditing: true
   "KinematicFaultChecker": 
     checkJointPositions: true
@@ -1180,7 +1466,7 @@ viewAreas:
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 748, 877 ]
+              sizes: [ 659, 966 ]
               children: 
                 - 
                   type: pane
