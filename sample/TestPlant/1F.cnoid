@@ -711,14 +711,37 @@ items:
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: false
+            - 
+              id: 33
+              name: "Door"
+              plugin: Body
+              class: BodyItem
+              data: 
+                modelFile: "${SHARE}/model/TestPlant/1F/Door.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 0, 0, 0 ]
+                rootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                jointPositions: [  0.000000 ]
+                initialRootPosition: [ 0, 0, 0 ]
+                initialRootAttitude: [ 
+                  1, 0, 0, 
+                  0, 1, 0, 
+                  0, 0, 1 ]
+                zmp: [ 0, 0, 0 ]
+                collisionDetection: true
+                selfCollisionDetection: false
+                isEditable: true
         - 
-          id: 33
+          id: 34
           name: "Debris"
           plugin: Base
           class: FolderItem
           children: 
             - 
-              id: 34
+              id: 35
               name: "Debris-S"
               plugin: Body
               class: BodyItem
@@ -733,15 +756,15 @@ items:
                 jointPositions: [  ]
                 initialRootPosition: [ 14.0423041, 7.69355488, 0.02 ]
                 initialRootAttitude: [ 
-                  0.899024123, -0.437899104, 0, 
-                  0.437899104, 0.899024123, 0, 
+                  0.899024124, -0.437899104, 0, 
+                  0.437899104, 0.899024124, 0, 
                   0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 35
+              id: 36
               name: "Debris-S"
               plugin: Body
               class: BodyItem
@@ -756,15 +779,15 @@ items:
                 jointPositions: [  ]
                 initialRootPosition: [ 14.8188889, 6.9035799, 0.02 ]
                 initialRootAttitude: [ 
-                  0.409424703, 0.912343912, 0, 
-                  -0.912343912, 0.409424703, -0, 
+                  0.409424702, 0.912343912, 0, 
+                  -0.912343912, 0.409424702, -0, 
                   -0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 36
+              id: 37
               name: "Debris-S"
               plugin: Body
               class: BodyItem
@@ -779,15 +802,15 @@ items:
                 jointPositions: [  ]
                 initialRootPosition: [ 14.963608, 7.89425706, 0.02 ]
                 initialRootAttitude: [ 
-                  0.0406615509, 0.999172977, 0, 
-                  -0.999172977, 0.0406615509, -0, 
+                  0.0406615512, 0.999172977, 0, 
+                  -0.999172977, 0.0406615512, -0, 
                   -0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 37
+              id: 38
               name: "Debris-S"
               plugin: Body
               class: BodyItem
@@ -802,15 +825,15 @@ items:
                 jointPositions: [  ]
                 initialRootPosition: [ 14.3175065, 7.5, 0.02 ]
                 initialRootAttitude: [ 
-                  0.793590095, -0.608452759, 0, 
-                  0.608452759, 0.793590095, 0, 
+                  0.793590096, -0.608452759, 0, 
+                  0.608452759, 0.793590096, 0, 
                   0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 38
+              id: 39
               name: "Debris-S"
               plugin: Body
               class: BodyItem
@@ -833,7 +856,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 39
+              id: 40
               name: "Debris-S"
               plugin: Body
               class: BodyItem
@@ -848,15 +871,15 @@ items:
                 jointPositions: [  ]
                 initialRootPosition: [ 14.0330233, 8.95903614, 0.02 ]
                 initialRootAttitude: [ 
-                  0.428845058, -0.903378059, 0, 
-                  0.903378059, 0.428845058, 0, 
+                  0.428845057, -0.903378059, 0, 
+                  0.903378059, 0.428845057, 0, 
                   0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 40
+              id: 41
               name: "Debris-S"
               plugin: Body
               class: BodyItem
@@ -879,7 +902,7 @@ items:
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 41
+              id: 42
               name: "Debris-L"
               plugin: Body
               class: BodyItem
@@ -895,14 +918,14 @@ items:
                 initialRootPosition: [ 12.0578928, 5.97264844, 0.25 ]
                 initialRootAttitude: [ 
                   0.817488397, 5.55111512e-17, 0.575945068, 
-                  0.575945068, -2.22044605e-16, -0.817488397, 
-                  5.55111512e-17, 1, -2.22044605e-16 ]
+                  0.575945068, -1.60428781e-10, -0.817488397, 
+                  5.55111512e-17, 1, -1.60428781e-10 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 42
+              id: 43
               name: "Debris-L"
               plugin: Body
               class: BodyItem
@@ -917,15 +940,15 @@ items:
                 jointPositions: [  ]
                 initialRootPosition: [ 17.0132031, 9.94667957, 0.25 ]
                 initialRootAttitude: [ 
-                  0.726870479, -0.686774567, 0, 
-                  0.686774567, 0.726870479, 0, 
+                  0.72687048, -0.686774567, 0, 
+                  0.686774567, 0.72687048, 0, 
                   0, 0, 1 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
                 isEditable: true
             - 
-              id: 43
+              id: 44
               name: "Debris-L"
               plugin: Body
               class: BodyItem
@@ -940,9 +963,9 @@ items:
                 jointPositions: [  ]
                 initialRootPosition: [ 17, 6.64132296, 0.25 ]
                 initialRootAttitude: [ 
-                  0.825809354, 0, -0.563949387, 
-                  0.563949387, -2.22044605e-16, 0.825809354, 
-                  0, -1, -2.22044605e-16 ]
+                  0.825809354, 5.55111512e-17, -0.563949387, 
+                  0.563949387, -6.88937796e-11, 0.825809354, 
+                  -5.55111512e-17, -1, -6.88937796e-11 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
@@ -954,5 +977,6 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43 ]
+      selected: [ 33 ]
+      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 ]
       expanded: [ 1, 13, 26, 29 ]
