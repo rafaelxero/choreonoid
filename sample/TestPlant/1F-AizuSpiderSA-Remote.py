@@ -1,3 +1,4 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "AizuSpiderSA-Remote")
+TestPlantUtil.loadProject("1F", "AizuSpiderSA-Remote", "SingleSceneView")
+
 

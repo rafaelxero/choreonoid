@@ -1,4 +1,4 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "AizuWheel-Remote")
+TestPlantUtil.loadProject("1F", "AizuWheel-Remote", "SingleSceneView")
 
 
