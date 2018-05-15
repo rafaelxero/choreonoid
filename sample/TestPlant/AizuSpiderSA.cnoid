@@ -143,28 +143,23 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ 13.3898205, 8.58234321, 1.58835952 ]
-          direction: [ -0.949842998, -0.223995787, -0.218229618 ]
-          up: [ -0.212403337, -0.050089807, 0.97589745 ]
+          eye: [ 12.6939048, 8.58763934, 1.02944682 ]
+          direction: [ -0.907400796, -0.289072703, -0.30505863 ]
+          up: [ -0.290665427, -0.0925979358, 0.952333572 ]
         - 
           camera: [ System, Orthographic ]
-          orthoHeight: 12.1306
+          orthoHeight: 5.73009
           near: 0.01
           far: 100
         - 
-          camera: BodyTrackingCamera (Perspective)
+          camera: BodyTrackingCamera
           isCurrent: true
           fieldOfView: 0.785398
           near: 0.01
           far: 100
-          eye: [ 12.7495833, 8.9576644, 1.12241147 ]
-          direction: [ -0.870518418, -0.392564412, -0.296801056 ]
-          up: [ -0.270562513, -0.122011449, 0.954939335 ]
-        - 
-          camera: BodyTrackingCamera (Orthographic)
-          orthoHeight: 2
-          near: 0.01
-          far: 100
+          eye: [ 12.8772272, 8.81446722, 0.973224766 ]
+          direction: [ -0.89449905, -0.37150806, -0.248703059 ]
+          up: [ -0.229681287, -0.0953924424, 0.968579779 ]
       backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
       gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]

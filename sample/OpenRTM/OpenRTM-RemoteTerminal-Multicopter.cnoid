@@ -76,7 +76,7 @@ items:
             position: [ 13, 30, 18, 30, 144.5, 30, 144.5, 30, 272, 30, 277, 30 ]
     - 
       id: 2
-      name: "RTC"
+      name: "JoystickRTC"
       plugin: OpenRTM
       class: RTCItem
       data: 

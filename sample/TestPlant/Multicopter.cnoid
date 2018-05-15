@@ -181,7 +181,7 @@ views:
           near: 0.01
           far: 100
         - 
-          camera: BodyTrackingCamera (Perspective)
+          camera: BodyTrackingCamera
           isCurrent: true
           fieldOfView: 0.785398
           near: 0.01
@@ -189,11 +189,6 @@ views:
           eye: [ 16.6299682, 6.61094368, 0.762391403 ]
           direction: [ -0.953503189, -0.233805277, -0.190175605 ]
           up: [ -0.184703875, -0.0452906097, 0.98175009 ]
-        - 
-          camera: BodyTrackingCamera (Orthographic)
-          orthoHeight: 2
-          near: 0.01
-          far: 100
       backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
       gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
