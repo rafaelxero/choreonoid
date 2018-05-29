@@ -36,7 +36,7 @@ items:
           class: GLVisionSimulatorItem
           data: 
             enabled: true
-            targetSensors: [ FRONT_CAMERA ]
+            targetSensors: [ FRONT_CAMERA, ARM_CAMERA ]
             maxFrameRate: 1000
             maxLatency: 1
             recordVisionData: false
