@@ -1,3 +1,2 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "Multicopter-Remote", "SingleSceneView")
-
+TestPlantUtil.loadProject("1F", ["MulticopterVisionSimulator"], "Multicopter", "SingleSceneView")

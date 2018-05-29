@@ -67,30 +67,6 @@ items:
             keepRelativeAttitude: true
             nearClipDistance: 0.01
             farClipDistance: 100
-    - 
-      id: 5
-      name: "AGXSimulator"
-      plugin: AGXDynamics
-      class: AGXSimulatorItem
-      data: 
-        timestep: 0.005
-        realtimeSync: true
-        recording: "full"
-        timeRangeMode: "Unlimited"
-        timeLength: 180
-        allLinkPositionOutputMode: true
-        deviceStateOutput: true
-        controllerThreads: true
-        recordCollisionData: false
-        controllerOptions: "velocity"
-        Gravity: [ 0, 0, -9.80665 ]
-        NumThreads: 6
-        ContactReduction: true
-        ContactReductionBinResolution: 3
-        ContactReductionThreshhold: 12
-        ContactWarmstarting: true
-        AutoSleep: false
-        SaveToAGXFileOnStart: false
 views: 
   - 
     id: 1

@@ -1,4 +1,2 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "AizuWheel")
-
-
+TestPlantUtil.loadProject("1F", ["AGXSimulator", "AISTSimulator"], "AizuWheel")

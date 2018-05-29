@@ -1,3 +1,2 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "AizuSpiderSS")
-
+TestPlantUtil.loadProject("1F", ["AISTSimulator"], "AizuSpiderSS")

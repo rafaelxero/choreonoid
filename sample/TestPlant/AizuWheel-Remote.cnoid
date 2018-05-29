@@ -88,48 +88,6 @@ items:
             keepRelativeAttitude: true
             nearClipDistance: 0.01
             farClipDistance: 100
-    - 
-      id: 7
-      name: "AGXSimulator"
-      plugin: AGXDynamics
-      class: AGXSimulatorItem
-      data: 
-        timestep: 0.005
-        realtimeSync: true
-        recording: "full"
-        timeRangeMode: "Unlimited"
-        timeLength: 180
-        allLinkPositionOutputMode: true
-        deviceStateOutput: true
-        controllerThreads: true
-        recordCollisionData: false
-        controllerOptions: "velocity"
-        Gravity: [ 0, 0, -9.80665 ]
-        NumThreads: 4
-        ContactReduction: true
-        ContactReductionBinResolution: 3
-        ContactReductionThreshhold: 12
-        ContactWarmstarting: true
-        AutoSleep: false
-        SaveToAGXFileOnStart: false
-      children: 
-        - 
-          id: 8
-          name: "GLVisionSimulator"
-          plugin: Body
-          class: GLVisionSimulatorItem
-          data: 
-            enabled: true
-            maxFrameRate: 1000
-            maxLatency: 1
-            recordVisionData: false
-            threadMode: Sensor
-            bestEffort: false
-            allSceneObjects: false
-            rangeSensorPrecisionRatio: 2
-            depthError: 0
-            enableHeadLight: true
-            enableAdditionalLights: true
 views: 
   - 
     id: 1

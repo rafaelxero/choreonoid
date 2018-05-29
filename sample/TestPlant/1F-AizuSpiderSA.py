@@ -1,3 +1,2 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "AizuSpiderSA")
-
+TestPlantUtil.loadProject("1F", ["AGXSimulator"], "AizuSpiderSA")
