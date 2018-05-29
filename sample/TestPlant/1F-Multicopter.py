@@ -1,3 +1,2 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "Multicopter")
-
+TestPlantUtil.loadProject("1F", ["MulticopterSimulator"], "Multicopter")

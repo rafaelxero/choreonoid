@@ -1,2 +1,2 @@
 import TestPlantUtil
-TestPlantUtil.loadProject("1F", "AizuWheel-Remote", "SingleSceneView")
+TestPlantUtil.loadProject("1F", ["AGXVisionSimulator", "AISTVisionSimulator"], "AizuWheel-Remote", "SingleSceneView")
