@@ -22,12 +22,12 @@ items:
           children: 
             - 
               id: 3
-              name: "RoadSurface60m"
+              name: "RoadSurface20m"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${SHARE}/model/WRS2018/RoadSurface60m.body"
-                currentBaseLink: "1_Base"
+                modelFile: "${SHARE}/model/WRS2018/RoadSurface20m.body"
+                currentBaseLink: "Base"
                 rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
                   1, 0, 0, 
@@ -45,12 +45,12 @@ items:
                 isEditable: false
             - 
               id: 4
-              name: "TunnelWall60m-L"
+              name: "TunnelWall20m-L"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${SHARE}/model/WRS2018/TunnelWall60m-L.body"
-                currentBaseLink: "1_Base"
+                modelFile: "${SHARE}/model/WRS2018/TunnelWall20m-L.body"
+                currentBaseLink: "Base"
                 rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
                   1, 0, 0, 
@@ -68,12 +68,12 @@ items:
                 isEditable: false
             - 
               id: 5
-              name: "TunnelWall60m-R"
+              name: "TunnelWall20m-R"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${SHARE}/model/WRS2018/TunnelWall60m-R.body"
-                currentBaseLink: "1_Base"
+                modelFile: "${SHARE}/model/WRS2018/TunnelWall20m-R.body"
+                currentBaseLink: "Base"
                 rootPosition: [ 0, 0, 0 ]
                 rootAttitude: [ 
                   1, 0, 0, 
@@ -91,42 +91,43 @@ items:
                 isEditable: false
             - 
               id: 6
-              name: "ChocoTerrain"
+              name: "FireCabinet"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${SHARE}/model/WRS2018/ChocoTerrain.body"
-                currentBaseLink: "Base"
-                rootPosition: [ 4, 0, 0 ]
+                modelFile: "${SHARE}/model/WRS2018/FireCabinetWaterDischargeTest.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 5, 4.21, 0.256 ]
                 rootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
-                jointPositions: [  ]
-                initialRootPosition: [ 4, 0, 0 ]
+                  2.22044605e-16, 1, 0, 
+                  -1, 2.22044605e-16, -0, 
+                  -0, 0, 1 ]
+                jointPositions: [ -2.7,  0.000000,  0.000000 ]
+                initialRootPosition: [ 5, 4.21, 0.256 ]
                 initialRootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
+                  2.22044605e-16, 1, 0, 
+                  -1, 2.22044605e-16, -0, 
+                  -0, 0, 1 ]
+                initialJointPositions: [ -2.7,  0.000000,  0.000000 ]
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
-                isEditable: false
+                isEditable: true
             - 
               id: 7
-              name: "WaffleTerrain"
+              name: "HoseNozzle"
               plugin: Body
               class: BodyItem
               data: 
-                modelFile: "${SHARE}/model/WRS2018/WaffleTerrain.body"
-                currentBaseLink: "Base"
-                rootPosition: [ 10, 0, 0 ]
+                modelFile: "${SHARE}/model/WRS2018/HoseNozzle.body"
+                currentBaseLink: "BASE"
+                rootPosition: [ 4.67934738, 4.1405342, 1.06499852 ]
                 rootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
                   0, 0, 1 ]
                 jointPositions: [  ]
-                initialRootPosition: [ 10, 0, 0 ]
+                initialRootPosition: [ 4.67934738, 4.1405342, 1.06499852 ]
                 initialRootAttitude: [ 
                   1, 0, 0, 
                   0, 1, 0, 
@@ -134,114 +135,22 @@ items:
                 zmp: [ 0, 0, 0 ]
                 collisionDetection: true
                 selfCollisionDetection: false
-                isEditable: false
-            - 
-              id: 8
-              name: "TerrainA"
-              plugin: Body
-              class: BodyItem
-              data: 
-                modelFile: "${SHARE}/model/WRS2018/TerrainA.body"
-                currentBaseLink: ""
-                rootPosition: [ 20, -2.4, 0 ]
-                rootAttitude: [ 
-                  2.22044605e-16, -1, 0, 
-                  1, 2.22044605e-16, -0, 
-                  0, 0, 1 ]
-                jointPositions: [  ]
-                initialRootPosition: [ 20, -2.4, 0 ]
-                initialRootAttitude: [ 
-                  2.22044605e-16, -1, 0, 
-                  1, 2.22044605e-16, 0, 
-                  0, 0, 1 ]
-                zmp: [ 0, 0, 0 ]
-                collisionDetection: true
-                selfCollisionDetection: false
-                isEditable: false
-            - 
-              id: 9
-              name: "TerrainB"
-              plugin: Body
-              class: BodyItem
-              data: 
-                modelFile: "${SHARE}/model/WRS2018/TerrainB.body"
-                currentBaseLink: ""
-                rootPosition: [ 21, 2.4, 0 ]
-                rootAttitude: [ 
-                  2.22044605e-16, 1, -0, 
-                  -1, 2.22044605e-16, 0, 
-                  0, 0, 1 ]
-                jointPositions: [  ]
-                initialRootPosition: [ 21, 2.4, 0 ]
-                initialRootAttitude: [ 
-                  2.22044605e-16, 1, -0, 
-                  -1, 2.22044605e-16, 0, 
-                  0, 0, 1 ]
-                zmp: [ 0, 0, 0 ]
-                collisionDetection: true
-                selfCollisionDetection: false
-                isEditable: false
-            - 
-              id: 10
-              name: "JungleGym"
-              plugin: Body
-              class: BodyItem
-              data: 
-                modelFile: "${SHARE}/model/WRS2018/JungleGym1.body"
-                currentBaseLink: "Base"
-                rootPosition: [ 25, 0, 0 ]
-                rootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
-                jointPositions: [  ]
-                initialRootPosition: [ 25, 0, 0 ]
-                initialRootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
-                zmp: [ 0, 0, 0 ]
-                collisionDetection: true
-                selfCollisionDetection: false
-                isEditable: false
+                isEditable: true
         - 
-          id: 11
-          name: "Smoke"
+          id: 5
+          name: "Fire"
           plugin: Body
           class: BodyItem
           data: 
-            modelFile: "T1-Smoke.body"
+            modelFile: "T5-Fire.body"
             currentBaseLink: "Base"
-            rootPosition: [ 27, 0, 0 ]
+            rootPosition: [ 14, -1, 0.2 ]
             rootAttitude: [ 
               1, 0, 0, 
               0, 1, 0, 
               0, 0, 1 ]
             jointPositions: [  ]
-            initialRootPosition: [ 27, 0, 0 ]
-            initialRootAttitude: [ 
-              1, 0, 0, 
-              0, 1, 0, 
-              0, 0, 1 ]
-            zmp: [ 0, 0, 0 ]
-            collisionDetection: true
-            selfCollisionDetection: false
-            isEditable: false
-        - 
-          id: 12
-          name: "Smoke"
-          plugin: Body
-          class: BodyItem
-          data: 
-            modelFile: "T1-Smoke.body"
-            currentBaseLink: "Base"
-            rootPosition: [ 9, 0, 0 ]
-            rootAttitude: [ 
-              1, 0, 0, 
-              0, 1, 0, 
-              0, 0, 1 ]
-            jointPositions: [  ]
-            initialRootPosition: [ 9, 0, 0 ]
+            initialRootPosition: [ 14, -1, 0.2 ]
             initialRootAttitude: [ 
               1, 0, 0, 
               0, 1, 0, 
@@ -262,9 +171,8 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      selected: [ 5 ]
-      checked: [ 3, 4, 6, 7, 8, 9, 10, 11, 12 ]
-      expanded: [ 1, 9 ]
+      checked: [ 3, 4, 5, 6, 7 ]
+      expanded: [ 1, 6 ]
   - 
     id: 2
     plugin: Base
@@ -286,7 +194,7 @@ views:
       worldLight: true
       worldLightIntensity: 0.7
       worldLightAmbient: 0.3
-      additionalLights: true
+      additionalLights: false
       fog: true
       floorGrid: false
       floorGridSpan: 10
@@ -314,15 +222,15 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ -4.09528877, -2.94094309, 3.94279932 ]
-          direction: [ 0.923962342, 0.326839546, -0.198669327 ]
-          up: [ 0.187296435, 0.0662536547, 0.980066579 ]
+          eye: [ -3.90815276, -3.33358774, 2.81867908 ]
+          direction: [ 0.892427443, 0.377312262, -0.247403953 ]
+          up: [ 0.227874132, 0.0963436354, 0.968912423 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 5.73009
           near: 0.01
           far: 100
-      backgroundColor: [ 0, 0, 0 ]
+      backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
       gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       yzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
@@ -344,7 +252,7 @@ views:
       worldLight: true
       worldLightIntensity: 0.7
       worldLightAmbient: 0.3
-      additionalLights: true
+      additionalLights: false
       fog: true
       floorGrid: false
       floorGridSpan: 10
@@ -372,20 +280,20 @@ views:
           fieldOfView: 0.698132
           near: 0.01
           far: 100
-          eye: [ 0.557785169, 0.122295663, 0.936497809 ]
-          direction: [ 0.999719321, 0.0220522803, 0.00865887422 ]
-          up: [ -0.00865676838, -0.00019095508, 0.999962511 ]
+          eye: [ -5.75368023, 0.232171657, 2.52296107 ]
+          direction: [ 0.996943901, 0.0319678818, -0.0712805157 ]
+          up: [ 0.0712438979, 0.00228449816, 0.997456309 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 20
           near: 0.01
           far: 100
-      backgroundColor: [ 0, 0, 0 ]
+      backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
       gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       yzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       dedicatedItemTreeViewChecks: true
-      checked: [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
+      checked: [ 3, 4, 5, 6 ]
   - 
     id: 5
     plugin: Body
@@ -406,7 +314,7 @@ views:
       spinBox: true
       slider: true
       labelOnLeft: true
-      currentBodyItem: 5
+      currentBodyItem: 7
   - 
     id: 7
     plugin: Body
@@ -414,13 +322,20 @@ views:
     mounted: true
     state: 
       listingMode: "Link List"
-      currentBodyItem: 5
+      currentBodyItem: 7
   - 
     id: 8
     plugin: Multicopter
     class: MulticopterMonitorView
   - 
     id: 9
+    plugin: OpenRTM
+    class: RTSNameServerView
+    state: 
+      host: localhost
+      port: 2809
+  - 
+    id: 10
     plugin: Python
     class: PythonConsoleView
 toolbars: 
@@ -443,9 +358,42 @@ toolbars:
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
   "BodyBar": 
-    current: 5
+    current: 7
   "LeggedBodyBar": 
     stanceWidth: 0.15
+  "BodyMotionGenerationBar": 
+    autoGenerationForNewBody: true
+    balancer: false
+    autoGeneration: false
+    timeScaleRatio: 1
+    preInitialDuration: 1
+    postFinalDuration: 1
+    onlyTimeBarRange: false
+    makeNewBodyItem: true
+    stealthyStepMode: true
+    stealthyHeightRatioThresh: 2
+    flatLiftingHeight: 0.005
+    flatLandingHeight: 0.005
+    impactReductionHeight: 0.005
+    impactReductionTime: 0.04
+    autoZmp: true
+    minZmpTransitionTime: 0.1
+    zmpCenteringTimeThresh: 0.03
+    zmpTimeMarginBeforeLiftingSpin: 0
+    zmpMaxDistanceFromCenter: 0.02
+    allLinkPositions: false
+    lipSyncMix: false
+    timeToStartBalancer: 0
+    balancerIterations: 2
+    plainBalancerMode: false
+    boundaryConditionType: position
+    boundarySmootherType: quintic
+    boundarySmootherTime: 0.5
+    boundaryCmAdjustment: false
+    boundaryCmAdjustmentTime: 1
+    waistHeightRelaxation: false
+    gravity: 9.8
+    dynamicsTimeRatio: 1
 Body: 
   "BodyMotionEngine": 
     updateJointVelocities: false
@@ -476,21 +424,6 @@ Body:
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
-      - 
-        bodyItem: 8
-        showCenterOfMass: false
-        showPpcom: false
-        showZmp: false
-      - 
-        bodyItem: 9
-        showCenterOfMass: false
-        showPpcom: false
-        showZmp: false
-      - 
-        bodyItem: 10
-        showCenterOfMass: false
-        showPpcom: false
-        showZmp: false
     staticModelEditing: true
   "KinematicFaultChecker": 
     checkJointPositions: true
@@ -506,6 +439,8 @@ Body:
     inputFrameRate: 200
     isOutputFrameRateSpecified: false
     outputFrameRate: 200
+OpenRTM: 
+  "deleteUnmanagedRTCsOnStartingSimulation": false
 viewAreas: 
   - 
     type: embedded
@@ -513,12 +448,12 @@ viewAreas:
     contents: 
       type: splitter
       orientation: horizontal
-      sizes: [ 326, 1588 ]
+      sizes: [ 366, 1784 ]
       children: 
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 470, 470 ]
+          sizes: [ 645, 644 ]
           children: 
             - 
               type: pane
@@ -531,12 +466,12 @@ viewAreas:
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 723, 217 ]
+          sizes: [ 920, 369 ]
           children: 
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 687, 895 ]
+              sizes: [ 772, 1006 ]
               children: 
                 - 
                   type: pane
