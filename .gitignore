@@ -26,7 +26,7 @@ qrc_*.cxx
 /share/icon/
 /share/locale
 /Doxyfile
-gettext.h
+#gettext.h
 messages.pot
 
 
