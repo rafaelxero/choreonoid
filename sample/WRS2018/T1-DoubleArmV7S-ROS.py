@@ -1,4 +1,4 @@
 import WRSUtil
 WRSUtil.loadProject(
-    "T1", "AISTSimulator", "DoubleArmV7S", 
-    enableVisionSimulator = True, targetVisionSensors = "FRAME_FRONT_CAMERA", remoteType = "ROS")
+    "SingleSceneView", "T1", "AISTSimulator", "DoubleArmV7S", 
+    enableVisionSimulation = True, targetVisionSensors = "FRAME_FRONT_CAMERA", remoteType = "ROS")
