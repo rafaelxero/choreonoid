@@ -11,21 +11,21 @@ using namespace std;
 using namespace cnoid;
 
 namespace {
-static const string mdskey("Devices");
+static const string contentName("MultiDeviceStateSeq");
 }
 
 
 MultiDeviceStateSeq::MultiDeviceStateSeq()
     : BaseSeqType("MultiDeviceStateSeq")
 {
-    setSeqContentName(mdskey);
+    setSeqContentName(contentName);
 }
 
 
 MultiDeviceStateSeq::MultiDeviceStateSeq(int numFrames, int numDevices)
     : BaseSeqType("MultiDeviceStateSeq", numFrames, numDevices)
 {
-    setSeqContentName(mdskey);
+    setSeqContentName(contentName);
 }
 
 
@@ -33,7 +33,8 @@ MultiDeviceStateSeq::MultiDeviceStateSeq(int numFrames, int numDevices)
    \todo implement deep copy
 */
 MultiDeviceStateSeq::MultiDeviceStateSeq(const MultiDeviceStateSeq& org)
-    : BaseSeqType(org)
+    : BaseSeqType(org),
+      deviceNames(org.deviceNames)
 {
     
 }
@@ -46,6 +47,7 @@ MultiDeviceStateSeq& MultiDeviceStateSeq::operator=(const MultiDeviceStateSeq& r
 {
     if(this != &rhs){
         BaseSeqType::operator=(rhs);
+        deviceNames = rhs.deviceNames;
     }
     return *this;
 }
@@ -68,36 +70,67 @@ MultiDeviceStateSeq::~MultiDeviceStateSeq()
 
 const std::string& MultiDeviceStateSeq::key()
 {
-    return mdskey;
+    return contentName;
 }
 
 
 MultiDeviceStateSeqPtr cnoid::getMultiDeviceStateSeq(const BodyMotion& motion)
 {
-    return motion.extraSeq<MultiDeviceStateSeq>(mdskey);
+    return motion.extraSeq<MultiDeviceStateSeq>(contentName);
 }
 
 
 MultiDeviceStateSeqPtr cnoid::getOrCreateMultiDeviceStateSeq(BodyMotion& motion)
 {
-    return motion.getOrCreateExtraSeq<MultiDeviceStateSeq>(mdskey);
+    return motion.getOrCreateExtraSeq<MultiDeviceStateSeq>(contentName);
 }
 
 
 void cnoid::clearMultiDeviceStateSeq(BodyMotion& motion)
 {
-    motion.clearExtraSeq(mdskey);
+    motion.clearExtraSeq(contentName);
+}
+
+
+void MultiDeviceStateSeq::initialize(const DeviceList<>& devices)
+{
+    const int n = devices.size();
+    setNumParts(n);
+    deviceNames.resize(n);
+    for(int i=0; i < n; ++i){
+        deviceNames[i] = devices[i]->name();
+    }
+}
+
+
+int MultiDeviceStateSeq::partIndex(const std::string& partLabel) const
+{
+    for(size_t i=0; i < deviceNames.size(); ++i){
+        if(deviceNames[i] == partLabel){
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+const std::string& MultiDeviceStateSeq::partLabel(int partIndex) const
+{
+    if(partIndex < deviceNames.size()){
+        return deviceNames[partIndex];
+    }
+    return AbstractMultiSeq::partLabel(partIndex);
 }
 
 
 bool MultiDeviceStateSeq::doWriteSeq(YAMLWriter& writer, std::function<void()> additionalPartCallback)
 {
-    double version = writer.info("formatVersion", 0.0);
+    double version = writer.info("formatVersion", 3.0);
     if(version >= 1.0 && version < 2.0){
         return false; // not supported for the format verions 1
     }
 
-    return AbstractSeq::doWriteSeq(
+    return AbstractMultiSeq::doWriteSeq(
         writer,
         [&](){
             if(additionalPartCallback) additionalPartCallback();
@@ -105,7 +138,7 @@ bool MultiDeviceStateSeq::doWriteSeq(YAMLWriter& writer, std::function<void()> a
             const int n = numFrames();
             const int m = numParts();
             if(n * m > 0){
-                writer.putKey("devices");
+                writer.putKey("components");
                 writer.startListing();
                 for(int i=0; i < m; ++i){
                     writeDeviceStateSeq(writer, i);
@@ -120,30 +153,45 @@ void MultiDeviceStateSeq::writeDeviceStateSeq(YAMLWriter& writer, int deviceInde
 {
     auto seq = part(deviceIndex);
     DeviceState* state = seq[0];
-    const int size = state->stateSize();
-    vector<double> buf(size);
+    const int stateSize = state->stateSize();
+    vector<double> buf(stateSize);
     writer.startMapping();
-    writer.putKeyValue("type", state->typeName());
+    writer.putKeyValue("type", "DeviceStateSeq");
+    writer.putKeyValue("content", string(state->typeName()) + "StateSeq");
+    writer.putKey("name");
+    writer.putDoubleQuotedString(partLabel(deviceIndex));
+
     state = nullptr;
-    
+    vector<int> validFrameIndices;
+    validFrameIndices.reserve(seq.size());
+    for(int i=0; i < seq.size(); ++i){
+        if(seq[i] != state){
+            validFrameIndices.push_back(i);
+            state = seq[i];
+        }
+    }
+    const int numFrames = validFrameIndices.size();
+    writer.putKeyValue("numFrames", numFrames);
+    const bool hasFrameTime = validFrameIndices.size() < seq.size();
+    writer.putKeyValue("hasFrameTime", hasFrameTime);
+
     writer.putKey("frames");
     writer.startListing();
 
-    double dt = timeStep();
-    const int numFrames = seq.size();
+    const double dt = timeStep();
     for(int i=0; i < numFrames; ++i){
-        if(seq[i] != state){
-            state = seq[i];
-            state->writeState(&buf.front());
-            writer.startFlowStyleListing();
-            writer.putScalar(dt * i);
-            for(int j=0; j < size; ++j){
-                writer.putScalar(buf[j]);
-            }
-            writer.endListing();
+        int index = validFrameIndices[i];
+        seq[index]->writeState(&buf.front());
+        writer.startFlowStyleListing();
+        if(hasFrameTime){
+            writer.putScalar(dt * index);
         }
+        for(int j=0; j < stateSize; ++j){
+            writer.putScalar(buf[j]);
+        }
+        writer.endListing();
     }
-
+        
     writer.endListing();
 
     writer.endMapping();
