@@ -71,8 +71,10 @@ links:
     uri: "HoseNozzle.body"
     parent: BASE
     rotation: [ 0, 0, 1, 90 ]
-    translation: [ 0.07, -0.27, 0.81 ]
+    #translation: [ 0.07, -0.27, 0.81 ]
+    translation: [ 4.21, -0.1, 0.1712 ]
     jointType: free
+    #jointType: fixed # for fire test
     jointIdOffset: 4
     elements:
       -

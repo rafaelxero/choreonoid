@@ -16,154 +16,15 @@ items:
       children: 
         - 
           id: 2
-          name: "Environment"
+          name: "Extinguishing"
           plugin: Base
-          class: FolderItem
-          children: 
-            - 
-              id: 3
-              name: "FireCabinet"
-              plugin: Body
-              class: BodyItem
-              data: 
-                modelFile: "${SHARE}/model/WRS2018/NozzleConnectionTest.body"
-                currentBaseLink: "STAND"
-                rootPosition: [ 1.4, 0, 0 ]
-                rootAttitude: [ 
-                  -1, 0, 0, 
-                  0, -1, 0, 
-                  0, 0, 1 ]
-                jointPositions: [  0.785398,  0.000000,  0.000000 ]
-                initialRootPosition: [ 1.4, 0, 0 ]
-                initialRootAttitude: [ 
-                  -1, 0, 0, 
-                  0, -1, 0, 
-                  0, 0, 1 ]
-                initialJointPositions: [  0.785398,  0.000000,  0.000000 ]
-                zmp: [ 0, 0, 0 ]
-                collisionDetection: true
-                selfCollisionDetection: true
-                isEditable: true
-              children: 
-                - 
-                  id: 4
-                  name: "HoseNozzleController"
-                  plugin: Body
-                  class: SimpleControllerItem
-                  data: 
-                    isNoDelayMode: false
-                    controllerOptions: ""
-                    controller: "HoseNozzleController.so"
-                    baseDirectory: "Controller directory"
-                    reloading: false
-                    isOldTargetVariableMode: false
-            - 
-              id: 5
-              name: "Floor"
-              plugin: Body
-              class: BodyItem
-              data: 
-                modelFile: "${SHARE}/model/misc/floor.body"
-                currentBaseLink: "Floor"
-                rootPosition: [ 0, 0, -0.1 ]
-                rootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
-                jointPositions: [  ]
-                initialRootPosition: [ 0, 0, -0.1 ]
-                initialRootAttitude: [ 
-                  1, 0, 0, 
-                  0, 1, 0, 
-                  0, 0, 1 ]
-                zmp: [ 0, 0, 0 ]
-                collisionDetection: true
-                selfCollisionDetection: false
-                isEditable: false
-        - 
-          id: 6
-          name: "AizuSpider"
-          plugin: Body
-          class: BodyItem
+          class: SubProjectItem
           data: 
-            modelFile: "${SHARE}/model/AizuSpider/AizuSpiderDA.body"
-            currentBaseLink: "CHASSIS"
-            rootPosition: [ 0, 0, 0.034 ]
-            rootAttitude: [ 
-              1, 0, 0, 
-              0, 1, 0, 
-              0, 0, 1 ]
-            jointPositions: [ 
-               0.000000,  0.000000,  0.000000,  0.000000, -1.570796,  2.635447,  0.471239, -1.623156,  0.104720,  1.745329, 
-               0.000000,  0.000000,  0.000000, -1.570796,  2.635447,  0.471239, -1.623156,  0.104720,  1.745329,  0.000000, 
-               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
-               0.000000,  0.000000,  0.000000,  0.000000 ]
-            initialRootPosition: [ 0, 0, 0.034 ]
-            initialRootAttitude: [ 
-              1, 0, 0, 
-              0, 1, 0, 
-              0, 0, 1 ]
-            initialJointPositions: [ 
-               0.000000,  0.000000,  0.000000,  0.000000, -1.570796,  2.635447,  0.471239, -1.623156,  0.104720,  1.745329, 
-               0.000000,  0.000000,  0.000000, -1.570796,  2.635447,  0.471239, -1.623156,  0.104720,  1.745329,  0.000000, 
-               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
-               0.000000,  0.000000,  0.000000,  0.000000 ]
-            zmp: [ 0, 0, 0 ]
-            collisionDetection: true
-            selfCollisionDetection: true
-            isEditable: true
-          children: 
-            - 
-              id: 7
-              name: "AizuSpiderController"
-              plugin: Body
-              class: SimpleControllerItem
-              data: 
-                isNoDelayMode: false
-                controllerOptions: ""
-                controller: "AizuSpiderController.so"
-                baseDirectory: "Controller directory"
-                reloading: true
-                isOldTargetVariableMode: false
-              children: 
-                - 
-                  id: 8
-                  name: "Arm1Controller"
-                  plugin: Body
-                  class: SimpleControllerItem
-                  data: 
-                    isNoDelayMode: false
-                    controllerOptions: "ARM1_"
-                    controller: "Jaco2Controller.so"
-                    baseDirectory: "Controller directory"
-                    reloading: true
-                    isOldTargetVariableMode: false
-                - 
-                  id: 9
-                  name: "Arm2Controller"
-                  plugin: Body
-                  class: SimpleControllerItem
-                  data: 
-                    isNoDelayMode: false
-                    controllerOptions: "ARM2_"
-                    controller: "Jaco2Controller.so"
-                    baseDirectory: "Controller directory"
-                    reloading: true
-                    isOldTargetVariableMode: false
-            - 
-              id: 10
-              name: "BodyTrackingCamera"
-              plugin: Body
-              class: BodyTrackingCameraItem
-              data: 
-                targetLink: ""
-                keepRelativeAttitude: false
-                cameraType: "Perspective"
-                nearClipDistance: 0.05
-                farClipDistance: 200
-                fieldOfView: 0.785398
+            filename: "${PROJECT_DIR}/Extinguishing.cnoid"
+            format: PROJECT
+            saveMode: "Manual save"
         - 
-          id: 11
+          id: 3
           name: "AGXSimulator"
           plugin: AGXDynamics
           class: AGXSimulatorItem
@@ -187,11 +48,68 @@ items:
             AutoSleep: false
             SaveToAGXFileOnStart: false
             DebugMessageOnConsole: 2
+        - 
+          id: 4
+          name: "AizuSpider"
+          plugin: Body
+          class: BodyItem
+          data: 
+            modelFile: "${SHARE}/model/AizuSpider/AizuSpiderSA.body"
+            currentBaseLink: "CHASSIS"
+            rootPosition: [ 7, -0.959, 0.0367 ]
+            rootAttitude: [ 
+              6.123234e-17, -1, 0, 
+              1, 6.123234e-17, 0, 
+              0, 0, 1 ]
+            jointPositions: [ 
+               0.000000,  0.000000,  0.000000,  0.000000, -0.574351,  2.599138,  2.092345, -2.266188,  0.570451, -0.499683, 
+               0.000000,  0.000000,  0.000000,  0.000000, -0.008342,  0.000000, -0.008366, -0.014841, -0.000001, -0.013637, 
+              -0.000001, -0.023065,  0.000000, -0.023078,  0.000000 ]
+            initialRootPosition: [ 7, -0.959, 0.0367 ]
+            initialRootAttitude: [ 
+              2.22044605e-16, -1, 0, 
+              1, 2.22044605e-16, 0, 
+              0, 0, 1 ]
+            initialJointPositions: [ 
+               0.000000,  0.000000,  0.000000,  0.000000, -0.574351,  2.599138,  2.092345, -2.266188,  0.570451, -0.499683, 
+               0.000000,  0.000000,  0.000000,  0.000000, -0.008342,  0.000000, -0.008366, -0.014841, -0.000001, -0.013637, 
+              -0.000001, -0.023065,  0.000000, -0.023078,  0.000000 ]
+            zmp: [ 0, 0, 0 ]
+            collisionDetection: true
+            selfCollisionDetection: true
+            isEditable: true
+          children: 
+            - 
+              id: 5
+              name: "AizuSpiderController"
+              plugin: Body
+              class: SimpleControllerItem
+              data: 
+                isNoDelayMode: false
+                controllerOptions: ""
+                controller: "AizuSpiderController.so"
+                baseDirectory: "Controller directory"
+                reloading: true
+                isOldTargetVariableMode: false
+              children: 
+                - 
+                  id: 6
+                  name: "Jaco2Controller"
+                  plugin: Body
+                  class: SimpleControllerItem
+                  data: 
+                    isNoDelayMode: false
+                    controllerOptions: ""
+                    controller: "Jaco2Controller.so"
+                    baseDirectory: "Controller directory"
+                    reloading: true
+                    isOldTargetVariableMode: false
 views: 
   - 
     id: 0
     plugin: Base
     class: GeneralSliderView
+    mounted: true
   - 
     id: 1
     plugin: Base
@@ -203,8 +121,8 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      checked: [ 3, 5, 6, 8, 9 ]
-      expanded: [ 1, 2, 3, 6, 7, 10 ]
+      checked: [ 4, 6 ]
+      expanded: [ 1, 2, 3, 4, 5 ]
   - 
     id: 3
     plugin: Base
@@ -212,67 +130,6 @@ views:
     mounted: true
   - 
     id: 4
-    plugin: Base
-    class: SceneView
-    mounted: true
-    state: 
-      editMode: false
-      viewpointControlMode: thirdPerson
-      collisionLines: false
-      polygonMode: fill
-      cullingMode: enabled
-      defaultHeadLight: true
-      defaultHeadLightIntensity: 0.9
-      headLightLightingFromBack: false
-      worldLight: true
-      worldLightIntensity: 0.8
-      worldLightAmbient: 0.3
-      additionalLights: false
-      shadowLights: 
-        - 0
-      fog: true
-      floorGrid: false
-      floorGridSpan: 10
-      floorGridInterval: 0.5
-      xzGridSpan: 10
-      xzGridInterval: 0.5
-      xzGrid: false
-      yzGridSpan: 10
-      yzGridInterval: 0.5
-      texture: true
-      lineWidth: 1
-      pointSize: 1
-      normalVisualization: false
-      normalLength: 0.01
-      coordinateAxes: true
-      fpsTestIteration: 1
-      showFPS: false
-      enableNewDisplayListDoubleRendering: false
-      useBufferForPicking: true
-      upsideDown: false
-      cameras: 
-        - 
-          camera: [ System, Perspective ]
-          isCurrent: true
-          fieldOfView: 0.698132
-          near: 0.05
-          far: 200
-          eye: [ -1.45888591, -1.29411513, 1.65571118 ]
-          direction: [ 0.741078425, 0.459719612, -0.489347163 ]
-          up: [ 0.415834386, 0.257958154, 0.872089075 ]
-        - 
-          camera: [ System, Orthographic ]
-          orthoHeight: 20
-          near: 0.05
-          far: 200
-      backgroundColor: [ 0, 0, 0 ]
-      gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
-      xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
-      yzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
-      dedicatedItemTreeViewChecks: false
-  - 
-    id: 5
-    name: "Camera Scene"
     plugin: Base
     class: SceneView
     mounted: true
@@ -303,7 +160,7 @@ views:
       pointSize: 1
       normalVisualization: false
       normalLength: 0.01
-      coordinateAxes: false
+      coordinateAxes: true
       fpsTestIteration: 1
       showFPS: false
       enableNewDisplayListDoubleRendering: false
@@ -312,26 +169,66 @@ views:
       cameras: 
         - 
           camera: [ System, Perspective ]
+          isCurrent: true
           fieldOfView: 0.698132
           near: 0.05
           far: 200
-          eye: [ 4, 2, 1.5 ]
-          direction: [ -0.888888889, -0.444444444, -0.111111111 ]
-          up: [ -0.0993807989, -0.0496903995, 0.99380799 ]
+          eye: [ 5.31445349, -1.9144707, 0.984337725 ]
+          direction: [ 0.855820525, 0.458745948, -0.239004989 ]
+          up: [ 0.210650372, 0.112915035, 0.971018339 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 20
           near: 0.05
           far: 200
-        - 
-          camera: [ AizuSpider, FRONT_CAMERA ]
-          isCurrent: true
       backgroundColor: [ 0, 0, 0 ]
       gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       yzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
+      dedicatedItemTreeViewChecks: false
+  - 
+    id: 5
+    name: "Camera Scene"
+    plugin: Base
+    class: SceneView
+    state: 
+      editMode: false
+      viewpointControlMode: thirdPerson
+      collisionLines: false
+      polygonMode: fill
+      cullingMode: enabled
+      defaultHeadLight: true
+      defaultHeadLightIntensity: 0.75
+      headLightLightingFromBack: false
+      worldLight: true
+      worldLightIntensity: 0.5
+      worldLightAmbient: 0.3
+      additionalLights: true
+      fog: true
+      floorGrid: true
+      floorGridSpan: 10
+      floorGridInterval: 0.5
+      xzGridSpan: 10
+      xzGridInterval: 0.5
+      xzGrid: false
+      yzGridSpan: 10
+      yzGridInterval: 0.5
+      texture: true
+      lineWidth: 1
+      pointSize: 1
+      normalVisualization: false
+      normalLength: 0.01
+      coordinateAxes: true
+      fpsTestIteration: 1
+      showFPS: false
+      enableNewDisplayListDoubleRendering: false
+      useBufferForPicking: true
+      upsideDown: false
+      backgroundColor: [ 0.100000001, 0.100000001, 0.300000012 ]
+      gridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
+      xzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
+      yzgridColor: [ 0.899999976, 0.899999976, 0.899999976, 1 ]
       dedicatedItemTreeViewChecks: true
-      checked: [ 3, 5, 6, 9 ]
   - 
     id: 6
     plugin: Body
@@ -352,7 +249,7 @@ views:
       spinBox: true
       slider: true
       labelOnLeft: true
-      currentBodyItem: 3
+      currentBodyItem: 4
   - 
     id: 8
     plugin: Body
@@ -360,7 +257,7 @@ views:
     mounted: true
     state: 
       listingMode: "Link List"
-      currentBodyItem: 3
+      currentBodyItem: 4
   - 
     id: 9
     plugin: OpenRTM
@@ -379,16 +276,16 @@ views:
 toolbars: 
   "TimeBar": 
     minTime: 0
-    maxTime: 30
+    maxTime: 63.075
     frameRate: 1000
     playbackFrameRate: 60
     idleLoopDrivenMode: false
-    currentTime: 0
+    currentTime: 63.075
     speedScale: 1
     syncToOngoingUpdates: true
     autoExpansion: true
   "BodyBar": 
-    current: 3
+    current: 4
   "KinematicsBar": 
     mode: IK
     enablePositionDragger: true
@@ -438,17 +335,7 @@ Body:
   "EditableSceneBody": 
     editableSceneBodies: 
       - 
-        bodyItem: 3
-        showCenterOfMass: false
-        showPpcom: false
-        showZmp: false
-      - 
-        bodyItem: 5
-        showCenterOfMass: false
-        showPpcom: false
-        showZmp: false
-      - 
-        bodyItem: 6
+        bodyItem: 4
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
@@ -481,7 +368,7 @@ viewAreas:
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 471, 469 ]
+          sizes: [ 470, 470 ]
           children: 
             - 
               type: pane
@@ -499,11 +386,11 @@ viewAreas:
             - 
               type: splitter
               orientation: horizontal
-              sizes: [ 674, 908 ]
+              sizes: [ 327, 1255 ]
               children: 
                 - 
                   type: pane
-                  views: [ 6, 7, 5 ]
+                  views: [ 6, 7, 0 ]
                   current: 6
                 - 
                   type: pane
@@ -532,4 +419,3 @@ layoutOfToolBars:
       - { name: "TimeBar", x: 94, priority: 0 }
       - { name: "SceneBar", x: 1324, priority: 4 }
       - { name: "KinematicsBar", x: 1687, priority: 3 }
-      - { name: "BodyBar", x: 1923, priority: 0 }
