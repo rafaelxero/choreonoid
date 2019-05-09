@@ -15,8 +15,8 @@
 #include "RTMImageView.h"
 
 #ifdef ENABLE_NEW_RT_SYSTEM_ITEM_IMPLEMENTATION
-#include "RTSDiagramExtView.h"
-#include "RTSystemExtItem.h"
+#include "experimental/RTSDiagramViewEx.h"
+#include "experimental/RTSystemItemEx.h"
 #else
 #include "RTSDiagramView.h"
 #include "RTSystemItem.h"
@@ -36,6 +36,7 @@
 #include <cnoid/CorbaPlugin>
 #include <cnoid/SimulationBar>
 #include <cnoid/Sleep>
+#include <cnoid/FileUtil>
 #include <QTcpSocket>
 #include <cnoid/AppConfig>
 #include <fmt/format.h>
@@ -46,9 +47,9 @@
 #include "gettext.h"
 
 using namespace std;
-using namespace std::placeholders;
 using namespace cnoid;
 using fmt::format;
+namespace filesystem = boost::filesystem;
 
 namespace {
 
@@ -143,9 +144,10 @@ public:
         }
         DDEBUG_V("configFile : %s", configFile.c_str());
 
+        bool isConfFileSpecified = filesystem::exists(configFile);
+
         const char* argv[] = {
             "choreonoid",
-            "-f", configFile.c_str(),
             "-o", "manager.shutdown_on_nortcs: NO",
             "-o", "manager.shutdown_auto: NO",
             "-o", "naming.formats: %n.rtc",
@@ -158,17 +160,21 @@ public:
 #if defined(OPENRTM_VERSION12)
             "-i",
 #endif
+            "-f", configFile.c_str(),
         };
 
 #ifdef Q_OS_WIN32
 #if defined(OPENRTM_VERSION11)
-        int numArgs = 15;
+        int numArgs = 13;
 #elif defined(OPENRTM_VERSION12)
-        int numArgs = 16;
+        int numArgs = 14;
 #endif
 #else
-        int numArgs = 13;
+        int numArgs = 11;
 #endif
+        if(isConfFileSpecified){
+            numArgs += 2;
+        }
 
         mv = MessageView::mainInstance();
 
@@ -233,7 +239,7 @@ public:
             [&](const Archive& archive) { restore(archive); });
 
         NameServerInfo info = RTCCommonUtil::getManagerAddress();
-        if (info.hostAddress.empty() == false) {
+        if (!info.hostAddress.empty()) {
             NameServerManager::instance()->getNCHelper()->setLocation(info.hostAddress, info.portNo);
             DDEBUG_V("Init ncHelper host:%s, port:%d", info.hostAddress.c_str(), info.portNo);
         }
@@ -244,8 +250,13 @@ public:
         RTMImageView::initializeClass(this);
 
 #ifdef ENABLE_NEW_RT_SYSTEM_ITEM_IMPLEMENTATION
-        RTSystemExtItem::initializeClass(this);
-        RTSDiagramExtView::initializeClass(this);
+#ifdef ENABLE_BACKGROUND_STATE_DETECTION
+        RTSystemExt2Item::initializeClass(this);
+        RTSDiagramExt2View::initializeClass(this);
+#else
+        RTSystemItemEx::initializeClass(this);
+        RTSDiagramViewEx::initializeClass(this);
+#endif
 #else
         RTSystemItem::initializeClass(this);
         RTSDiagramView::initializeClass(this);

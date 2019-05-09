@@ -1,19 +1,17 @@
 #include "RTSystemItem.h"
-#include "RTSCommonUtil.h"
 #include "RTSTypeUtil.h"
 #include <cnoid/MessageView>
 #include <cnoid/ItemManager>
 #include <cnoid/Archive>
 #include <cnoid/EigenArchive>
 #include <cnoid/AppConfig>
+#include <rtm/CORBA_SeqUtil.h>
 #include <fmt/format.h>
 #include "LoggerUtil.h"
-
 #include "gettext.h"
 
 using namespace cnoid;
 using namespace std;
-using namespace std::placeholders;
 using namespace RTC;
 using fmt::format;
 
@@ -341,23 +339,31 @@ void RTSConnection::setPosition(const Vector2 pos[])
         position[i] = pos[i];
     }
     setPos = true;
-    srcRTC->rts()->suggestFileUpdate();
+    srcRTC->rtsItem()->suggestFileUpdate();
+    DDEBUG("suggestFileUpdate RTSConnection::setPosition");
 }
 
 
-RTSComp::RTSComp(const string& name, const std::string& fullPath, RTC::RTObject_ptr rtc, RTSystemItem* rts, const QPointF& pos, const string& host, int port, bool isDefault)
-    : rts_(rts), pos_(pos), name(name), fullPath(fullPath), hostAddress(host), portNo(port), isDefaultNS(isDefault)
+RTSComp::RTSComp
+(const string& name, const std::string& fullPath, RTC::RTObject_ptr rtc, Item* rtsItem, const QPointF& pos,
+ const string& host, int port, bool isDefault)
+    : rtsItem_(rtsItem),
+      pos_(pos),
+      name(name),
+      fullPath(fullPath),
+      hostAddress(host),
+      portNo(port),
+      isDefaultNS(isDefault)
 {
     setRtc(rtc);
 }
-
 
 void RTSComp::setRtc(RTObject_ptr rtc)
 {
     DDEBUG("RTSComp::setRtc");
     rtc_ = 0;
 
-    rts_->suggestFileUpdate();
+    //rtsItem_->suggestFileUpdate();
 
     setRTObject(rtc);
 
@@ -402,19 +408,22 @@ void RTSComp::setRtc(RTObject_ptr rtc)
         }
     }
 
+    bool isUpdated = rtsItem_->isConsistentWithFile();
     list<RTSConnection*> rtsConnectionList;
-    rts_->impl->RTSCompToConnectionList(this, rtsConnectionList, 0);
+    auto rtsImpl = static_cast<RTSystemItem*>(rtsItem_)->impl;
+    rtsImpl->RTSCompToConnectionList(this, rtsConnectionList, 0);
     for (auto it = rtsConnectionList.begin(); it != rtsConnectionList.end(); ++it) {
         RTSConnectionPtr connection = (*it);
-        rts_->impl->removeConnection(*it);
+        rtsImpl->removeConnection(*it);
         RTSPort* sourcePort = connection->srcRTC->nameToRTSPort(connection->sourcePortName);
         RTSPort* targetPort = connection->targetRTC->nameToRTSPort(connection->targetPortName);
         if (sourcePort && targetPort) {
             connection->sourcePort = sourcePort;
             connection->targetPort = targetPort;
-            rts_->impl->rtsConnections[RTSystemItem::RTSPortPair(sourcePort, targetPort)] = connection;
+            rtsImpl->rtsConnections[RTSystemItem::RTSPortPair(sourcePort, targetPort)] = connection;
         }
     }
+    rtsItem_->setConsistentWithFile(isUpdated);
 
     connectionCheck();
     DDEBUG("RTSComp::setRtc End");
@@ -462,8 +471,10 @@ bool RTSComp::connectionCheckSub(RTSPort* rtsPort)
 {
     bool updated = false;
 
-    if (isObjectAlive(rtsPort->port) == false) return updated;
+    if (!isObjectAlive(rtsPort->port)) return updated;
 
+    auto rtsImpl = static_cast<RTSystemItem*>(rtsItem_)->impl;
+    
     /**
        The get_port_profile() function should not be used here because
        it takes much time when the port has large data and its owner RTC is in a remote host.
@@ -499,7 +510,7 @@ bool RTSComp::connectionCheckSub(RTSPort* rtsPort)
             if(!getComponentPath(connectedPortRef, rtcPath)){
                 continue;
             }
-            RTSComp* targetRTC = rts_->impl->nameToRTSComp("/" + rtcPath);
+            RTSComp* targetRTC = rtsImpl->nameToRTSComp("/" + rtcPath);
             if(!targetRTC){
                 continue;
             }
@@ -507,8 +518,8 @@ bool RTSComp::connectionCheckSub(RTSPort* rtsPort)
             //DDEBUG("targetRTC Found");
             RTSPort* targetPort = targetRTC->nameToRTSPort(portName);
             if (targetPort) {
-                auto itr = rts_->impl->rtsConnections.find(RTSystemItem::RTSPortPair(rtsPort, targetPort));
-                if (itr != rts_->impl->rtsConnections.end()) {
+                auto itr = rtsImpl->rtsConnections.find(RTSystemItem::RTSPortPair(rtsPort, targetPort));
+                if (itr != rtsImpl->rtsConnections.end()) {
                     continue;
                 }
                 RTSConnectionPtr rtsConnection = new RTSConnection(
@@ -527,9 +538,10 @@ bool RTSComp::connectionCheckSub(RTSPort* rtsPort)
                 rtsConnection->targetRTC = targetRTC;
                 rtsConnection->targetPort = targetRTC->nameToRTSPort(rtsConnection->targetPortName);
                 rtsConnection->isAlive_ = true;
-                rts_->impl->rtsConnections[RTSystemItem::RTSPortPair(rtsPort, targetPort)] = rtsConnection;
+                rtsImpl->rtsConnections[RTSystemItem::RTSPortPair(rtsPort, targetPort)] = rtsConnection;
                 
-                rts_->suggestFileUpdate();
+                rtsItem_->suggestFileUpdate();
+                DDEBUG("suggestFileUpdate RTSComp::connectionCheckSub");
                 
                 updated = true;
             }
@@ -574,7 +586,8 @@ void RTSComp::setPos(const QPointF& p)
 {
     if (p != pos_) {
         pos_ = p;
-        rts_->suggestFileUpdate();
+        rtsItem_->suggestFileUpdate();
+        DDEBUG("suggestFileUpdate RTSComp::setPos");
     }
 }
 
@@ -707,6 +720,7 @@ RTSComp* RTSystemItemImpl::addRTSComp(const string& name, const QPointF& pos)
         rtsComps[fullPath] = rtsComp;
 
         self->suggestFileUpdate();
+        DDEBUG("suggestFileUpdate RTSystemItemImpl::addRTSComp");
 
         return rtsComp;
     }
@@ -746,6 +760,7 @@ RTSComp* RTSystemItemImpl::addRTSComp(const NamingContextHelper::ObjectInfo& inf
         rtsComps[fullPath] = rtsComp;
 
         self->suggestFileUpdate();
+        DDEBUG("suggestFileUpdate RTSystemItemImpl::addRTSComp");
 
         return rtsComp.get();
     }
@@ -763,6 +778,7 @@ void RTSystemItemImpl::deleteRTSComp(const string& name)
 {
     if (rtsComps.erase(name) > 0) {
         self->suggestFileUpdate();
+        DDEBUG("suggestFileUpdate RTSystemItemImpl::deleteRTSComp");
     }
 }
 
@@ -900,6 +916,7 @@ RTSConnection* RTSystemItemImpl::addRTSConnection
 
     if (updated) {
         self->suggestFileUpdate();
+        DDEBUG("suggestFileUpdate RTSystemItemImpl::addRTSConnection");
     }
 
     return rtsConnection_;
@@ -1034,6 +1051,7 @@ void RTSystemItemImpl::removeConnection(RTSConnection* connection)
     RTSystemItem::RTSPortPair pair(connection->sourcePort, connection->targetPort);
     if (rtsConnections.erase(pair) > 0) {
         self->suggestFileUpdate();
+        DDEBUG("suggestFileUpdate RTSystemItemImpl::removeConnection");
     }
 }
 
@@ -1047,17 +1065,17 @@ void RTSystemItem::doPutProperties(PutPropertyFunction& putProperty)
 void RTSystemItemImpl::doPutProperties(PutPropertyFunction& putProperty)
 {
     DDEBUG("RTSystemItemImpl::doPutProperties");
-    putProperty(_("Auto Connection"), autoConnection, changeProperty(autoConnection));
-    putProperty(_("Vendor Name"), vendorName, changeProperty(vendorName));
+    putProperty(_("Auto connection"), autoConnection, changeProperty(autoConnection));
+    putProperty(_("Vendor name"), vendorName, changeProperty(vendorName));
     putProperty(_("Version"), version, changeProperty(version));
-    putProperty(_("State Check"), stateCheck,
+    putProperty(_("State check"), stateCheck,
                 [&](int value) { setStateCheckMethod(value); return true; });
-    putProperty(_("Polling Cycle"), pollingCycle,
+    putProperty(_("Polling cycle"), pollingCycle,
                 [&](int value) { changePollingPeriod(value); return true; });
-    putProperty(_("CheckAtLoading"), checkAtLoading, changeProperty(checkAtLoading));
+    putProperty(_("Check at loading"), checkAtLoading, changeProperty(checkAtLoading));
 
 #if defined(OPENRTM_VERSION12)
-    putProperty(_("HeartBeat Period"), heartBeatPeriod, changeProperty(heartBeatPeriod));
+    putProperty(_("Heart-beat period"), heartBeatPeriod, changeProperty(heartBeatPeriod));
 #endif
 }
 
@@ -1117,6 +1135,7 @@ bool RTSystemItem::loadRtsProfile(const string& filename)
 
 bool RTSystemItem::saveRtsProfile(const string& filename)
 {
+    if (isConsistentWithFile()) return true;
     return impl->saveRtsProfile(filename);
 }
 
@@ -1202,7 +1221,7 @@ bool RTSystemItem::store(Archive& archive)
 
         archive.write("autoConnection", impl->autoConnection);
         archive.write("pollingCycle", impl->pollingCycle);
-        archive.write("stateCheck", impl->stateCheck.selectedSymbol());
+        archive.write("stateCheckMode", impl->stateCheck.selectedSymbol());
         archive.write("checkAtLoading", impl->checkAtLoading);
 
 #if defined(OPENRTM_VERSION12)
@@ -1219,21 +1238,21 @@ bool RTSystemItem::restore(const Archive& archive)
 {
     DDEBUG("RTSystemItemImpl::restore");
 
-    if (archive.read("autoConnection", impl->autoConnection) == false) {
+    if (!archive.read("autoConnection", impl->autoConnection)){
         archive.read("AutoConnection", impl->autoConnection);
     }
-    if( archive.read("checkAtLoading", impl->checkAtLoading)==false) {
+    if(!archive.read("checkAtLoading", impl->checkAtLoading)){
         archive.read("CheckAtLoading", impl->checkAtLoading);
     }
     int pollingCycle = 1000;
-    if( archive.read("pollingCycle", pollingCycle)==false) {
+    if(!archive.read("pollingCycle", pollingCycle)){
         archive.read("PollingCycle", pollingCycle);
     }
     impl->changePollingPeriod(pollingCycle);
 
 
 #if defined(OPENRTM_VERSION12)
-    if(archive.read("HeartBeatPeriod", impl->heartBeatPeriod) == false) {
+    if(!archive.read("HeartBeatPeriod", impl->heartBeatPeriod)){
         archive.read("heartBeatPeriod", impl->heartBeatPeriod);
     }
 #endif
@@ -1254,10 +1273,12 @@ bool RTSystemItem::restore(const Archive& archive)
     }
 
     string stateCheck;
-    if (archive.read("stateCheck", stateCheck) == false) {
-        archive.read("StateCheck", stateCheck);
+    if(!archive.read("stateCheckMode", stateCheck)){
+        if(!archive.read("stateCheck", stateCheck)){
+            archive.read("StateCheck", stateCheck);
+        }
     }
-    if(stateCheck.empty()==false) {
+    if(!stateCheck.empty()) {
         DDEBUG_V("StateCheck:%s", stateCheck.c_str());
         impl->setStateCheckMethodByString(stateCheck);
         archive.addPostProcess([&]() { impl->changeStateCheck(); });
