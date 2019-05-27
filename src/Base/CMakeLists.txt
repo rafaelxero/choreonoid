@@ -1,4 +1,3 @@
-
 # @author Shin'ichiro Nakaoka
 
 #set(CMAKE_BUILD_TYPE Debug)
@@ -40,6 +39,7 @@ set(sources
   Process.cpp
   Action.cpp
   ActionGroup.cpp
+  Widget.cpp
   SpinBox.cpp
   FloatingNumberBox.cpp
   ScrollBar.cpp
@@ -129,6 +129,7 @@ set(headers
   Process.h
   Action.h
   ActionGroup.h
+  Widget.h
   SpinBox.h
   FloatingNumberBox.h
   ScrollBar.h
@@ -227,6 +228,7 @@ set(qtheaders
   Process.h
   Action.h
   ActionGroup.h
+  Widget.h
   SpinBox.h
   FloatingNumberBox.h
   ScrollBar.h
@@ -251,8 +253,9 @@ set(qtheaders
   TextEdit.h
   )
 
-QTX_ADD_RESOURCES(RC_SRCS Base.qrc)
-QTX_WRAP_CPP(qtsources ${qtheaders})
+QT5_ADD_RESOURCES(RC_SRCS Base.qrc)
+QT5_WRAP_CPP(qtsources ${qtheaders})
+
 set(sources ${sources} ${qtsources})
 
 make_gettext_mofiles(${target} mofiles)
@@ -282,11 +285,7 @@ endif()
 apply_common_setting_for_library(${target} "${headers}")
 
 if(ENABLE_PYTHON)
-  if(USE_PYBIND11)
-    add_subdirectory(pybind11)
-  elseif(USE_BOOST_PYTHON)
-    add_subdirectory(boostpython)
-  endif()
+  add_subdirectory(pybind11)
 endif()
 
 add_subdirectory(lua)
