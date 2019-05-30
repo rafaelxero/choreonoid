@@ -37,6 +37,8 @@
 #include <set>
 #include <fmt/format.h>
 
+#include <iostream> // added by Rafa
+
 #ifdef ENABLE_SIMULATION_PROFILING
 #include <cnoid/ViewManager>
 #include <cnoid/SceneView>
@@ -661,6 +663,7 @@ void SimulationBodyImpl::copyStateToBodyItem()
 {
     BodyState state(*body_);
     state.restorePositions(*bodyItem->body());
+    state.restoreVelocities(*bodyItem->body()); // Added by Rafa
 }
 
 
@@ -1510,6 +1513,9 @@ bool SimulatorItemImpl::startSimulation(bool doReset)
             if(doReset){
                 bodyItem->restoreInitialState(false);
             }
+
+	    std::cout << "Rafa, in SimulatorItemImpl::startSimulation, before simBody, bodyItem->body()->rootLink()->v() = " << bodyItem->body()->rootLink()->v() << std::endl;
+	    
             SimulationBodyPtr simBody = self->createSimulationBody(bodyItem->body());
             if(simBody->body()){
                 if(simBody->impl->initialize(this, bodyItem)){
@@ -1523,6 +1529,8 @@ bool SimulatorItemImpl::startSimulation(bool doReset)
                 }
             }
             bodyItem->notifyKinematicStateChange();
+
+	    std::cout << "Rafa, in SimulatorItemImpl::startSimulation, after simBody, bodyItem->body()->rootLink()->v() = " << bodyItem->body()->rootLink()->v() << std::endl;
             
         } else if(ControllerItem* controller = dynamic_cast<ControllerItem*>(targetItems.get(i))){
             // ControllerItem which is not associated with a body

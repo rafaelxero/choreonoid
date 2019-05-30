@@ -433,6 +433,7 @@ void BodyItem::pasteKinematicState()
 void BodyItem::storeKinematicState(BodyState& state)
 {
     state.storePositions(*impl->body);
+    state.storeVelocities(*impl->body);
     state.setZMP(impl->zmp);
 }
 
@@ -447,6 +448,7 @@ bool BodyItem::restoreKinematicState(const BodyState& state)
 
     state.getZMP(impl->zmp);
     state.restorePositions(*impl->body);
+    state.restoreVelocities(*impl->body);
 
     //cout << "(currentState == state):" << (currentState == state) << endl;
     //return (currentState == state);
@@ -466,6 +468,8 @@ void BodyItem::restoreInitialState(bool doNotify)
     if(restored && doNotify){
         notifyKinematicStateChange(false);
     }
+
+    std::cout << "Rafa, in BodyItem::restoreInitialState, impl->body->rootLink()->v() = " << impl->body->rootLink()->v() << std::endl;
 }
 
 
@@ -1179,6 +1183,13 @@ bool BodyItemImpl::store(Archive& archive)
         }
     }
 
+    Vector3 initialRootLinVelocity;
+    Vector3 initialRootAngVelocity;
+    if(initialState.getRootLinkVelocity(initialRootLinVelocity, initialRootAngVelocity)){
+        write(archive, "initialRootLinVelocity", initialRootLinVelocity);
+	write(archive, "initialRootAngVelocity", initialRootAngVelocity);
+    }
+
     write(archive, "zmp", zmp);
 
     if(isOriginalModelStatic != body->isStaticModel()){
@@ -1258,6 +1269,14 @@ bool BodyItemImpl::restore(const Archive& archive)
             q[i] = body->joint(i)->q();
         }
     }
+
+    Vector3 v, w;
+    if(read(archive, "initialRootLinVelocity", v) && read(archive, "initialRootAngVelocity", w)){
+        initialState.setRootLinkVelocity(v, w);
+	std::cout << "Rafa, in BodyItemImpl::restore, initialRootVelocity v = " << v << std::endl;
+    }
+
+    std::cout << "Rafa, in BodyItemImpl::restore, body->rootLink()->v() = " << body->rootLink()->v() << std::endl;
 
     read(archive, "zmp", zmp);
         

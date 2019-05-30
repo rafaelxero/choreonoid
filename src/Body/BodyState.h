@@ -24,6 +24,7 @@ public:
     enum DataType {
         JOINT_POSITIONS,
         LINK_POSITIONS,
+	LINK_VELOCITIES,
         JOINT_FORCE_OR_TORQUE,
         ZMP
     };
@@ -35,14 +36,21 @@ public:
         DataMap<double>::operator=(rhs);
         return *this;
     }
+    
     void storePositions(const Body& body);
     bool restorePositions(Body& io_body) const;
 
+    void storeVelocities(const Body& body);
+    bool restoreVelocities(Body& io_body) const;
+    
     void setRootLinkPosition(const Position& T);
     void setRootLinkPosition(const SE3& position);
     bool getRootLinkPosition(Position& out_T) const;
     bool getRootLinkPosition(SE3& out_position) const;
 
+    void setRootLinkVelocity(const Vector3& lin_velocity, const Vector3& ang_velocity);
+    bool getRootLinkVelocity(Vector3& lin_velocity, Vector3& ang_velocity) const;
+    
     void setZMP(const Vector3& zmp);
     bool getZMP(Vector3& out_zmp) const;
 

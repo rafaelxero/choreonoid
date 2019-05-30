@@ -32,6 +32,9 @@
 #include <fstream>
 #include "gettext.h"
 
+// added by Rafa
+#include <iostream>
+
 using namespace std;
 using namespace cnoid;
 using fmt::format;
@@ -360,6 +363,8 @@ SimulationBody* AISTSimulatorItem::createSimulationBody(Body* orgBody)
     SimulationBody* simBody = 0;
     DyBody* body = new DyBody(*orgBody);
 
+    std::cout << "Rafa, in AISTSimulatorItem::createSimulationBody, early, body->rootLink()->v() = " << body->rootLink()->v() << std::endl;
+    
     const int n = orgBody->numLinks();
     for(int i=0; i < n; ++i){
         impl->orgLinkToInternalLinkMap[orgBody->link(i)] = body->link(i);
@@ -379,6 +384,9 @@ SimulationBody* AISTSimulatorItem::createSimulationBody(Body* orgBody)
             simBody = new KinematicWalkBody(body, legged);
         }
     }
+
+    std::cout << "Rafa, in AISTSimulatorItem::createSimulationBody, later, body->rootLink()->v() = " << body->rootLink()->v() << std::endl;
+    
     if(!simBody){
         simBody = new AISTSimBody(body);
     }
@@ -453,6 +461,9 @@ void AISTSimulatorItemImpl::addBody(AISTSimBody* simBody)
 {
     DyBody* body = static_cast<DyBody*>(simBody->body());
 
+    std::cout << "Rafa, in AISTSimulatorItemImpl::addBody, body->rootLink()->p() = " << body->rootLink()->p() << std::endl;
+    std::cout << "Rafa, in AISTSimulatorItemImpl::addBody, body->rootLink()->v() = " << body->rootLink()->v() << std::endl;
+    
     bool hasHighgainJoints = false;
     for(auto& link : body->links()){
         if(link->actuationMode() == Link::JOINT_DISPLACEMENT ||
@@ -619,6 +630,7 @@ void AISTSimulatorItemImpl::doSetForcedPosition()
 {
     std::lock_guard<std::mutex> lock(forcedBodyPositionMutex);
     DyLink* rootLink = forcedPositionBody->rootLink();
+    std::cout << "Rafa, in AISTSimulatorItemImpl::doSetForcedPosition, resetting the velocities" << std::endl;
     rootLink->setPosition(forcedBodyPosition);
     rootLink->v().setZero();
     rootLink->w().setZero();
