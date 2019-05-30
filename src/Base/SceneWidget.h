@@ -6,7 +6,7 @@
 #define CNOID_BASE_SCENE_WIDGET_H
 
 #include <cnoid/SceneGraph>
-#include <QWidget>
+#include <cnoid/Widget>
 #include <QBoxLayout>
 #include "exportdecl.h"
 
@@ -22,7 +22,7 @@ class SceneWidgetRoot;
 class Menu;
 class InteractiveCameraTransform;
 
-class CNOID_EXPORT SceneWidget : public QWidget
+class CNOID_EXPORT SceneWidget : public Widget
 {
 public:
     static SignalProxy<void(SceneWidget*)> sigSceneWidgetCreated();
@@ -88,7 +88,6 @@ public:
     void setCoordinateAxes(bool on);
     void setShowFPS(bool on);
     void setNewDisplayListDoubleRenderingEnabled(bool on);
-    void setUseBufferForPicking(bool on);
        
     void setBackgroundColor(const Vector3& color);
     Vector3 backgroundColor();

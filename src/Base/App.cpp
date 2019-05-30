@@ -58,7 +58,8 @@
 #include <QGLFormat>
 #include <QTextStream>
 #include <QFile>
-
+#include <QStyleFactory>
+#include <iostream>
 #include <csignal>
 
 #ifdef Q_OS_WIN32
@@ -136,14 +137,6 @@ AppImpl::AppImpl(App* self, int& argc, char**& argv)
 {
     descriptionDialog = 0;
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-#if defined(__APPLE__) && defined(__MACH__)
-    if(!getenv("QT_GRAPHICSSYSTEM")){
-        QApplication::setGraphicsSystem("raster"); // to obtain better rendering performance
-    }
-#endif
-#endif
-
     QCoreApplication::setAttribute(Qt::AA_X11InitThreads);
 
     doQuit = false;
@@ -168,11 +161,7 @@ void AppImpl::initialize( const char* appName, const char* vendorName, const QIc
 
     setlocale(LC_ALL, ""); // for gettext
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
-#else
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-#endif
     qapplication->setApplicationName(appName);
     qapplication->setOrganizationName(vendorName);
     qapplication->setWindowIcon(icon);
@@ -183,7 +172,8 @@ void AppImpl::initialize( const char* appName, const char* vendorName, const QIc
         AppConfig::archive()->openMapping("pathVariables"));
 
     ext = new ExtensionManager("Base", false);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) && CNOID_ENABLE_GETTEXT
+
+#if CNOID_ENABLE_GETTEXT
     setCnoidUtilTextDomainCodeset();
 #endif
 
@@ -254,6 +244,7 @@ void AppImpl::initialize( const char* appName, const char* vendorName, const QIc
 
     OptionManager& om = ext->optionManager();
     om.addOption("quit", "quit the application just after it is invoked");
+    om.addOption("list-qt-styles", "list all the available qt styles");
     om.sigOptionsParsed().connect(
         [&](boost::program_options::variables_map& v){ onSigOptionsParsed(v); });
 
@@ -383,6 +374,9 @@ SignalProxy<void()> cnoid::sigAboutToQuit()
 void AppImpl::onSigOptionsParsed(boost::program_options::variables_map& v)
 {
     if(v.count("quit")){
+        doQuit = true;
+    } else if(v.count("list-qt-styles")){
+        std::cout << QStyleFactory::keys().join(" ").toStdString() << std::endl;
         doQuit = true;
     }
 }
