@@ -224,6 +224,7 @@ void MaterialProgram::initialize()
 
 PhongShadowProgram::PhongShadowProgram()
 {
+    defaultFBO_ = 0;
     numShadows_ = 0;
     isShadowAntiAliasingEnabled_ = false;
     shadowMapWidth_ = 2048;
@@ -278,7 +279,7 @@ void PhongShadowProgram::initialize()
         initializeShadowInfo(i);
     }
     glActiveTexture(GL_TEXTURE0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, defaultFBO_);
 
     isShadowAntiAliasingEnabledLocation = getUniformLocation("isShadowAntiAliasingEnabled");
 
@@ -488,6 +489,6 @@ void ShadowMapProgram::initializeFrameRendering()
 
 void ShadowMapProgram::deactivate()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, mainProgram->defaultFramebufferObject());
     glCullFace(GL_BACK);
 }
