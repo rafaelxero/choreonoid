@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "RangeCamera.h"
 #include "RangeSensor.h"
+#include "TactileSensor.h"
 #include "PointLight.h"
 #include "SpotLight.h"
 #include <cnoid/FileUtil>
@@ -117,6 +118,7 @@ public:
     static AccelerationSensorPtr createAccelerationSensor(VRMLProtoInstance* node);
     static CameraPtr createCamera(VRMLProtoInstance* node);
     static RangeSensorPtr createRangeSensor(VRMLProtoInstance* node);
+    static TactileSensorPtr createTactileSensor(VRMLProtoInstance* node);
     static void readLightDeviceCommonParameters(Light& light, VRMLProtoInstance* node);
     static SpotLightPtr createSpotLight(VRMLProtoInstance* node);
     void setExtraJoints();
@@ -299,6 +301,7 @@ VRMLBodyLoaderImpl::VRMLBodyLoaderImpl()
         protoInfoMap["PressureSensor"] = ProtoInfo(PROTO_DEVICE, &VRMLBodyLoaderImpl::checkSensorProtoCommon);
         protoInfoMap["VisionSensor"] = ProtoInfo(PROTO_DEVICE, &VRMLBodyLoaderImpl::checkVisionSensorProto);
         protoInfoMap["RangeSensor"] = ProtoInfo(PROTO_DEVICE, &VRMLBodyLoaderImpl::checkRangeSensorProto);
+	protoInfoMap["TactileSensor"] = ProtoInfo(PROTO_DEVICE, &VRMLBodyLoaderImpl::checkSensorProtoCommon);
         protoInfoMap["SpotLightDevice"] = ProtoInfo(PROTO_DEVICE, &VRMLBodyLoaderImpl::checkSpotLightDeviceProto);
         protoInfoMap["ExtraJoint"] = ProtoInfo(PROTO_EXTRAJOINT, &VRMLBodyLoaderImpl::checkExtraJointProto);
     }
@@ -312,6 +315,7 @@ VRMLBodyLoaderImpl::VRMLBodyLoaderImpl()
         //sensorTypeMap["TorqueSensor"]       = Sensor::TORQUE;
         deviceFactories["RangeSensor"]        = &VRMLBodyLoaderImpl::createRangeSensor;
         deviceFactories["VisionSensor"]       = &VRMLBodyLoaderImpl::createCamera;
+	deviceFactories["TactileSensor"]      = &VRMLBodyLoaderImpl::createTactileSensor;
         deviceFactories["SpotLightDevice"]    = &VRMLBodyLoaderImpl::createSpotLight;
     }
 }
@@ -1185,6 +1189,15 @@ RangeSensorPtr VRMLBodyLoaderImpl::createRangeSensor(VRMLProtoInstance* node)
     rangeSensor->setFrameRate(getValue<SFFloat>(node, "scanRate"));
     
     return rangeSensor;
+}
+
+
+TactileSensorPtr VRMLBodyLoaderImpl::createTactileSensor(VRMLProtoInstance* node)
+{
+  TactileSensorPtr sensor = new TactileSensor();
+  readDeviceCommonParameters(*sensor, node);
+
+  return sensor;
 }
 
 
