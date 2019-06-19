@@ -569,7 +569,15 @@ bool SimulationBodyImpl::initialize(SimulatorItemImpl* simImpl, BodyItem* bodyIt
     resultItemPrefix = simImpl->self->name() + "-" + bodyItem->name();
 
     body_->setCurrentTimeFunction([this](){ return this->simImpl->currentTime(); });
+
+    std::cout << "Rafa, SimulationBodyImpl::initialize, before initializeState, body_->rootLink()->v() = " << body_->rootLink()->v() << std::endl;
+
     body_->initializeState();
+    body_->rootLink()->v() = bodyItem->body()->rootLink()->v();  // Added by Rafa
+    body_->rootLink()->w() = bodyItem->body()->rootLink()->w();  // Added by Rafa
+    //body_->rootLink()->vo() = body_->rootLink->v() - body_->rootLink->w().cross(body_->rootLink->p());  // Added by Rafa
+
+    std::cout << "Rafa, SimulationBodyImpl::initialize, after initializeState, body_->rootLink()->v() = " << body_->rootLink()->v() << std::endl;
 
     isDynamic = !body_->isStaticModel();
     bool doReset = simImpl->doReset && isDynamic;
@@ -1513,10 +1521,15 @@ bool SimulatorItemImpl::startSimulation(bool doReset)
 	    
             SimulationBodyPtr simBody = self->createSimulationBody(bodyItem->body());
             if(simBody->body()){
+
+	        std::cout << "Rafa, in SimulatorItemImpl::startSimulation, after simBody creation, simBody->body()->rootLink()->v() = " << simBody->body()->rootLink()->v() << std::endl;
+	      
                 if(simBody->impl->initialize(this, bodyItem)){
 
                     // copy the body state overwritten by the controller
                     simBody->impl->copyStateToBodyItem();
+
+		    std::cout << "Rafa, in SimulatorItemImpl::startSimulation, after copyStateToBodyItem, simBody->body()->rootLink()->v() = " << simBody->body()->rootLink()->v() << std::endl;
                         
                     allSimBodies.push_back(simBody);
                     simBodiesWithBody.push_back(simBody);
@@ -1525,7 +1538,7 @@ bool SimulatorItemImpl::startSimulation(bool doReset)
             }
             bodyItem->notifyKinematicStateChange();
 
-	    std::cout << "Rafa, in SimulatorItemImpl::startSimulation, after simBody, bodyItem->body()->rootLink()->v() = " << bodyItem->body()->rootLink()->v() << std::endl;
+	    std::cout << "Rafa, in SimulatorItemImpl::startSimulation, after notifyKinematicsStateChange, bodyItem->body()->rootLink()->v() = " << bodyItem->body()->rootLink()->v() << std::endl;
             
         } else if(ControllerItem* controller = dynamic_cast<ControllerItem*>(targetItems.get(i))){
             // ControllerItem which is not associated with a body

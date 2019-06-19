@@ -433,6 +433,8 @@ void Body::initializePosition()
 
 void Body::initializeState()
 {
+    std::cout << "Rafa, in Body::initializeState" << std::endl;
+  
     for(auto& link : linkTraverse_){
         link->initializeState();
     }
