@@ -6,12 +6,11 @@
 #define CNOID_PHENOMENON_PLUGIN_PARTICLES_PROGRAM_H
 
 #include "SceneParticles.h"
-#include <cnoid/GLSLSceneRenderer>
 #include <cnoid/ShaderPrograms>
-#include <memory>
-#include <cstdlib>
 
 namespace cnoid {
+
+class GLSLSceneRenderer;
 
 class ParticlesProgramBase
 {
@@ -49,10 +48,11 @@ private:
 };
 
     
-class ParticlesProgram : public LightingProgram, public ParticlesProgramBase
+class ParticlesProgram : public BasicLightingProgram, public ParticlesProgramBase
 {
 public:
-    ParticlesProgram(GLSLSceneRenderer* renderer);
+    ParticlesProgram(
+        GLSLSceneRenderer* renderer, const char* vertexShader, const char* fragmentShader);
 
 protected:
     virtual ShaderProgram* shaderProgram() { return this; }
@@ -62,7 +62,8 @@ protected:
 class LuminousParticlesProgram : public ShaderProgram, public ParticlesProgramBase
 {
 public:
-    LuminousParticlesProgram(GLSLSceneRenderer* renderer);
+    LuminousParticlesProgram(
+        GLSLSceneRenderer* renderer, const char* vertexShader, const char* fragmentShader);
 
 protected:
     virtual ShaderProgram* shaderProgram() { return this; }

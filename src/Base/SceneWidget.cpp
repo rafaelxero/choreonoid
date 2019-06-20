@@ -65,6 +65,9 @@ enum { FLOOR_GRID = 0, XZ_GRID = 1, YZ_GRID = 2 };
 
 Signal<void()> sigVSyncModeChanged;
 
+bool isLowMemoryConsumptionMode;
+Signal<void(bool on)> sigLowMemoryConsumptionModeChanged;
+
 class EditableExtractor : public PolymorphicFunctionSet<SgNode>
 {
 public:
@@ -103,7 +106,11 @@ public:
     SpinBox fieldOfViewSpin;
     DoubleSpinBox zNearSpin;
     DoubleSpinBox zFarSpin;
-    CheckBox lightingCheck;
+    Selection lightingMode;
+    ButtonGroup lightingModeGroup;
+    RadioButton fullLightingRadio;
+    RadioButton minLightingRadio;
+    RadioButton solidColorLightingRadio;
     CheckBox smoothShadingCheck;
     Selection cullingMode;
     ButtonGroup cullingModeGroup;
@@ -282,12 +289,14 @@ public:
     int profiling_mode;
 #endif
 
-    static void onOpenGLVSyncToggled(bool on);
+    static void onOpenGLVSyncToggled(bool on, bool doConfigOutput);
+    static void onLowMemoryConsumptionModeChanged(bool on, bool doConfigOutput);
 
     SceneWidgetImpl(SceneWidget* self, bool useGLSL);
     ~SceneWidgetImpl();
 
     void onVSyncModeChanged();
+    void onLowMemoryConsumptionModeChanged(bool on);
 
     virtual void initializeGL();
     virtual void resizeGL(int width, int height);
@@ -322,7 +331,6 @@ public:
     void setCollisionLinesVisible(bool on);
     void onFieldOfViewChanged(double fov);
     void onClippingDepthChanged();
-    void onLightingToggled(bool on);
     void onSmoothShadingToggled(bool on);
     void updateDefaultLights();
     void onNormalVisualizationChanged();
@@ -398,22 +406,44 @@ void SceneWidget::initializeClass(ExtensionManager* ext)
 {
     // OpenGL vsync setting
     Mapping* glConfig = AppConfig::archive()->openMapping("OpenGL");
+    auto& mm = ext->menuManager();
+
     bool isVSyncEnabled = (glConfig->get("vsync", 0) > 0);
-    auto vsyncItem = ext->menuManager().setPath("/Options/OpenGL").addCheckItem(_("Vertical Sync"));
+    auto vsyncItem = mm.setPath("/Options/OpenGL").addCheckItem(_("Vertical sync"));
     vsyncItem->setChecked(isVSyncEnabled);
-    vsyncItem->sigToggled().connect([&](bool on){ SceneWidgetImpl::onOpenGLVSyncToggled(on); });
-    SceneWidgetImpl::onOpenGLVSyncToggled(isVSyncEnabled);
+    vsyncItem->sigToggled().connect([&](bool on){ SceneWidgetImpl::onOpenGLVSyncToggled(on, true); });
+    SceneWidgetImpl::onOpenGLVSyncToggled(isVSyncEnabled, false);
+
+    isLowMemoryConsumptionMode = glConfig->get("lowMemoryConsumption", false);
+    auto memoryItem = mm.addCheckItem(_("Low GPU memory consumption mode"));
+    memoryItem->setChecked(isLowMemoryConsumptionMode);
+    memoryItem->sigToggled().connect([&](bool on){ SceneWidgetImpl::onLowMemoryConsumptionModeChanged(on, true); });
+    SceneWidgetImpl::onLowMemoryConsumptionModeChanged(isVSyncEnabled, false);
 }
 
 
-void SceneWidgetImpl::onOpenGLVSyncToggled(bool on)
+void SceneWidgetImpl::onOpenGLVSyncToggled(bool on, bool doConfigOutput)
 {
-    Mapping* glConfig = AppConfig::archive()->openMapping("OpenGL");
-    glConfig->write("vsync", (on ? 1 : 0));
     auto format = QSurfaceFormat::defaultFormat();
     format.setSwapInterval(on ? 1 : 0);
     QSurfaceFormat::setDefaultFormat(format);
     sigVSyncModeChanged();
+
+    if(doConfigOutput){
+        Mapping* glConfig = AppConfig::archive()->openMapping("OpenGL");
+        glConfig->write("vsync", (on ? 1 : 0));
+    }
+}
+
+
+void SceneWidgetImpl::onLowMemoryConsumptionModeChanged(bool on, bool doConfigOutput)
+{
+    sigLowMemoryConsumptionModeChanged(on);
+
+    if(doConfigOutput){
+        Mapping* glConfig = AppConfig::archive()->openMapping("OpenGL");
+        glConfig->write("lowMemoryConsumption", on);
+    }
 }
 
 
@@ -487,7 +517,9 @@ SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
     setFocusPolicy(Qt::WheelFocus);
 
     if(useGLSL){
-        renderer = new GLSLSceneRenderer(sceneRoot);
+        auto r = new GLSLSceneRenderer(sceneRoot);
+        r->setLowMemoryConsumptionMode(isLowMemoryConsumptionMode);
+        renderer = r;
     } else {
         renderer = new GL1SceneRenderer(sceneRoot);
     }
@@ -595,6 +627,8 @@ SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
     isDoingFPSTest = false;
 
     sigVSyncModeChanged.connect([&](){ onVSyncModeChanged(); });
+    sigLowMemoryConsumptionModeChanged.connect(
+        [&](bool on){ onLowMemoryConsumptionModeChanged(on); });
 
 #ifdef ENABLE_SIMULATION_PROFILING
     profiling_mode = 1;
@@ -627,6 +661,15 @@ void SceneWidgetImpl::onVSyncModeChanged()
        To change the swap interval, the QOpenGLWiget instance must probably be recreated.
     */
     //setFormat(QSurfaceFormat::defaultFormat());
+}
+
+
+void SceneWidgetImpl::onLowMemoryConsumptionModeChanged(bool on)
+{
+    if(auto glslRenderer = dynamic_cast<GLSLSceneRenderer*>(renderer)){
+        glslRenderer->setLowMemoryConsumptionMode(on);
+        update();
+    }
 }
 
 
@@ -845,7 +888,7 @@ void SceneWidgetImpl::doFPSTest()
     const int n = config->fpsTestIterationSpin.value();
     for(int i=0; i < n; ++i){
         for(double theta=1.0; theta <= 360.0; theta += 1.0){
-            double a = 3.14159265 * theta / 180.0;
+            double a = radian(theta);
             builtinCameraTransform->setTransform(
                 Translation3(p) *
                 AngleAxis(a, Vector3::UnitZ()) *
@@ -2249,13 +2292,6 @@ void SceneWidgetImpl::onClippingDepthChanged()
 }
 
 
-void SceneWidgetImpl::onLightingToggled(bool on)
-{
-    renderer->setDefaultLighting(on);
-    update();
-}
-
-
 void SceneWidgetImpl::onSmoothShadingToggled(bool on)
 {
     renderer->setDefaultSmoothShading(on);
@@ -2903,9 +2939,12 @@ void SceneWidgetImpl::activateSystemNode(SgNode* node, bool on)
 
 ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     : sceneWidgetImpl(impl),
+      lightingMode(3, CNOID_GETTEXT_DOMAIN_NAME),
       cullingMode(GLSceneRenderer::N_CULLING_MODES, CNOID_GETTEXT_DOMAIN_NAME)
 {
     setWindowTitle(_("Scene Config"));
+
+    auto renderer = sceneWidgetImpl->renderer;
 
     QVBoxLayout* topVBox = new QVBoxLayout();
     vbox = new QVBoxLayout();
@@ -2945,11 +2984,34 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     
     vbox->addLayout(new HSeparatorBox(new QLabel(_("Lighting"))));
     hbox = new QHBoxLayout();
-    lightingCheck.setText(_("Do lighiting"));
-    lightingCheck.setChecked(true);
-    lightingCheck.sigToggled().connect([=](bool on){ impl->onLightingToggled(on); });
-    hbox->addWidget(&lightingCheck);
+    hbox->addWidget(new QLabel(_("Lighting mode")));
 
+    fullLightingRadio.setText(_("Full"));
+    fullLightingRadio.setChecked(true);
+    lightingModeGroup.addButton(&fullLightingRadio, GLSceneRenderer::FULL_LIGHTING);
+    lightingMode.setSymbol(GLSceneRenderer::FULL_LIGHTING, "full");
+    hbox->addWidget(&fullLightingRadio);
+    
+    minLightingRadio.setText(_("Minimum"));
+    lightingModeGroup.addButton(&minLightingRadio, GLSceneRenderer::MINIMUM_LIGHTING);
+    lightingMode.setSymbol(GLSceneRenderer::MINIMUM_LIGHTING, "minimum");
+    hbox->addWidget(&minLightingRadio);
+    
+    solidColorLightingRadio.setText(_("Solid"));
+    lightingModeGroup.addButton(&solidColorLightingRadio, GLSceneRenderer::SOLID_COLOR_LIGHTING);
+    lightingMode.setSymbol(GLSceneRenderer::SOLID_COLOR_LIGHTING, "solid");
+    hbox->addWidget(&solidColorLightingRadio);
+
+    lightingModeGroup.sigButtonToggled().connect(
+        [&, renderer](int mode, bool checked){
+            if(checked){
+                lightingMode.select(mode);
+                renderer->setLightingMode(mode);
+                sceneWidgetImpl->update();
+            }
+        });
+
+    hbox->addSpacing(10);
     smoothShadingCheck.setText(_("Smooth shading"));
     smoothShadingCheck.setChecked(true);
     smoothShadingCheck.sigToggled().connect([=](bool on){ impl->onSmoothShadingToggled(on); });
@@ -2959,7 +3021,6 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
 
     hbox = new QHBoxLayout();
     hbox->addWidget(new QLabel(_("Back face culling mode: ")));
-    auto renderer = sceneWidgetImpl->renderer;
     cullingMode.setSymbol(GLSceneRenderer::ENABLE_BACK_FACE_CULLING, "enabled");
     cullingMode.setSymbol(GLSceneRenderer::DISABLE_BACK_FACE_CULLING, "disabled");
     cullingMode.setSymbol(GLSceneRenderer::FORCE_BACK_FACE_CULLING, "forced");
@@ -2972,11 +3033,13 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
         hbox->addWidget(&cullingRadios[i]);
     }
     cullingRadios[cullingMode.which()].setChecked(true);
-    cullingModeGroup.sigButtonClicked().connect(
-        [&, renderer](int mode){
-            cullingMode.select(mode);
-            renderer->setBackFaceCullingMode(mode);
-            sceneWidgetImpl->update();
+    cullingModeGroup.sigButtonToggled().connect(
+        [&, renderer](int mode, bool checked){
+            if(checked){
+                cullingMode.select(mode);
+                renderer->setBackFaceCullingMode(mode);
+                sceneWidgetImpl->update();
+            }
         });
     hbox->addStretch();
     vbox->addLayout(hbox);
@@ -3244,6 +3307,7 @@ void ConfigDialog::updateBuiltinCameraConfig()
 
 void ConfigDialog::storeState(Archive& archive)
 {
+    archive.write("lightingMode", lightingMode.selectedSymbol());
     archive.write("cullingMode", cullingMode.selectedSymbol());
     archive.write("defaultHeadLight", headLightCheck.isChecked());
     archive.write("defaultHeadLightIntensity", headLightIntensitySpin.value());
@@ -3289,10 +3353,14 @@ void ConfigDialog::storeState(Archive& archive)
 void ConfigDialog::restoreState(const Archive& archive)
 {
     string symbol;
+    if(archive.read("lightingMode", symbol)){
+        if(lightingMode.select(symbol)){
+            lightingModeGroup.button(lightingMode.which())->setChecked(true);
+        }
+    }
     if(archive.read("cullingMode", symbol)){
         if(cullingMode.select(symbol)){
             cullingRadios[cullingMode.which()].setChecked(true);
-            sceneWidgetImpl->renderer->setBackFaceCullingMode(cullingMode.which());
         }
     }
     
