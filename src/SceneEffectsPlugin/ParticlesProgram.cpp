@@ -5,8 +5,10 @@
 
 #include "ParticlesProgram.h"
 #include <cnoid/EigenUtil>
+#include <cnoid/SceneCameras>
+#include <cnoid/GLSLProgram>
+#include <cnoid/GLSLSceneRenderer>
 #include <QImage>
-#include <memory>
 #include <mutex>
 
 using namespace std;
@@ -27,13 +29,14 @@ bool ParticlesProgramBase::initializeRendering(SceneParticles* particles)
 
     program->initialize();
 
-    modelViewMatrixLocation = program->getUniformLocation("modelViewMatrix");
-    projectionMatrixLocation = program->getUniformLocation("projectionMatrix");
-    pointSizeLocation = program->getUniformLocation("pointSize");
-    angle2pixelsLocation = program->getUniformLocation("angle2pixels");
+    auto& glsl = program->glslProgram();
+    modelViewMatrixLocation = glsl.getUniformLocation("modelViewMatrix");
+    projectionMatrixLocation = glsl.getUniformLocation("projectionMatrix");
+    pointSizeLocation = glsl.getUniformLocation("pointSize");
+    angle2pixelsLocation = glsl.getUniformLocation("angle2pixels");
     
-    timeLocation = program->getUniformLocation("time");
-    particleTexLocation = program->getUniformLocation("particleTex");
+    timeLocation = glsl.getUniformLocation("time");
+    particleTexLocation = glsl.getUniformLocation("particleTex");
 
     if(!particles->texture().empty()){
         QImage image(particles->texture().c_str());
@@ -95,7 +98,7 @@ void ParticlesProgramBase::render
     
     renderer_->pushShaderProgram(*program, false);
 
-    auto lightingProgram = dynamic_cast<LightingProgram*>(program);
+    auto lightingProgram = dynamic_cast<BasicLightingProgram*>(program);
     if(lightingProgram){
         renderer_->renderLights(lightingProgram);
         renderer_->renderFog(lightingProgram);
@@ -131,15 +134,19 @@ void ParticlesProgramBase::render
 }
 
 
-ParticlesProgram::ParticlesProgram(GLSLSceneRenderer* renderer)
-    : ParticlesProgramBase(renderer)
+ParticlesProgram::ParticlesProgram
+(GLSLSceneRenderer* renderer, const char* vertexShader, const char* fragmentShader)
+    : BasicLightingProgram(vertexShader, fragmentShader),
+      ParticlesProgramBase(renderer)
 {
 
 }
 
 
-LuminousParticlesProgram::LuminousParticlesProgram(GLSLSceneRenderer* renderer)
-    : ParticlesProgramBase(renderer)
+LuminousParticlesProgram::LuminousParticlesProgram
+(GLSLSceneRenderer* renderer, const char* vertexShader, const char* fragmentShader)
+    : ShaderProgram(vertexShader, fragmentShader),
+      ParticlesProgramBase(renderer)
 {
 
 }

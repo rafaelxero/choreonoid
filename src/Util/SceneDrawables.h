@@ -144,7 +144,7 @@ private:
 typedef ref_ptr<SgTexture> SgTexturePtr;
 
 
-template<class T, class Alloc = std::allocator<T> > class SgVectorArray : public SgObject
+template<class T, class Alloc = std::allocator<T>> class SgVectorArray : public SgObject
 {
     typedef std::vector<T> Container;
         
@@ -219,7 +219,7 @@ typedef ref_ptr<SgNormalArray> SgNormalArrayPtr;
 typedef SgVectorArray<Vector3f> SgColorArray;
 typedef ref_ptr<SgColorArray> SgColorArrayPtr;
 
-typedef SgVectorArray<Vector2f, Eigen::aligned_allocator<Vector2f> > SgTexCoordArray;
+typedef SgVectorArray<Vector2f, Eigen::aligned_allocator<Vector2f>> SgTexCoordArray;
 typedef ref_ptr<SgTexCoordArray> SgTexCoordArrayPtr;
 
 typedef std::vector<int> SgIndexArray;
@@ -235,8 +235,11 @@ protected:
 public:
     virtual int numChildObjects() const;
     virtual SgObject* childObject(int index);
-    virtual const BoundingBox& boundingBox() const;
+
+    const BoundingBox& boundingBox() const { return bbox; }
     virtual void updateBoundingBox();
+    void setBoundingBox(const BoundingBox& bb){ bbox = bb; };
+    void setBoundingBox(const BoundingBoxf& bb){ bbox = bb; };
 
     bool hasVertices() const { return (vertices_ && !vertices_->empty()); }
     SgVertexArray* vertices() { return vertices_; }
@@ -280,7 +283,7 @@ public:
     bool isSolid() const { return isSolid_; }
     void setSolid(bool on) { isSolid_ = on; }
 
-  protected:
+protected:
     BoundingBox bbox;
     
 private:
@@ -489,6 +492,7 @@ public:
 
     virtual int numChildObjects() const;
     virtual SgObject* childObject(int index);
+
     virtual const BoundingBox& boundingBox() const;
     void updateBoundingBox();
 
