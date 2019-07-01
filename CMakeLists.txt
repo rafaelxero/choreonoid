@@ -107,9 +107,69 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 link_directories(${PROJECT_BINARY_DIR}/lib)
 link_directories(${PROJECT_BINARY_DIR}/${CNOID_PLUGIN_SUBDIR})
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(
+    CMAKE_BUILD_TYPE Release CACHE STRING
+    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+    FORCE)
+endif()
+
+if(UNIX)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -finline-functions")
+  option(ENABLE_GCC_FVISIBILITY_HIDDEN "Use the -fvisibility=hidden option when the sources are compiled" ON)
+  option(ENABLE_NATIVE_CPU_ARCHITECTURE "Use the -march=native option to enable instruction set supported by the native processor architecture" OFF)
+  if(ENABLE_NATIVE_ARCHITECTURE)
+    set(compiler_general_options "-march=native")
+  endif()
+endif()
+
+if(MSVC)
+  set(compiler_optimization_options "/O2 /Ob2 /Oi /Gy /GS- /fp:fast")
+
+  if(${MSVC_VERSION} GREATER_EQUAL 1915)
+    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+  endif()
+
+  if(CMAKE_CL_64)
+    option(MSVC_ENABLE_AVX "Enable AVX instructions on VC++." OFF)
+    option(MSVC_ENABLE_AVX2 "Enable AVX2 instructions on VC++." OFF)
+    if(MSVC_ENABLE_AVX2)
+      set(compiler_general_options "/arch:AVX2")
+    elseif(MSVC_ENABLE_AVX)
+      set(compiler_general_options "/arch:AVX")
+    endif()
+  else()
+    option(MSVC_ENABLE_SSE "Enable SSE instructions" ON)
+    if(MSVC_ENABLE_SSE)
+      set(compiler_general_options "/arch:SSE /arch:SSE2")
+    endif()
+  endif()
+
+  set(linker_optimization_options "")
+  option(MSVC_ENABLE_GLOBAL_OPTIMIZATION "Global optimization with compiler option /GL and linker option /LTCG" OFF)
+  if(MSVC_ENABLE_GLOBAL_OPTIMIZATION)
+    set(compiler_optimization_options "${compiler_optimization_options} /GL")
+    set(linker_optimization_options "${linker_optimization_options} /LTCG")
+  endif()
+endif()
+
+set(ADDITIONAL_CXX_FLAGS ${ADDITIONAL_CXX_FLAGS} CACHE STRING "Additional c++ compiler optimization flags")
+
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${ADDITIONAL_CXX_FLAGS} ${compiler_optimization_options} ${compiler_general_options}")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${compiler_optimization_options} ${compiler_general_options}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${ADDITIONAL_CXX_FLAGS} ${compiler_optimization_options} ${compiler_general_options}")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${compiler_optimization_options} ${compiler_general_options}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${compiler_general_options}")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${compiler_general_options}")
+
+set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS_RELEASE} ${linker_optimization_options}")
+set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} ${linker_optimization_options}")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${linker_optimization_options}")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${linker_optimization_options}")
+
 function(install_external_libraries dll_dir lib_dir)
 
-  set(libraries ${ARGV})
+set(libraries ${ARGV})
 
   list(REMOVE_AT libraries 0 1)
   if(INSTALL_RUNTIME_DEPENDENCIES AND MSVC)
@@ -151,73 +211,16 @@ function(install_external_libraries dll_dir lib_dir)
 
 endfunction()
 
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(
-    CMAKE_BUILD_TYPE Release CACHE STRING
-    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-    FORCE)
-endif()
-
-if(UNIX)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -finline-functions")
-  option(ENABLE_GCC_FVISIBILITY_HIDDEN "Use the -fvisibility=hidden option when the sources are compiled" ON)
-endif()
-
-set(ADDITIONAL_CXX_FLAGS_RELEASE ${ADDITIONAL_CXX_FLAGS_RELEASE} CACHE STRING "Additional c++ compiler optimization flags")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${EXTRA_CXX_FLAGS_RELEASE} ${ADDITIONAL_CXX_FLAGS_RELEASE}")
-
-
-if(MSVC)
-
-  set(ext_compiler_options "/Ob2 /Ox /Oi /Ot /Oy /GT /GS- /fp:fast")
-  if(CMAKE_CL_64)
-    set(MSVC_ENABLE_SSE OFF CACHE BOOL "Enable SSE instructions on VC++." FORCE)
-  else()
-    option(MSVC_ENABLE_SSE "Enable SSE instructions on VC++." ON)
-  endif()
-  if(MSVC_ENABLE_SSE)
-    set(ext_compiler_options "${ext_compiler_options} /arch:SSE /arch:SSE2 /fp:fast")
-  endif()
-  option(MSVC_ENABLE_AVX "Enable AVX instructions on VC++." OFF)
-  if(MSVC_ENABLE_AVX)
-    set(ext_compiler_options "${ext_compiler_options} /arch:AVX")
-  endif()
-  option(MSVC_ENABLE_AVX2 "Enable AVX2 instructions on VC++." OFF)
-  if(MSVC_ENABLE_AVX2)
-    set(ext_compiler_options "${ext_compiler_options} /arch:AVX2")
-  endif()
-  set(ext_linker_options "")
-
-  option(MSVC_ENABLE_GLOBAL_OPTIMIZATION "Global optimization with compiler option /GL and linker option /LTCG" OFF)
-  if(MSVC_ENABLE_GLOBAL_OPTIMIZATION)
-    set(ext_compiler_options "${ext_compiler_options} /GL")
-    set(ext_linker_options "${ext_linker_options} /LTCG")
-  endif()
-
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${ext_compiler_options}")
-  set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} ${ext_linker_options}")
-  set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${ext_linker_options}")
-  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${ext_linker_options}")
-
-  if(MSVC_ENABLE_SSE)
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /GS- /fp:fast /arch:SSE2 /arch:SSE2")
-
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /fp:fast /arch:SSE2 /arch:SSE2")
-  endif()
-
-  if(${MSVC_VERSION} GREATER_EQUAL 1915)
-    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
-  endif()
-endif()
-
 find_package(Threads)
 
+# OpenGL
 if(ENABLE_GUI)
+  if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 OLD)
+  endif()
   find_package(OpenGL)
   include_directories(${OPENGL_INCLUDE_DIR})
 endif()
-
 
 option(ENABLE_INSTALL_RPATH "Enable RPATH setting for installed binary files" ON)
 
@@ -369,7 +372,7 @@ endif()
 
 # boost
 set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_ADDITIONAL_VERSIONS "1.56" "1.57" "1.58" "1.59" "1.60" "1.61" "1.62" "1.63" "1.64" "1.65" "1.66" "1.67")
+set(Boost_ADDITIONAL_VERSIONS "1.56" "1.57" "1.58" "1.59" "1.60" "1.61" "1.62" "1.63" "1.64" "1.65" "1.66" "1.67" "1.68")
 
 set(boost_packages system filesystem program_options iostreams)
 
@@ -421,19 +424,14 @@ endif()
 # eigen
 if(NOT EIGEN_DIR)
   if(MSVC)
-    file(GLOB eigen_dirs "c:/local/eigen-?.?.?" "d:/local/eigen-?.?.?")
-    if(eigen_dirs)
-      list(GET eigen_dirs 0 eigen_dir)
-      message(STATUS "Found the Eigen directory: ${eigen_dir}")
-      set(EIGEN_DIR ${eigen_dir})
-    endif()
+    set(EIGEN_DIR ${PROJECT_SOURCE_DIR}/thirdparty/eigen-3.2.10)
   else(UNIX)
     pkg_check_modules(EIGEN eigen3>=3.2.7) # pybind11 requries Eigen version 3.2.7 or higher
     if(EIGEN_FOUND)
       set(EIGEN_DIR ${EIGEN_INCLUDE_DIRS})
     else()
-      message(STATUS "Set Eigen 3.3.4 included in the thirdparty directory to EIGEN_DIR")
-      set(EIGEN_DIR ${PROJECT_SOURCE_DIR}/thirdparty/eigen)
+      message(STATUS "Set Eigen 3.2.10 included in the thirdparty directory to EIGEN_DIR")
+      set(EIGEN_DIR ${PROJECT_SOURCE_DIR}/thirdparty/eigen-3.2.10)
     endif()
   endif()
 endif()
@@ -445,8 +443,6 @@ else()
   set(EIGEN_INCLUDE_DIRS ${EIGEN_DIR})
   include_directories(${EIGEN_INCLUDE_DIRS})
 endif()
-
-set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS EIGEN_NO_DEBUG)
 
 if(MSVC AND INSTALL_SDK_WITH_EXTLIBS)
   foreach(dir ${EIGEN_INCLUDE_DIRS})
@@ -884,7 +880,6 @@ if(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wreturn-type")
 
   option(CHECK_UNRESOLVED_SYMBOLS "check unresolved symbols in the object files when creating shared libraries" OFF)
-  #mark_as_advanced(CHECK_UNRESOLVED_SYMBOLS)
   if(CHECK_UNRESOLVED_SYMBOLS)
     if(NOT APPLE)
       set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--unresolved-symbols=ignore-in-shared-libs -Wl,--warn-unresolved-symbols")

@@ -11,7 +11,6 @@
 #include <cnoid/SceneEffects>
 #include <cnoid/EigenUtil>
 #include <cnoid/NullOut>
-#include <Eigen/StdVector>
 #include <GL/glu.h>
 #include <unordered_map>
 #include <mutex>
@@ -253,13 +252,26 @@ public:
     bool isLowMemoryConsumptionRenderingBeingProcessed;
     
     Affine3Array modelMatrixStack; // stack of the model matrices
-    Affine3 viewMatrix;
+    Affine3 viewTransform;
     Matrix4 projectionMatrix;
     Matrix4 PV;
 
     vector<function<void()>> postRenderingFunctions;
-    vector<function<void()>> transparentRenderingFunctions;
 
+    struct RenderingFunction {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        Affine3 position; // corresponds to the model matrix
+        ReferencedPtr object; // object to render
+        int id; // some id related with the object
+        typedef function<void(Referenced* object, Affine3& position, int id)> Func;
+        Func func;
+
+        RenderingFunction(Referenced* object, const Affine3& position, int id, const Func& func)
+            : position(position), object(object), id(id), func(func) { }
+        void operator()(){ func(object, position, id); }
+    };
+    vector<RenderingFunction, Eigen::aligned_allocator<RenderingFunction>> transparentRenderingFunctions;
+    
     std::set<int> shadowLightIndices;
 
     int lightingMode;
@@ -344,15 +356,15 @@ public:
     void renderSceneGraphNodes();
     void pushProgram(ShaderProgram& program, bool isLightingProgram);
     void popProgram();
-    inline void setPickColor(unsigned int id);
-    inline unsigned int pushPickId(SgNode* node, bool doSetColor = true);
+    inline void setPickColor(int id);
+    inline int pushPickId(SgNode* node, bool doSetColor = true);
     void popPickId();
     void renderGroup(SgGroup* group);
     void renderTransform(SgTransform* transform);
     void renderSwitch(SgSwitch* node);
     void renderUnpickableGroup(SgUnpickableGroup* group);
     void renderShape(SgShape* shape);
-    void renderShapeMain(SgShape* shape, const Affine3& position, unsigned int pickId);
+    void renderShapeMain(SgShape* shape, const Affine3& position, int pickId);
     void renderPointSet(SgPointSet* pointSet);        
     void renderLineSet(SgLineSet* lineSet);        
     void renderOverlay(SgOverlay* overlay);
@@ -452,7 +464,7 @@ void GLSLSceneRendererImpl::initialize()
     backFaceCullingMode = GLSceneRenderer::ENABLE_BACK_FACE_CULLING;
 
     modelMatrixStack.reserve(16);
-    viewMatrix.setIdentity();
+    viewTransform.setIdentity();
     projectionMatrix.setIdentity();
 
     lightingMode = GLSceneRenderer::FULL_LIGHTING;
@@ -664,6 +676,16 @@ void GLSLSceneRenderer::requestToClearResources()
 }
 
 
+void GLSLSceneRenderer::onSceneGraphUpdated(const SgUpdate& update)
+{
+    if(SgLightweightRenderingGroup* group = dynamic_cast<SgLightweightRenderingGroup*>(update.path().front())){
+        requestToClearResources();
+    }
+    
+    GLSceneRenderer::onSceneGraphUpdated(update);
+}
+    
+
 void GLSLSceneRenderer::doRender()
 {
     impl->doRender();
@@ -840,11 +862,11 @@ bool GLSLSceneRendererImpl::doPick(int x, int y)
     if(SHOW_IMAGE_FOR_PICKING){
         color[2] = 0.0f;
     }
-    unsigned int id = (color[0] * 255) + ((int)(color[1] * 255) << 8) + ((int)(color[2] * 255) << 16) - 1;
+    int id = (int)(color[0] * 255) + ((int)(color[1] * 255) << 8) + ((int)(color[2] * 255) << 16) - 1;
 
     pickedNodePath.clear();
 
-    if(0 < id && id < pickingNodePathList.size()){
+    if(id > 0 && id < static_cast<int>(pickingNodePathList.size())){
         GLfloat depth;
         glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
         Vector3 projected;
@@ -928,11 +950,11 @@ void GLSLSceneRendererImpl::renderCamera(SgCamera* camera, const Affine3& camera
 
     if(isUpsideDownEnabled){
         Affine3 T = cameraPosition * AngleAxis(PI, Vector3(0.0, 0.0, 1.0));
-        viewMatrix = T.inverse(Eigen::Isometry);
+        viewTransform = T.inverse(Eigen::Isometry);
     } else {
-        viewMatrix = cameraPosition.inverse(Eigen::Isometry);
+        viewTransform = cameraPosition.inverse(Eigen::Isometry);
     }
-    PV = projectionMatrix * viewMatrix.matrix();
+    PV = projectionMatrix * viewTransform.matrix();
 
     modelMatrixStack.clear();
     modelMatrixStack.push_back(Affine3::Identity());
@@ -1002,7 +1024,7 @@ void GLSLSceneRendererImpl::renderLights(LightingProgram* program)
         self->getLightInfo(i, light, T);
         if(light->on()){
             bool isCastingShadow = (shadowLightIndices.find(i) != shadowLightIndices.end());
-            if(program->setLight(lightIndex, light, T, viewMatrix, isCastingShadow)){
+            if(program->setLight(lightIndex, light, T, viewTransform, isCastingShadow)){
                 ++lightIndex;
             }
         }
@@ -1012,7 +1034,7 @@ void GLSLSceneRendererImpl::renderLights(LightingProgram* program)
         SgLight* headLight = self->headLight();
         if(headLight->on()){
             if(program->setLight(
-                   lightIndex, headLight, self->currentCameraPosition(), viewMatrix, false)){
+                   lightIndex, headLight, self->currentCameraPosition(), viewTransform, false)){
                 ++lightIndex;
             }
         }
@@ -1073,6 +1095,12 @@ const Matrix4& GLSLSceneRenderer::projectionMatrix() const
 }
 
 
+const Affine3& GLSLSceneRenderer::viewTransform() const
+{
+    return impl->viewTransform;
+}
+
+
 const Matrix4& GLSLSceneRenderer::viewProjectionMatrix() const
 {
     return impl->PV;
@@ -1081,7 +1109,7 @@ const Matrix4& GLSLSceneRenderer::viewProjectionMatrix() const
 
 Matrix4 GLSLSceneRenderer::modelViewMatrix() const
 {
-    return impl->viewMatrix * impl->modelMatrixStack.back().matrix();
+    return (impl->viewTransform * impl->modelMatrixStack.back()).matrix();
 }
 
 
@@ -1167,7 +1195,7 @@ const Vector3& GLSLSceneRenderer::pickedPoint() const
 }
 
 
-inline void GLSLSceneRendererImpl::setPickColor(unsigned int id)
+inline void GLSLSceneRendererImpl::setPickColor(int id)
 {
     Vector3f color;
     color[0] = (id & 0xff) / 255.0;
@@ -1183,9 +1211,9 @@ inline void GLSLSceneRendererImpl::setPickColor(unsigned int id)
 /**
    @return id of the current object
 */
-inline unsigned int GLSLSceneRendererImpl::pushPickId(SgNode* node, bool doSetColor)
+inline int GLSLSceneRendererImpl::pushPickId(SgNode* node, bool doSetColor)
 {
-    unsigned int id = 0;
+    int id = 0;
     
     if(isPicking){
         id = pickingNodePathList.size() + 1;
@@ -1295,7 +1323,7 @@ VertexResource* GLSLSceneRendererImpl::getOrCreateVertexResource(SgObject* obj)
 
 void GLSLSceneRendererImpl::drawVertexResource(VertexResource* resource, GLenum primitiveMode, const Affine3& position)
 {
-    currentProgram->setTransform(PV, viewMatrix, position, resource->pLocalTransform);
+    currentProgram->setTransform(PV, viewTransform, position, resource->pLocalTransform);
     glBindVertexArray(resource->vao);
     glDrawArrays(primitiveMode, 0, resource->numVertices);
 }
@@ -1310,9 +1338,10 @@ void GLSLSceneRendererImpl::renderShape(SgShape* shape)
             if(!isRenderingShadowMap){
                 const Affine3& position = modelMatrixStack.back();
                 auto pickId = pushPickId(shape, false);
-                transparentRenderingFunctions.push_back(
-                    [this, shape, position, pickId](){
-                        renderShapeMain(shape, position, pickId); });
+                transparentRenderingFunctions.emplace_back(
+                    shape, position, pickId,
+                    [this](Referenced* object, Affine3& position, int id){
+                        renderShapeMain(static_cast<SgShape*>(object), position, id); });
                 popPickId();
             }
         } else {
@@ -1324,7 +1353,7 @@ void GLSLSceneRendererImpl::renderShape(SgShape* shape)
 }
 
 
-void GLSLSceneRendererImpl::renderShapeMain(SgShape* shape, const Affine3& position, unsigned int pickId)
+void GLSLSceneRendererImpl::renderShapeMain(SgShape* shape, const Affine3& position, int pickId)
 {
     auto mesh = shape->mesh();
     
@@ -1399,9 +1428,12 @@ void GLSLSceneRendererImpl::renderShapeMain(SgShape* shape, const Affine3& posit
 }
 
 
-void GLSLSceneRenderer::dispatchToTransparentPhase(std::function<void()> renderingFunction)
+void GLSLSceneRenderer::dispatchToTransparentPhase
+(Referenced* object, int id,
+ std::function<void(Referenced* object, const Affine3& position, int id)> renderingFunction)
 {
-    impl->transparentRenderingFunctions.push_back(renderingFunction);
+    impl->transparentRenderingFunctions.emplace_back(
+        object, impl->modelMatrixStack.back(), id, renderingFunction);
 }
 
 
@@ -1413,9 +1445,8 @@ void GLSLSceneRendererImpl::renderTransparentObjects()
         glDepthMask(GL_FALSE);
     }
 
-    const int n = transparentRenderingFunctions.size();
-    for(int i=0; i < n; ++i){
-        transparentRenderingFunctions[i]();
+    for(auto& func : transparentRenderingFunctions){
+        func();
     }
 
     if(!isPicking){
@@ -1639,11 +1670,10 @@ void GLSLSceneRendererImpl::writeMeshVerticesNormalizedShort(SgMesh* mesh, Verte
             : r(ratio), c(center)
         {  }
         void append(const Vector3f& v){
-            array.push_back(
-                Vector3s(
-                    r.x() * (v.x() - c.x()),
-                    r.y() * (v.y() - c.y()),
-                    r.z() * (v.z() - c.z())));
+            array.emplace_back(
+                r.x() * (v.x() - c.x()),
+                r.y() * (v.y() - c.y()),
+                r.z() * (v.z() - c.z()));
         }
     };
             
@@ -1725,7 +1755,6 @@ bool GLSLSceneRendererImpl::writeMeshNormalsSub
         glBufferData(GL_ARRAY_BUFFER, normals.array.size() * sizeof(value_type), normals.array.data(), GL_STATIC_DRAW);
         glEnableVertexAttribArray(1);
     }
-    
     
     if(isNormalVisualizationEnabled){
         auto lines = new SgLineSet;
@@ -1909,7 +1938,7 @@ void GLSLSceneRendererImpl::writeMeshTexCoordsHalfFloat
             return ((x >> 16) & 0x8000) | ((x & 0x7fffffff) >> 13) - 0x1c000;
         }
         void append(const Vector2f& uv){
-            array.push_back(Vector2h(toHalf(uv[0]), toHalf(uv[1])));
+            array.emplace_back(toHalf(uv[0]), toHalf(uv[1]));
         }
     } texCoords;
 
@@ -1940,7 +1969,7 @@ void GLSLSceneRendererImpl::writeMeshTexCoordsUnsignedShort
             return v;
         }
         void append(const Vector2f& uv){
-            array.push_back(Vector2us(65535.0f * clamp(uv[0]), 65535.0f * clamp(uv[1])));
+            array.emplace_back(65535.0f * clamp(uv[0]), 65535.0f * clamp(uv[1]));
         }
     } texCoords;
 
@@ -1967,7 +1996,7 @@ void GLSLSceneRendererImpl::writeMeshColors(SgMesh* mesh, VertexResource* resour
             for(int j=0; j < 3; ++j){
                 const int orgVertexIndex = triangleVertices[faceVertexIndex++];
                 Vector3f c = 255.0f * orgColors[orgVertexIndex];
-                colors.push_back(Color(c[0], c[1], c[2]));
+                colors.emplace_back(c[0], c[1], c[2]);
             }
         }
     } else {
@@ -1975,7 +2004,7 @@ void GLSLSceneRendererImpl::writeMeshColors(SgMesh* mesh, VertexResource* resour
             for(int j=0; j < 3; ++j){
                 const int colorIndex = colorIndices[faceVertexIndex++];
                 Vector3f c = 255.0f * orgColors[colorIndex];
-                colors.push_back(Color(c[0], c[1], c[2]));
+                colors.emplace_back(c[0], c[1], c[2]);
             }
         }
     }
@@ -2055,7 +2084,7 @@ void GLSLSceneRendererImpl::renderPlot
                 const size_t m = std::min(n, orgColors.size());
                 while(i < m){
                     Vector3f c = 255.0f * orgColors[i];
-                    colors.push_back(Color(c[0], c[1], c[2]));
+                    colors.emplace_back(c[0], c[1], c[2]);
                     ++i;
                 }
             } else {
@@ -2063,7 +2092,7 @@ void GLSLSceneRendererImpl::renderPlot
                 size_t i = 0;
                 while(i < m){
                     Vector3f c = 255.0f * orgColors[colorIndices[i]];
-                    colors.push_back(Color(c[0], c[1], c[2]));
+                    colors.emplace_back(c[0], c[1], c[2]);
                     ++i;
                 }
             }
@@ -2160,7 +2189,7 @@ void GLSLSceneRendererImpl::renderOutlineGroup(SgOutlineGroup* outline)
         renderGroup(outline);
     } else {
         const Affine3& T = modelMatrixStack.back();
-        postRenderingFunctions.push_back(
+        postRenderingFunctions.emplace_back(
             [this, outline, T](){ renderOutlineGroupMain(outline, T); });
     }
 }
