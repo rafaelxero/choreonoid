@@ -41,7 +41,7 @@ class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
     Matrix4 modelViewMatrix() const;
     Matrix4 modelViewProjectionMatrix() const;
 
-    void pushShaderProgram(ShaderProgram& program, bool isLightingProgram);
+    void pushShaderProgram(ShaderProgram& program);
     void popShaderProgram();
 
     void renderLights(LightingProgram* program);
@@ -77,6 +77,7 @@ class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
     virtual void setUpsideDown(bool on) override;
     virtual void setBackFaceCullingMode(int mode) override;
     virtual int backFaceCullingMode() const override;
+    virtual void setBoundingBoxRenderingForLightweightRenderingGroupEnabled(bool on) override;
 
     void setLowMemoryConsumptionMode(bool on);
 

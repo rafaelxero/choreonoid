@@ -226,7 +226,7 @@ public:
 
     void throwEx(const string& error)
     {
-        boost::filesystem::path path(filename);
+        stdx::filesystem::path path(filename);
         throw std::runtime_error(
             format(_("{0} at line {1} of \"{2}\"."),
                    error, lineNumber, path.filename().string()));
@@ -638,12 +638,7 @@ STLSceneLoader::STLSceneLoader()
 
 STLSceneLoaderImpl::STLSceneLoaderImpl()
 {
-    /**
-       The number of threads is limited to 4 at maximum because just increasing
-       the number of threds accessing the same file will be slow down overall
-       file reading speed.
-    */
-    maxNumThreads = std::max((unsigned)1, std::min(thread::hardware_concurrency(), (unsigned)4));
+    maxNumThreads = std::max((unsigned)1, thread::hardware_concurrency());
 
     os_ = &nullout();
 }
@@ -722,6 +717,15 @@ SgMeshPtr STLSceneLoaderImpl::loadBinaryFormat(const string& filename, ifstream&
     BinaryMeshLoader mainLoader(numTriangles);
 
     size_t numThreads = std::min(maxNumThreads, std::max(size_t(1), numTriangles / NumTrianglesPerThread));
+
+    /**
+       The number of threads is limited to 4 at maximum because just increasing
+       the number of threds accessing the same file will slow down overall file
+       reading speed.
+    */
+    if(numThreads > 4){
+        numThreads = 4;
+    }
 
     if(numThreads == 1){
         mainLoader.load(ifs, 0, numTriangles);
@@ -834,6 +838,12 @@ SgMeshPtr STLSceneLoaderImpl::loadAsciiFormat(const string& filename, pos_type f
 {
     size_t numThreads = std::min(maxNumThreads, std::max(size_t(1), size_t(fileSize / AsciiSizePerThread)));
 
+#ifndef _WIN32
+    if(numThreads > 4){
+        numThreads = 4;
+    }
+#endif
+    
     SgMeshPtr mesh;
     
     bool doOpen = (numThreads == 1);

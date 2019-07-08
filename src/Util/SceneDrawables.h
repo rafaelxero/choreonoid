@@ -8,7 +8,7 @@
 
 #include "SceneGraph.h"
 #include "Image.h"
-#include <boost/variant.hpp>
+#include <cnoid/stdx/variant>
 #include <memory>
 #include <initializer_list>
 #include "exportdecl.h"
@@ -246,7 +246,7 @@ public:
     SgVertexArray* vertices() { return vertices_; }
     const SgVertexArray* vertices() const { return vertices_; }
     SgVertexArray* setVertices(SgVertexArray* vertices);
-    SgVertexArray* getOrCreateVertices();
+    SgVertexArray* getOrCreateVertices(size_t size = 0);
         
     bool hasNormals() const { return (normals_ && !normals_->empty()); }
     SgNormalArray* normals() { return normals_; }
@@ -396,10 +396,10 @@ public:
             double height;
         };
 
-    typedef boost::variant<Mesh, Box, Sphere, Cylinder, Cone, Capsule> Primitive;
+    typedef stdx::variant<Mesh, Box, Sphere, Cylinder, Cone, Capsule> Primitive;
 
-    const int primitiveType() const { return primitive_.which(); }
-    template<class TPrimitive> const TPrimitive& primitive() const { return boost::get<TPrimitive>(primitive_); }
+    const int primitiveType() const { return stdx::get_variant_index(primitive_); }
+    template<class TPrimitive> const TPrimitive& primitive() const { return stdx::get<TPrimitive>(primitive_); }
     template<class TPrimitive> void setPrimitive(const TPrimitive& prim) { primitive_ = prim; }
 
     void transform(const Affine3f& T);
@@ -503,7 +503,7 @@ public:
     SgVertexArray* vertices() { return vertices_; }
     const SgVertexArray* vertices() const { return vertices_; }
     SgVertexArray* setVertices(SgVertexArray* vertices);
-    SgVertexArray* getOrCreateVertices();
+    SgVertexArray* getOrCreateVertices(size_t size = 0);
         
     SgMaterial* material() { return material_; }
     const SgMaterial* material() const { return material_; }

@@ -178,8 +178,8 @@ if(UNIX)
     m
     )
 
-  if(CNOID_USE_BOOST_REGEX)
-    set(libraries ${libraries} ${Boost_REGEX_LIBRARY})
+  if(CMAKE_COMPILER_IS_GNUCC AND (NOT CMAKE_CXX_STANDARD LESS 17))
+    set(libraries ${libraries} stdc++fs)
   endif()
 
   if(APPLE)

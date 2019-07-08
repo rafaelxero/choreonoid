@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.1.0) # Qt5 requies this version or later
+if(MSVC)
+  cmake_minimum_required(VERSION 3.10.0) # CMAKE_CXX_STANDARD 17 is supported for MSVC
+else()
+  cmake_minimum_required(VERSION 3.5.0) # Ubuntu 16.04
+endif()
 
 cmake_policy(SET CMP0003 NEW)
 cmake_policy(SET CMP0057 NEW)
@@ -6,6 +10,7 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 include(FindPkgConfig)
 include(CheckIncludeFiles)
+include(CheckCXXCompilerFlag)
 
 project(Choreonoid)
 
@@ -27,32 +32,54 @@ set(CNOID_DIR ${CMAKE_INSTALL_PREFIX})
 set(CNOID_SUBDIR choreonoid-${CNOID_VERSION})
 set(CNOID_PLUGIN_SUBDIR lib/${CNOID_SUBDIR})
 
+# C++ version
 set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_CXX_EXTENSIONS OFF)
-
+set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT CMAKE_VERSION VERSION_LESS 3.8.0) # CMake 3.8 or later is required to enable C++17
+  option(ENABLE_CXX_STANDARD_17 "Enable C++ 17 when it is available to the compiler" OFF)
+endif()
+if(NOT ENABLE_CXX_STANDARD_17)
+  unset(has_cpp17 CACHE)
+endif()
 if(UNIX)
-  include(CheckCXXCompilerFlag OPTIONAL RESULT_VARIABLE included)
-  if(included)
-    # For Ubuntu 16.04, alghouth the c++17 option is available,
-    # CMake gets an error when 17 is set to CMAKE_CXX_STANDARD.
-    # Therefore c++17 is currently disabled.
-    #check_cxx_compiler_flag("-std=c++17" has_cpp17)
-
+  # Old GCC does not implement the regex library correctly
+  if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9.3)
+    messag(FATAL_ERROR "The version of GCC is too old to build Choreonoid")
+  endif()
+  if(ENABLE_CXX_STANDARD_17)
+    check_cxx_compiler_flag("-std=c++17" has_cpp17)
+    if(has_cpp17)
+      set(CMAKE_CXX_STANDARD 17)
+    endif()
+  endif()
+  if(NOT has_cpp17)
     check_cxx_compiler_flag("-std=c++14" has_cpp14)
-  endif()
-  if(has_cpp17)
-    set(CMAKE_CXX_STANDARD 17)
-  elseif(has_cpp14)
-    set(CMAKE_CXX_STANDARD 14)
-  endif()
-  if(CMAKE_VERSION VERSION_LESS "3.1.0")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}")
+    if(has_cpp14)
+      set(CMAKE_CXX_STANDARD 14)
+    endif()
   endif()
   if(CMAKE_COMPILER_IS_GNUCC)
     # To allow for reloading a controller shared library
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --no-gnu-unique")
   endif()
   add_definitions("-pthread")
+
+elseif(MSVC)
+  if(ENABLE_CXX_STANDARD_17)
+    check_cxx_compiler_flag("/std:c++17" has_cpp17)
+    if(has_cpp17)
+      set(CMAKE_CXX_STANDARD 17)
+    endif()
+  endif()
+  if(NOT has_cpp17)
+    check_cxx_compiler_flag("/std:c++14" has_cpp14)
+    if(has_cpp14)
+      set(CMAKE_CXX_STANDARD 14)
+    endif()
+  endif()
+  if(${MSVC_VERSION} GREATER_EQUAL 1910)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
+  endif()
 endif()
 
 if(WIN32)
@@ -90,7 +117,7 @@ option(INSTALL_SDK "Installing SDK files such as header files" ${DEFAULT_INSTALL
 option(INSTALL_SDK_WITH_EXTLIBS "The SDK installation includes the external libraries" OFF)
 
 if(MSVC AND CMAKE_CL_64)
-   add_definitions(-D_WIN64)
+  add_definitions(-D_WIN64)
 endif()
 
 # The following option is not necessary.
@@ -211,17 +238,6 @@ set(libraries ${ARGV})
 
 endfunction()
 
-find_package(Threads)
-
-# OpenGL
-if(ENABLE_GUI)
-  if(POLICY CMP0072)
-    cmake_policy(SET CMP0072 OLD)
-  endif()
-  find_package(OpenGL)
-  include_directories(${OPENGL_INCLUDE_DIR})
-endif()
-
 option(ENABLE_INSTALL_RPATH "Enable RPATH setting for installed binary files" ON)
 
 if(ENABLE_INSTALL_RPATH)
@@ -308,6 +324,17 @@ else()
   set(GETTEXT_LIBRARIES "")
 endif()
 
+find_package(Threads)
+
+# OpenGL
+if(ENABLE_GUI)
+  if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 OLD)
+  endif()
+  find_package(OpenGL)
+  include_directories(${OPENGL_INCLUDE_DIR})
+endif()
+
 # Python
 if(WIN32)
   option(ENABLE_PYTHON "Enable Python" OFF)
@@ -317,7 +344,6 @@ endif()
 
 set(CNOID_PYTHON_SUBDIR ${CNOID_PLUGIN_SUBDIR}/python)
 set(PYBIND11_DIR ${PYBIND11_DIR} CACHE PATH "The directory of the pybind11 library")
-set(CNOID_USE_PYBIND11 ON)
 
 option(USE_PYTHON3 "Use Python version 3 instead of version 2" ON)
 
@@ -349,6 +375,10 @@ if(ENABLE_PYTHON)
   file(WRITE ${init_py} "")
   install(FILES ${init_py} DESTINATION ${CNOID_PYTHON_SUBDIR}/cnoid
     CONFIGURATIONS Release Debug RelWithDebInfo MinSizeRel)
+
+  if(MSVC)
+    add_definitions(-DHAVE_SNPRINTF)
+  endif()
 endif()
 
 # Lua
@@ -357,7 +387,9 @@ if(UNIX)
 endif()
 
 if(ENABLE_LUA)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+  if(CMAKE_CXX_STANDARD LESS 14)
+    message(FATAL_ERROR "Lua wrapper requires C++14 or later C++ versions")
+  endif()
   set(LUA_SOL2_DIR ${PROJECT_SOURCE_DIR}/thirdparty/sol2 CACHE PATH "set the directory of the Sol2 library")
   pkg_check_modules(LUA lua5.3)
   if(NOT LUA_FOUND)
@@ -374,14 +406,10 @@ endif()
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_ADDITIONAL_VERSIONS "1.56" "1.57" "1.58" "1.59" "1.60" "1.61" "1.62" "1.63" "1.64" "1.65" "1.66" "1.67" "1.68")
 
-set(boost_packages system filesystem program_options iostreams)
+set(boost_packages system program_options iostreams)
 
-# Old GCC does not implement the regex library correctly
-if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9.3)
-  set(CNOID_USE_BOOST_REGEX ON)
-  set(boost_packages ${boost_packages} regex)
-else()
-  set(CNOID_USE_BOOST_REGEX OFF)
+if(NOT has_cpp17)
+  set(boost_packages ${boost_packages} filesystem)
 endif()
 
 if(MSVC)
@@ -389,12 +417,6 @@ if(MSVC)
 else()
   find_package(Boost 1.54.0 REQUIRED COMPONENTS ${boost_packages})
 endif()
-
-#if(NOT Boost_FOUND)
-#  set(BOOST_ROOT ${BOOST_ROOT} CACHE PATH "set the directory of the boost root")
-#  set(BOOST_LIBRARYDIR ${BOOST_LIBRARYDIR} CACHE PATH "set the directory of the boost library")
-#  message(FATAL_ERROR "Boost cannot be found. Please specify the boost top directory to BOOST_ROOT.")
-#endif()
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
@@ -408,10 +430,6 @@ if(MSVC)
     ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY} ${Boost_ZLIB_LIBRARY})
 
-  if(CNOID_USE_BOOST_REGEX)
-    install_external_libraries(${Boost_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS} ${Boost_REGEX_LIBRARY})
-  endif()
-  
   if(INSTALL_SDK_WITH_EXTLIBS)
     foreach(dir ${Boost_INCLUDE_DIRS})
       if(EXISTS ${dir}/boost)
@@ -455,42 +473,21 @@ if(MSVC AND INSTALL_SDK_WITH_EXTLIBS)
   endforeach()
 endif()
 
-###############
-#  Setup Qt5  #
-###############
-macro(setup_qt5)
-  if(MSVC)
-    set(PROGRAMFILES "ProgramFiles(X86)")
-    if(CMAKE_CL_64)
-      if(MSVC_VERSION EQUAL 1700)    #VS2012
-        set(CMAKE_LIBRARY_PATH "$ENV{PROGRAMFILES}/Windows\ Kits/8.0/Lib/win8/um/x64")
-      elseif(MSVC_VERSION EQUAL 1800)    #VS2013
-        set(CMAKE_LIBRARY_PATH "$ENV{PROGRAMFILES}/Windows\ Kits/8.1/Lib/win8/um/x64")
-      endif()
-    else()
-      if(MSVC_VERSION EQUAL 1700) 
-        set(CMAKE_LIBRARY_PATH "$ENV{PROGRAMFILES}/Windows\ Kits/8.0/Lib/win8/um/x86")
-      elseif(MSVC_VERSION EQUAL 1800)
-        set(CMAKE_LIBRARY_PATH "$ENV{PROGRAMFILES}/Windows\ Kits/8.1/Lib/win8/um/x86")
-      endif()
-    endif()
-  endif()
-
-  if(MSVC)
+if(ENABLE_GUI)
+  # Qt5
+  set(qt5_components Core Gui Widgets Network)
+  if(UNIX)
+    list(APPEND qt5_components X11Extras)
+  elseif(MSVC)
     file(GLOB qt_cmake_dirs "c:/Qt/5.??.?/msvc20??_??/lib/cmake" "d:/Qt/5.??.?/msvc20??_??/lib/cmake")
-    set(version 5.10)
-    find_package(Qt5Core ${version} HINTS ${qt_cmake_dirs})
-    find_package(Qt5Gui ${version} HINTS ${qt_cmake_dirs})
-    find_package(Qt5Widgets ${version} HINTS ${qt_cmake_dirs})
-    find_package(Qt5Network ${version} HINTS ${qt_cmake_dirs})
-    set(QT_LIBRARIES Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network)
-  elseif(UNIX)
-    find_package(Qt5 COMPONENTS Core Gui Widgets Network X11Extras)
-    set(QT_LIBRARIES
-      ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Network_LIBRARIES}
-      ${Qt5X11Extras_LIBRARIES})
+    list(SORT qt_cmake_dirs)
+    list(REVERSE qt_cmake_dirs)
   endif()
-
+  find_package(Qt5 COMPONENTS ${qt5_components} HINTS ${qt_cmake_dirs})
+  foreach(component ${qt5_components})
+    list(APPEND libs "Qt5::${component}")
+  endforeach()
+  set(QT_LIBRARIES ${libs})
   add_definitions(-DQT_NO_KEYWORDS -DQT_NO_OPENGL_ES_2)
   set(CMAKE_AUTOMOC OFF)
 
@@ -523,10 +520,6 @@ macro(setup_qt5)
       endforeach()
     endif()
   endif()
-endmacro()
-
-if(ENABLE_GUI)
-  setup_qt5()
 endif()
 
 # Assimp

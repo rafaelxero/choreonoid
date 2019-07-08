@@ -25,14 +25,7 @@ namespace {
 const bool USE_FBO_FOR_PICKING = true;
 const bool SHOW_IMAGE_FOR_PICKING = false;
 
-/**
-   This option is disabled because it results in wrong normals when
-   the code is compiled by VC++2017 with the AVX2 option.
-   VC++2015 and GCC do not cause such a problem.
-*/
-const bool USE_GL_INT_2_10_10_10_REV_FOR_NORMALS = false;
-
-const bool USE_GL_SHORT_FOR_NORMALS = true;
+const bool USE_GL_FLOAT_FOR_NORMALS = false;
 
 const float MinLineWidthForPicking = 5.0f;
 
@@ -80,9 +73,10 @@ public:
     int numBuffers;
     SgObjectPtr sceneObject;
     ScopedConnection connection;
-    SgLineSetPtr normalVisualization;
     Matrix4* pLocalTransform;
     Matrix4 localTransform;
+    SgLineSetPtr boundingBoxLines;
+    SgLineSetPtr normalVisualization;
     
     VertexResource(const VertexResource&) = delete;
     VertexResource& operator=(const VertexResource&) = delete;
@@ -207,6 +201,23 @@ struct SgObjectPtrHash {
 
 typedef std::unordered_map<SgObjectPtr, GLResourcePtr, SgObjectPtrHash> GLResourceMap;
 
+class ScopedShaderProgramActivator
+{
+    GLSLSceneRendererImpl* renderer;
+    ShaderProgram* prevProgram;
+    NolightingProgram* prevNolightingProgram;
+    LightingProgram* prevLightingProgram;
+    MaterialLightingProgram* prevMaterialLightingProgram;
+    bool changed;
+    
+public:
+    ScopedShaderProgramActivator(ShaderProgram& program, GLSLSceneRendererImpl* renderer);
+    ScopedShaderProgramActivator(ScopedShaderProgramActivator&&) noexcept;
+    ScopedShaderProgramActivator(const ScopedShaderProgramActivator&) = delete;
+    ScopedShaderProgramActivator& operator=(const ScopedShaderProgramActivator&) = delete;
+    ~ScopedShaderProgramActivator();
+};
+
 }
 
 namespace cnoid {
@@ -229,20 +240,17 @@ public:
     bool needToChangeBufferSizeForPicking;
 
     ShaderProgram* currentProgram;
-    LightingProgram* currentLightingProgram;
     NolightingProgram* currentNolightingProgram;
+    LightingProgram* currentLightingProgram;
+    MaterialLightingProgram* currentMaterialLightingProgram;
 
     NolightingProgram nolightingProgram;
     SolidColorProgram solidColorProgram;
     MinimumLightingProgram minimumLightingProgram;
+    PhongLightingProgram phongLightingProgram;
     PhongShadowLightingProgram phongShadowLightingProgram;
 
-    struct ProgramInfo {
-        ShaderProgram* program;
-        LightingProgram* lightingProgram;
-        NolightingProgram* nolightingProgram;
-    };
-    vector<ProgramInfo> programStack;
+    vector<ScopedShaderProgramActivator> programStack;
 
     bool isActuallyRendering;
     bool isPicking;
@@ -250,6 +258,8 @@ public:
     bool isLightweightRenderingBeingProcessed;
     bool isLowMemoryConsumptionMode;
     bool isLowMemoryConsumptionRenderingBeingProcessed;
+    bool isBoundingBoxRenderingMode;
+    bool isBoundingBoxRenderingForLightweightRenderingGroupEnabled;
     
     Affine3Array modelMatrixStack; // stack of the model matrices
     Affine3 viewTransform;
@@ -354,7 +364,7 @@ public:
     void renderFog(LightingProgram* program);
     void endRendering();
     void renderSceneGraphNodes();
-    void pushProgram(ShaderProgram& program, bool isLightingProgram);
+    void pushProgram(ShaderProgram& program);
     void popProgram();
     inline void setPickColor(int id);
     inline int pushPickId(SgNode* node, bool doSetColor = true);
@@ -363,8 +373,12 @@ public:
     void renderTransform(SgTransform* transform);
     void renderSwitch(SgSwitch* node);
     void renderUnpickableGroup(SgUnpickableGroup* group);
+    VertexResource* getOrCreateVertexResource(SgObject* obj);
+    void drawVertexResource(VertexResource* resource, GLenum primitiveMode, const Affine3& position);
+    void drawBoundingBox(VertexResource* resource, const BoundingBox& bbox);
     void renderShape(SgShape* shape);
     void renderShapeMain(SgShape* shape, const Affine3& position, int pickId);
+    void applyCullingMode(SgMesh* mesh);
     void renderPointSet(SgPointSet* pointSet);        
     void renderLineSet(SgLineSet* lineSet);        
     void renderOverlay(SgOverlay* overlay);
@@ -372,8 +386,6 @@ public:
     void renderOutlineGroupMain(SgOutlineGroup* outline, const Affine3& T);
     void renderLightweightRenderingGroup(SgLightweightRenderingGroup* group);
     void flushNolightingTransformMatrices();
-    VertexResource* getOrCreateVertexResource(SgObject* obj);
-    void drawVertexResource(VertexResource* resource, GLenum primitiveMode, const Affine3& position);
     void renderTransparentObjects();
     void renderMaterial(const SgMaterial* material);
     bool renderTexture(SgTexture* texture);
@@ -388,6 +400,7 @@ public:
     bool writeMeshNormalsSub(SgMesh* mesh, VertexResource* resource, NormalArrayWrapper& normals);
     void writeMeshNormalsFloat(SgMesh* mesh, VertexResource* resource);
     void writeMeshNormalsShort(SgMesh* mesh, VertexResource* resource);
+    void writeMeshNormalsByte(SgMesh* mesh, VertexResource* resource);
     void writeMeshNormalsPacked(SgMesh* mesh, VertexResource* resource);
     template<typename value_type, GLenum gltype, GLboolean normalized, class TexCoordArrayWrapper>
     void writeMeshTexCoordsSub(
@@ -444,15 +457,16 @@ void GLSLSceneRendererImpl::initialize()
     needToChangeBufferSizeForPicking = true;
 
     currentProgram = nullptr;
-    currentLightingProgram = nullptr;
     currentNolightingProgram = nullptr;
+    currentLightingProgram = nullptr;
+    currentMaterialLightingProgram = nullptr;
 
     isActuallyRendering = false;
     isPicking = false;
     isRenderingShadowMap = false;
-    pickedPoint.setZero();
-
     isLowMemoryConsumptionMode = false;
+    isBoundingBoxRenderingMode = false;
+    isBoundingBoxRenderingForLightweightRenderingGroupEnabled = false;
 
     doUnusedResourceCheck = true;
     currentResourceMapIndex = 0;
@@ -483,6 +497,9 @@ void GLSLSceneRendererImpl::initialize()
     isUpsideDownEnabled = false;
 
     stateFlag.resize(NUM_STATE_FLAGS, false);
+
+    pickedPoint.setZero();
+
     clearGLState();
 
     os_ = &nullout();
@@ -627,6 +644,7 @@ bool GLSLSceneRendererImpl::initializeGL()
         nolightingProgram.initialize();
         solidColorProgram.initialize();
         minimumLightingProgram.initialize();
+        phongLightingProgram.initialize();
         phongShadowLightingProgram.initialize();
     }
     catch(std::runtime_error& error){
@@ -684,7 +702,86 @@ void GLSLSceneRenderer::onSceneGraphUpdated(const SgUpdate& update)
     
     GLSceneRenderer::onSceneGraphUpdated(update);
 }
+
+
+ScopedShaderProgramActivator::ScopedShaderProgramActivator
+(ShaderProgram& program, GLSLSceneRendererImpl* renderer)
+    : renderer(renderer)
+{
+    if(&program == renderer->currentProgram){
+        changed = false;
+    } else {
+        if(renderer->currentProgram){
+            renderer->currentProgram->deactivate();
+        }
+
+        prevProgram = renderer->currentProgram;
+        prevNolightingProgram = renderer->currentNolightingProgram;
+        prevLightingProgram = renderer->currentLightingProgram;
+        prevMaterialLightingProgram = renderer->currentMaterialLightingProgram;
     
+        renderer->currentProgram = &program;
+        renderer->currentNolightingProgram = dynamic_cast<NolightingProgram*>(&program);
+        renderer->currentLightingProgram = dynamic_cast<LightingProgram*>(&program);
+        renderer->currentMaterialLightingProgram = dynamic_cast<MaterialLightingProgram*>(&program);
+
+        program.activate();
+        renderer->clearGLState();
+        changed = true;
+    }
+}
+
+
+ScopedShaderProgramActivator::ScopedShaderProgramActivator(ScopedShaderProgramActivator&& r) noexcept
+{
+    renderer = r.renderer;
+    prevProgram = r.prevProgram;
+    prevNolightingProgram = r.prevNolightingProgram;
+    prevLightingProgram = r.prevLightingProgram;
+    prevMaterialLightingProgram = r.prevMaterialLightingProgram;
+    changed = r.changed;
+    r.changed = false;
+}
+
+
+ScopedShaderProgramActivator::~ScopedShaderProgramActivator()
+{
+    if(changed){
+        renderer->currentProgram->deactivate();
+        if(prevProgram){
+            prevProgram->activate();
+            renderer->clearGLState();
+        }
+        renderer->currentProgram = prevProgram;
+        renderer->currentNolightingProgram = prevNolightingProgram;
+        renderer->currentLightingProgram = prevLightingProgram;
+        renderer->currentMaterialLightingProgram = prevMaterialLightingProgram;
+    }
+}
+
+
+void GLSLSceneRendererImpl::pushProgram(ShaderProgram& program)
+{
+    programStack.emplace_back(program, this);
+}
+
+void GLSLSceneRenderer::pushShaderProgram(ShaderProgram& program)
+{
+    impl->pushProgram(program);
+}
+
+
+void GLSLSceneRendererImpl::popProgram()
+{
+    programStack.pop_back();
+}
+
+
+void GLSLSceneRenderer::popShaderProgram()
+{
+    impl->popProgram();
+}
+
 
 void GLSLSceneRenderer::doRender()
 {
@@ -708,27 +805,31 @@ void GLSLSceneRendererImpl::doRender()
     isTextureBeingRendered = false;
     
     if(lightingMode == GLSceneRenderer::NO_LIGHTING){
-        pushProgram(nolightingProgram, false);
+        pushProgram(nolightingProgram);
         
     } else if(lightingMode == GLSceneRenderer::SOLID_COLOR_LIGHTING){
-        pushProgram(solidColorProgram, false);
+        pushProgram(solidColorProgram);
         
     } else if(lightingMode == GLSceneRenderer::MINIMUM_LIGHTING){
-        pushProgram(minimumLightingProgram, true);
+        pushProgram(minimumLightingProgram);
         isLightweightRenderingBeingProcessed = true;
         isLowMemoryConsumptionRenderingBeingProcessed = true;
 
-    } else { // FULL_LIGHTING
-        auto& program = phongShadowLightingProgram;
+    } else {
+        isTextureBeingRendered = isTextureEnabled;
 
         if(shadowLightIndices.empty()){
-            program.setNumShadows(0);
+            // FULL_LIGHTING without shadows
+            pushProgram(phongLightingProgram);
+            
         } else {
+            // FULL_LIGHTING with shadows
+            auto& program = phongShadowLightingProgram;
             Array4i vp = self->viewport();
             int w, h;
             program.getShadowMapSize(w, h);
             self->setViewport(0, 0, w, h);
-            pushProgram(program.shadowMapProgram(), false);
+            pushProgram(program.shadowMapProgram());
             isRenderingShadowMap = true;
             isActuallyRendering = false;
         
@@ -747,12 +848,10 @@ void GLSLSceneRendererImpl::doRender()
             popProgram();
             isRenderingShadowMap = false;
             self->setViewport(vp[0], vp[1], vp[2], vp[3]);
-        }
     
-        program.activateMainRenderingPass();
-        pushProgram(program, true);
-
-        isTextureBeingRendered = isTextureEnabled;
+            program.activateMainRenderingPass();
+            pushProgram(program);
+        }
     }
     
     isActuallyRendering = true;
@@ -834,7 +933,7 @@ bool GLSLSceneRendererImpl::doPick(int x, int y)
     isPicking = true;
     isActuallyRendering = false;
     beginRendering();
-    pushProgram(solidColorProgram, false);
+    pushProgram(solidColorProgram);
     currentNodePath.clear();
     pickingNodePathList.clear();
 
@@ -993,7 +1092,6 @@ void GLSLSceneRendererImpl::endRendering()
 void GLSLSceneRendererImpl::renderSceneGraphNodes()
 {
     currentProgram->initializeFrameRendering();
-    clearGLState();
 
     if(currentLightingProgram){
         renderLights(currentLightingProgram);
@@ -1122,64 +1220,6 @@ Matrix4 GLSLSceneRenderer::modelViewProjectionMatrix() const
 bool GLSLSceneRenderer::isPicking() const
 {
     return impl->isPicking;
-}
-
-
-void GLSLSceneRendererImpl::pushProgram(ShaderProgram& program, bool isLightingProgram)
-{
-    ProgramInfo info;
-    info.program = currentProgram;
-    info.lightingProgram = currentLightingProgram;
-    info.nolightingProgram = currentNolightingProgram;
-    
-    if(&program != currentProgram){
-        if(currentProgram){
-            currentProgram->deactivate();
-        }
-        currentProgram = &program;
-        if(isLightingProgram){
-            currentLightingProgram = static_cast<LightingProgram*>(currentProgram);
-            currentNolightingProgram = nullptr;
-        } else {
-            currentLightingProgram = nullptr;
-            currentNolightingProgram = static_cast<NolightingProgram*>(currentProgram);
-        }
-        program.activate();
-
-        clearGLState();
-    }
-    programStack.push_back(info);
-}
-
-
-void GLSLSceneRenderer::pushShaderProgram(ShaderProgram& program, bool isLightingProgram)
-{
-    impl->pushProgram(program, isLightingProgram);
-}
-
-
-void GLSLSceneRendererImpl::popProgram()
-{
-    ProgramInfo& info = programStack.back();
-    if(info.program != currentProgram){
-        if(currentProgram){
-            currentProgram->deactivate();
-        }
-        currentProgram = info.program;
-        currentLightingProgram = info.lightingProgram;
-        currentNolightingProgram = info.nolightingProgram;
-        if(currentProgram){
-            currentProgram->activate();
-            clearGLState();
-        }
-    }
-    programStack.pop_back();
-}
-
-
-void GLSLSceneRenderer::popShaderProgram()
-{
-    impl->popProgram();
 }
 
 
@@ -1329,6 +1369,41 @@ void GLSLSceneRendererImpl::drawVertexResource(VertexResource* resource, GLenum 
 }
 
 
+void GLSLSceneRendererImpl::drawBoundingBox(VertexResource* resource, const BoundingBox& bbox)
+{
+    if(!resource->boundingBoxLines){
+        auto lines = new SgLineSet;
+        auto& v = *lines->getOrCreateVertices(8);
+        const Vector3f min = bbox.min().cast<float>();
+        const Vector3f max = bbox.max().cast<float>();
+        v[0] << min.x(), min.y(), min.z();
+        v[1] << min.x(), min.y(), max.z();
+        v[2] << min.x(), max.y(), min.z();
+        v[3] << min.x(), max.y(), max.z();
+        v[4] << max.x(), min.y(), min.z();
+        v[5] << max.x(), min.y(), max.z();
+        v[6] << max.x(), max.y(), min.z();
+        v[7] << max.x(), max.y(), max.z();
+        lines->addLine(0, 1);
+        lines->addLine(0, 2);
+        lines->addLine(0, 4);
+        lines->addLine(1, 3);
+        lines->addLine(1, 5);
+        lines->addLine(2, 3);
+        lines->addLine(2, 6);
+        lines->addLine(3, 7);
+        lines->addLine(4, 5);
+        lines->addLine(4, 6);
+        lines->addLine(5, 7);
+        lines->addLine(6, 7);
+        lines->getOrCreateMaterial()->setDiffuseColor(Vector3f(1.0f, 1.0f, 1.0f));
+        resource->boundingBoxLines = lines;
+    }
+
+    renderLineSet(resource->boundingBoxLines);
+}
+        
+        
 void GLSLSceneRendererImpl::renderShape(SgShape* shape)
 {
     SgMesh* mesh = shape->mesh();
@@ -1357,11 +1432,6 @@ void GLSLSceneRendererImpl::renderShapeMain(SgShape* shape, const Affine3& posit
 {
     auto mesh = shape->mesh();
     
-    VertexResource* resource = getOrCreateVertexResource(mesh);
-    if(!resource->isValid()){
-        makeVertexBufferObjects(shape, resource);
-    }
-
     if(isPicking){
         setPickColor(pickId);
     } else {
@@ -1370,60 +1440,72 @@ void GLSLSceneRendererImpl::renderShapeMain(SgShape* shape, const Affine3& posit
             currentProgram->setVertexColorEnabled(true);
         }
 
-        if(currentProgram == &phongShadowLightingProgram){
+        if(currentMaterialLightingProgram){
             bool isTextureValid = false;
             if(isTextureBeingRendered){
                 if(auto texture = shape->texture()){
                     isTextureValid = renderTexture(texture);
                 }
             }
-            phongShadowLightingProgram.setTextureEnabled(isTextureValid);
+            currentMaterialLightingProgram->setTextureEnabled(isTextureValid);
         }
     }
 
-    if(!isRenderingShadowMap){
+    VertexResource* resource = getOrCreateVertexResource(mesh);
+    if(!resource->isValid()){
+        makeVertexBufferObjects(shape, resource);
+    }
+    if(isBoundingBoxRenderingMode){
+        drawBoundingBox(resource, mesh->boundingBox());
+    } else {
+        if(!isRenderingShadowMap){
+            applyCullingMode(mesh);
+        }
+        drawVertexResource(resource, GL_TRIANGLES, position);
 
-        if(!stateFlag[CULL_FACE]){
-            bool enableCullFace;
-            switch(backFaceCullingMode){
-            case GLSceneRenderer::ENABLE_BACK_FACE_CULLING:
-                enableCullFace = mesh->isSolid();
-                break;
-            case GLSceneRenderer::DISABLE_BACK_FACE_CULLING:
-                enableCullFace = false;
-                break;
-            case GLSceneRenderer::FORCE_BACK_FACE_CULLING:
-            default:
-                enableCullFace = true;
-                break;
-            }
-            if(enableCullFace){
+        if(isNormalVisualizationEnabled && isActuallyRendering && resource->normalVisualization){
+            renderLineSet(resource->normalVisualization);
+        }
+    }
+}
+
+
+void GLSLSceneRendererImpl::applyCullingMode(SgMesh* mesh)
+{
+    if(!stateFlag[CULL_FACE]){
+        bool enableCullFace;
+        switch(backFaceCullingMode){
+        case GLSceneRenderer::ENABLE_BACK_FACE_CULLING:
+            enableCullFace = mesh->isSolid();
+            break;
+        case GLSceneRenderer::DISABLE_BACK_FACE_CULLING:
+            enableCullFace = false;
+            break;
+        case GLSceneRenderer::FORCE_BACK_FACE_CULLING:
+        default:
+            enableCullFace = true;
+            break;
+        }
+        if(enableCullFace){
+            glEnable(GL_CULL_FACE);
+        } else {
+            glDisable(GL_CULL_FACE);
+        }
+        isCullFaceEnabled = enableCullFace;
+        stateFlag[CULL_FACE] = true;
+        
+    } else if(backFaceCullingMode == GLSceneRenderer::ENABLE_BACK_FACE_CULLING){
+        if(mesh->isSolid()){
+            if(!isCullFaceEnabled){
                 glEnable(GL_CULL_FACE);
-            } else {
-                glDisable(GL_CULL_FACE);
+                isCullFaceEnabled = true;
             }
-            isCullFaceEnabled = enableCullFace;
-            stateFlag[CULL_FACE] = true;
-
-        } else if(backFaceCullingMode == GLSceneRenderer::ENABLE_BACK_FACE_CULLING){
-            if(mesh->isSolid()){
-                if(!isCullFaceEnabled){
-                    glEnable(GL_CULL_FACE);
-                    isCullFaceEnabled = true;
-                }
-            } else {
-                if(isCullFaceEnabled){
-                    glDisable(GL_CULL_FACE);
-                    isCullFaceEnabled = false;
-                }
+        } else {
+            if(isCullFaceEnabled){
+                glDisable(GL_CULL_FACE);
+                isCullFaceEnabled = false;
             }
         }
-    }
-    
-    drawVertexResource(resource, GL_TRIANGLES, position);
-
-    if(isNormalVisualizationEnabled && isActuallyRendering && resource->normalVisualization){
-        renderLineSet(resource->normalVisualization);
     }
 }
 
@@ -1584,14 +1666,15 @@ void GLSLSceneRendererImpl::makeVertexBufferObjects(SgShape* shape, VertexResour
     } else {
         writeMeshVerticesFloat(mesh, resource);
     }
-    
-    if(USE_GL_INT_2_10_10_10_REV_FOR_NORMALS && isLowMemoryConsumptionRenderingBeingProcessed){
-        writeMeshNormalsPacked(mesh, resource);
-    } else if(USE_GL_SHORT_FOR_NORMALS){
-        writeMeshNormalsShort(mesh, resource);
-    } else {
+
+    if(isLowMemoryConsumptionRenderingBeingProcessed){
+        writeMeshNormalsByte(mesh, resource);
+        //writeMeshNormalsPacked(mesh, resource);
+    } else if(USE_GL_FLOAT_FOR_NORMALS){
         writeMeshNormalsFloat(mesh, resource);
-    }        
+    } else {
+        writeMeshNormalsShort(mesh, resource);
+    } 
 
     auto texture = shape->texture();
     if(texture && mesh->hasTexCoords() && isTextureBeingRendered){
@@ -1809,6 +1892,29 @@ void GLSLSceneRendererImpl::writeMeshNormalsShort(SgMesh* mesh, VertexResource* 
 }
 
 
+void GLSLSceneRendererImpl::writeMeshNormalsByte(SgMesh* mesh, VertexResource* resource)
+{
+    typedef Eigen::Matrix<GLbyte,3,1> Vector3b;
+
+    struct NormalArrayWrapper {
+        vector<Vector3b> array;
+        void append(const Vector3f& n){
+            array.push_back((127.0f * n).cast<GLbyte>());
+        }
+        Vector3f get(int index){
+            return array[index].cast<float>() / 127.0f;
+        }
+    } normals;
+            
+    writeMeshNormalsSub<Vector3b, GL_BYTE, 3, GL_TRUE>(mesh, resource, normals);
+}
+
+
+/**
+   The following data type implementation results in wrong normals when
+   the code is compiled by VC++2017 with the AVX2 option.
+   VC++2015 and GCC do not cause such a problem.
+*/
 void GLSLSceneRendererImpl::writeMeshNormalsPacked(SgMesh* mesh, VertexResource* resource)
 {
     struct NormalArrayWrapper {
@@ -2025,7 +2131,7 @@ void GLSLSceneRendererImpl::renderPointSet(SgPointSet* pointSet)
         return;
     }
 
-    pushProgram(solidColorProgram, false);
+    ScopedShaderProgramActivator programActivator(solidColorProgram, this);
 
     const double s = pointSet->pointSize();
     if(s > 0.0){
@@ -2036,8 +2142,6 @@ void GLSLSceneRendererImpl::renderPointSet(SgPointSet* pointSet)
     
     renderPlot(pointSet, GL_POINTS,
                [pointSet]() -> SgVertexArrayPtr { return pointSet->vertices(); });
-
-    popProgram();
 }
 
 
@@ -2144,7 +2248,7 @@ void GLSLSceneRendererImpl::renderLineSet(SgLineSet* lineSet)
         return;
     }
 
-    pushProgram(solidColorProgram, false);
+    ScopedShaderProgramActivator programActivator(solidColorProgram, this);
     
     const double w = lineSet->lineWidth();
     if(w > 0.0){
@@ -2155,8 +2259,6 @@ void GLSLSceneRendererImpl::renderLineSet(SgLineSet* lineSet)
 
     renderPlot(lineSet, GL_LINES,
                [lineSet](){ return getLineSetVertices(lineSet); });
-
-    popProgram();
 }
 
 
@@ -2166,7 +2268,8 @@ void GLSLSceneRendererImpl::renderOverlay(SgOverlay* overlay)
         return;
     }
 
-    pushProgram(solidColorProgram, false);
+    ScopedShaderProgramActivator programActivator(solidColorProgram, this);
+    
     modelMatrixStack.push_back(Affine3::Identity());
 
     const Matrix4 PV0 = PV;
@@ -2179,7 +2282,6 @@ void GLSLSceneRendererImpl::renderOverlay(SgOverlay* overlay)
 
     PV = PV0;
     modelMatrixStack.pop_back();
-    popProgram();
 }
 
 
@@ -2216,7 +2318,8 @@ void GLSLSceneRendererImpl::renderOutlineGroupMain(SgOutlineGroup* outline, cons
     glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    pushProgram(solidColorProgram, false);
+    ScopedShaderProgramActivator programActivator(solidColorProgram, this);
+    
     solidColorProgram.setColor(outline->color());
     solidColorProgram.setColorChangable(false);
     glDisable(GL_DEPTH_TEST);
@@ -2228,7 +2331,6 @@ void GLSLSceneRendererImpl::renderOutlineGroupMain(SgOutlineGroup* outline, cons
     glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
     glDisable(GL_STENCIL_TEST);
     solidColorProgram.setColorChangable(true);
-    popProgram();
 
     modelMatrixStack.pop_back();
 }
@@ -2243,23 +2345,24 @@ void GLSLSceneRendererImpl::renderLightweightRenderingGroup(SgLightweightRenderi
     bool wasLightweightRenderingBeingProcessed = isLightweightRenderingBeingProcessed;
     bool wasLowMemoryConsumptionRenderingBeingProcessed = isLowMemoryConsumptionRenderingBeingProcessed;
     bool wasTextureBeingRendered = isTextureBeingRendered;
+    bool wasBoundingBoxRenderingMode = isBoundingBoxRenderingMode;
 
     bool pushed = false;
-    
-    if(!isPicking){
-        if(currentProgram == &phongShadowLightingProgram){
-            pushProgram(minimumLightingProgram, true);
-            pushed = true;
-            if(!isLightweightRenderingBeingProcessed){
-                renderLights(&minimumLightingProgram);
-            }
+    if(currentLightingProgram){
+        pushProgram(minimumLightingProgram);
+        if(!isLightweightRenderingBeingProcessed){
+            renderLights(&minimumLightingProgram);
         }
+        pushed = true;
     }
 
     isLightweightRenderingBeingProcessed = true;
     isLowMemoryConsumptionRenderingBeingProcessed = true;
     isTextureBeingRendered = false;
-    
+    if(isBoundingBoxRenderingForLightweightRenderingGroupEnabled){
+        isBoundingBoxRenderingMode = true;
+    }
+
     renderChildNodes(group);
 
     if(pushed){
@@ -2269,6 +2372,7 @@ void GLSLSceneRendererImpl::renderLightweightRenderingGroup(SgLightweightRenderi
     isLightweightRenderingBeingProcessed = wasLightweightRenderingBeingProcessed;
     isLowMemoryConsumptionRenderingBeingProcessed = wasLowMemoryConsumptionRenderingBeingProcessed;
     isTextureBeingRendered = wasTextureBeingRendered;
+    isBoundingBoxRenderingMode = wasBoundingBoxRenderingMode;
 }
 
 
@@ -2417,6 +2521,12 @@ void GLSLSceneRenderer::setBackFaceCullingMode(int mode)
 int GLSLSceneRenderer::backFaceCullingMode() const
 {
     return impl->backFaceCullingMode;
+}
+
+
+void GLSLSceneRenderer::setBoundingBoxRenderingForLightweightRenderingGroupEnabled(bool on)
+{
+    impl->isBoundingBoxRenderingForLightweightRenderingGroupEnabled = on;
 }
 
 
