@@ -53,6 +53,8 @@
 #include <cnoid/ValueTree>
 #include <cnoid/CnoidUtil>
 #include <cnoid/ParametricPathProcessor>
+#include <fmt/format.h>
+#include <Eigen/Core>
 #include <QApplication>
 #include <QTextCodec>
 #include <QSurfaceFormat>
@@ -103,6 +105,7 @@ class AppImpl : public AppImplBase
     char**& argv;
     ExtensionManager* ext;
     MainWindow* mainWindow;
+    MessageView* messageView;
     string appName;
     string vendorName;
     DescriptionDialog* descriptionDialog;
@@ -183,7 +186,7 @@ void AppImpl::initialize( const char* appName, const char* vendorName, const QIc
 
     ext = new ExtensionManager("Base", false);
 
-#if CNOID_ENABLE_GETTEXT
+#ifdef CNOID_ENABLE_GETTEXT
     setCnoidUtilTextDomainCodeset();
 #endif
 
@@ -192,6 +195,7 @@ void AppImpl::initialize( const char* appName, const char* vendorName, const QIc
     ViewManager::initializeClass(ext);
     
     MessageView::initializeClass(ext);
+    messageView = MessageView::instance();
     RootItem::initializeClass(ext);
     ProjectManager::initializeClass(ext);
 
@@ -236,6 +240,11 @@ void AppImpl::initialize( const char* appName, const char* vendorName, const QIc
     ext->menuManager().setPath("/Help").addItem(_("About Choreonoid"))
         ->sigTriggered().connect([&](){ showInformationDialog(); });
 
+    messageView->putln(
+        fmt::format(_("The Eigen library version {0}.{1}.{2} is used (SIMD intruction sets in use: {3})."),
+                    EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION,
+                    Eigen::SimdInstructionSetsInUse()));
+
     PluginManager::initialize(ext);
     PluginManager::instance()->doStartupLoading(pluginPathList);
 
@@ -273,7 +282,7 @@ void AppImpl::initialize( const char* appName, const char* vendorName, const QIc
     /**
        This is now executed in GLVisionSimulatorItem::initializeSimulation
        
-       if(QWidget* textEdit = MessageView::instance()->findChild<QWidget*>("TextEdit")){
+       if(QWidget* textEdit = messageView->findChild<QWidget*>("TextEdit")){
        textEdit->setFocus();
        textEdit->clearFocus();
        }
@@ -318,7 +327,7 @@ int AppImpl::exec()
     int result = 0;
     
     if(doQuit){
-        MessageView::instance()->flush();
+        messageView->flush();
     } else {
         result = qapplication->exec();
     }

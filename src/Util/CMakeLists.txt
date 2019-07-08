@@ -1,5 +1,5 @@
 #set(CMAKE_BUILD_TYPE Debug)
-#set_source_files_properties(JoystickLinux.cpp PROPERTIES COMPILE_FLAGS "-O0 -g")
+#set_source_files_properties(STLSceneLoader.cpp PROPERTIES COMPILE_FLAGS "-O0 -g")
 
 configure_file(Config.h.in Config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Config.h DESTINATION ${CNOID_HEADER_SUBDIR}/src/Util/)
@@ -178,8 +178,8 @@ if(UNIX)
     m
     )
 
-  if(CNOID_USE_BOOST_REGEX)
-    set(libraries ${libraries} ${Boost_REGEX_LIBRARY})
+  if(CMAKE_COMPILER_IS_GNUCC AND (NOT CMAKE_CXX_STANDARD LESS 17))
+    set(libraries ${libraries} stdc++fs)
   endif()
 
   if(APPLE)

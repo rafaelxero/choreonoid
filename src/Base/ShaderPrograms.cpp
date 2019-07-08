@@ -145,10 +145,9 @@ public:
 };
 
 
-class PhongShadowLightingProgramImpl
+class PhongLightingProgramImpl
 {
 public:
-    GLuint defaultFBO;
     bool useUniformBlockToPassTransformationMatrices;
     GLSLUniformBlockBuffer transformBlockBuffer;
     GLint modelViewMatrixIndex;
@@ -158,6 +157,17 @@ public:
     GLint modelViewMatrixLocation;
     GLint normalMatrixLocation;
     GLint MVPLocation;
+
+    void initialize(GLSLProgram& glsl);
+};
+
+
+class PhongShadowLightingProgramImpl
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    GLuint defaultFBO;
 
     bool isShadowAntiAliasingEnabled;
     int numShadows;
@@ -175,6 +185,7 @@ public:
     int currentShadowIndex;
 
     struct ShadowInfo {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         int lightIndex;
         GLint shadowMatrixLocation;
         GLint lightIndexLocation;
@@ -183,7 +194,7 @@ public:
         GLuint frameBuffer;
         Matrix4 BPV;
     };
-    std::vector<ShadowInfo> shadowInfos;
+    std::vector<ShadowInfo, Eigen::aligned_allocator<ShadowInfo>> shadowInfos;
 
     Matrix4 shadowBias;
 
@@ -330,9 +341,16 @@ void SolidColorProgram::initialize()
 
 void SolidColorProgram::initializeFrameRendering()
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+
+void SolidColorProgram::activate()
+{
+    ShaderProgram::activate();
+    
     glUniform3fv(impl->colorLocation, 1, impl->color.data());
     glUniform1i(impl->colorPerVertexLocation, impl->isVertexColorEnabled);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 
@@ -385,6 +403,12 @@ LightingProgram::LightingProgram(const char* vertexShader, const char* fragmentS
     : ShaderProgram(vertexShader, fragmentShader)
 {
 
+}
+
+
+void LightingProgram::initializeFrameRendering()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 
@@ -443,12 +467,6 @@ void MinimumLightingProgram::activate()
     impl->isColorApplied = false;
 }
     
-
-void MinimumLightingProgram::initializeFrameRendering()
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
 
 void MinimumLightingProgram::setTransform
 (const Matrix4& PV, const Affine3& V, const Affine3& M, const Matrix4* L)
@@ -754,8 +772,96 @@ void MaterialLightingProgram::setTextureEnabled(bool on)
 }
 
 
+PhongLightingProgram::PhongLightingProgram()
+    : PhongLightingProgram(":/Base/shader/phong.vert", ":/Base/shader/phong.frag")
+{
+
+}
+
+
+PhongLightingProgram::PhongLightingProgram(const char* vertexShader, const char* fragmentShader)
+    : MaterialLightingProgram(vertexShader, fragmentShader)
+{
+    impl = new PhongLightingProgramImpl;
+}
+    
+
+PhongLightingProgram::~PhongLightingProgram()
+{
+    delete impl;
+}
+
+
+void PhongLightingProgram::initialize()
+{
+    MaterialLightingProgram::initialize();
+    impl->initialize(glslProgram());
+}
+
+
+void PhongLightingProgramImpl::initialize(GLSLProgram& glsl)
+{
+    useUniformBlockToPassTransformationMatrices = transformBlockBuffer.initialize(glsl, "TransformBlock");
+
+    if(useUniformBlockToPassTransformationMatrices){
+        modelViewMatrixIndex = transformBlockBuffer.checkUniformMatrix("modelViewMatrix");
+        normalMatrixIndex = transformBlockBuffer.checkUniformMatrix("normalMatrix");
+        MVPIndex = transformBlockBuffer.checkUniformMatrix("MVP");
+        transformBlockBuffer.bind(glsl, 1);
+        transformBlockBuffer.bindBufferBase(1);
+    } else {
+        modelViewMatrixLocation = glsl.getUniformLocation("modelViewMatrix");
+        normalMatrixLocation = glsl.getUniformLocation("normalMatrix");
+        MVPLocation = glsl.getUniformLocation("MVP");
+    }
+}
+
+
+void PhongLightingProgram::initializeFrameRendering()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+    
+void PhongLightingProgram::activate()
+{
+    MaterialLightingProgram::activate();
+    
+    if(impl->useUniformBlockToPassTransformationMatrices){
+        impl->transformBlockBuffer.bind(glslProgram(), 1);
+        impl->transformBlockBuffer.bindBufferBase(1);
+    }
+}
+
+
+void PhongLightingProgram::setTransform
+(const Matrix4& PV, const Affine3& V, const Affine3& M, const Matrix4* L)
+{
+    const Affine3f VM = (V * M).cast<float>();
+    const Matrix3f N = VM.linear();
+
+    Matrix4f PVM;
+    if(L){
+        PVM.noalias() = (PV * M.matrix() * (*L)).cast<float>();
+    } else {
+        PVM.noalias() = (PV * M.matrix()).cast<float>();
+    }
+
+    if(impl->useUniformBlockToPassTransformationMatrices){
+        impl->transformBlockBuffer.write(impl->modelViewMatrixIndex, VM);
+        impl->transformBlockBuffer.write(impl->normalMatrixIndex, N);
+        impl->transformBlockBuffer.write(impl->MVPIndex, PVM);
+        impl->transformBlockBuffer.flush();
+    } else {
+        glUniformMatrix4fv(impl->modelViewMatrixLocation, 1, GL_FALSE, VM.data());
+        glUniformMatrix3fv(impl->normalMatrixLocation, 1, GL_FALSE, N.data());
+        glUniformMatrix4fv(impl->MVPLocation, 1, GL_FALSE, PVM.data());
+    }
+}
+
+
 PhongShadowLightingProgram::PhongShadowLightingProgram()
-    : MaterialLightingProgram(":/Base/shader/phongshadow.vert", ":/Base/shader/phongshadow.frag")
+    : PhongLightingProgram(":/Base/shader/phongshadow.vert", ":/Base/shader/phongshadow.frag")
 {
     impl = new PhongShadowLightingProgramImpl(this);
 }
@@ -802,27 +908,13 @@ GLuint PhongShadowLightingProgram::defaultFramebufferObject() const
 
 void PhongShadowLightingProgram::initialize()
 {
-    MaterialLightingProgram::initialize();
+    PhongLightingProgram::initialize();
     impl->initialize(glslProgram());
 }
 
 
 void PhongShadowLightingProgramImpl::initialize(GLSLProgram& glsl)
 {
-    useUniformBlockToPassTransformationMatrices = transformBlockBuffer.initialize(glsl, "TransformBlock");
-
-    if(useUniformBlockToPassTransformationMatrices){
-        modelViewMatrixIndex = transformBlockBuffer.checkUniformMatrix("modelViewMatrix");
-        normalMatrixIndex = transformBlockBuffer.checkUniformMatrix("normalMatrix");
-        MVPIndex = transformBlockBuffer.checkUniformMatrix("MVP");
-        transformBlockBuffer.bind(glsl, 1);
-        transformBlockBuffer.bindBufferBase(1);
-    } else {
-        modelViewMatrixLocation = glsl.getUniformLocation("modelViewMatrix");
-        normalMatrixLocation = glsl.getUniformLocation("normalMatrix");
-        MVPLocation = glsl.getUniformLocation("MVP");
-    }
-    
     numShadowsLocation = glsl.getUniformLocation("numShadows");
     shadowInfos.resize(maxNumShadows);
     for(int i=0; i < maxNumShadows; ++i){
@@ -891,14 +983,6 @@ void PhongShadowLightingProgram::activateMainRenderingPass()
 }
 
 
-void PhongShadowLightingProgram::activate()
-{
-    MaterialLightingProgram::activate();
-    
-    glDisable(GL_CULL_FACE);
-}
-
-
 void PhongShadowLightingProgram::initializeFrameRendering()
 {
     glUniform1i(impl->numShadowsLocation, impl->numShadows);
@@ -906,12 +990,15 @@ void PhongShadowLightingProgram::initializeFrameRendering()
         glUniform1i(impl->isShadowAntiAliasingEnabledLocation, impl->isShadowAntiAliasingEnabled);
     }
 
-    if(impl->useUniformBlockToPassTransformationMatrices){
-        impl->transformBlockBuffer.bind(glslProgram(), 1);
-        impl->transformBlockBuffer.bindBufferBase(1);
-    }
+    PhongLightingProgram::initializeFrameRendering();
+}
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+void PhongShadowLightingProgram::activate()
+{
+    PhongLightingProgram::activate();
+
+    glDisable(GL_CULL_FACE);
 }
 
     
@@ -992,30 +1079,12 @@ void PhongShadowLightingProgram::setShadowMapViewProjection(const Matrix4& PV)
 void PhongShadowLightingProgram::setTransform
 (const Matrix4& PV, const Affine3& V, const Affine3& M, const Matrix4* L)
 {
-    const Affine3f VM = (V * M).cast<float>();
-    const Matrix3f N = VM.linear();
-
-    Matrix4f PVM;
-    if(L){
-        PVM.noalias() = (PV * M.matrix() * (*L)).cast<float>();
-    } else {
-        PVM.noalias() = (PV * M.matrix()).cast<float>();
-    }
-
-    if(impl->useUniformBlockToPassTransformationMatrices){
-        impl->transformBlockBuffer.write(impl->modelViewMatrixIndex, VM);
-        impl->transformBlockBuffer.write(impl->normalMatrixIndex, N);
-        impl->transformBlockBuffer.write(impl->MVPIndex, PVM);
-        impl->transformBlockBuffer.flush();
-    } else {
-        glUniformMatrix4fv(impl->modelViewMatrixLocation, 1, GL_FALSE, VM.data());
-        glUniformMatrix3fv(impl->normalMatrixLocation, 1, GL_FALSE, N.data());
-        glUniformMatrix4fv(impl->MVPLocation, 1, GL_FALSE, PVM.data());
-        for(int i=0; i < impl->numShadows; ++i){
-            auto& shadow = impl->shadowInfos[i];
-            const Matrix4f BPVM = (shadow.BPV * M.matrix()).cast<float>();
-            glUniformMatrix4fv(shadow.shadowMatrixLocation, 1, GL_FALSE, BPVM.data());
-        }
+    PhongLightingProgram::setTransform(PV, V, M, L);
+    
+    for(int i=0; i < impl->numShadows; ++i){
+        auto& shadow = impl->shadowInfos[i];
+        const Matrix4f BPVM = (shadow.BPV * M.matrix()).cast<float>();
+        glUniformMatrix4fv(shadow.shadowMatrixLocation, 1, GL_FALSE, BPVM.data());
     }
 }
 
@@ -1045,15 +1114,6 @@ void ShadowMapProgram::initialize()
 }
 
 
-void ShadowMapProgram::activate()
-{
-    NolightingProgram::activate();
-    
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-}
-    
-
 void ShadowMapProgram::initializeFrameRendering()
 {
     auto& mainImpl = mainProgram->impl;
@@ -1071,6 +1131,15 @@ void ShadowMapProgram::initializeFrameRendering()
     glClear(GL_DEPTH_BUFFER_BIT);
 }
 
+
+void ShadowMapProgram::activate()
+{
+    NolightingProgram::activate();
+    
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+}
+    
 
 void ShadowMapProgram::deactivate()
 {

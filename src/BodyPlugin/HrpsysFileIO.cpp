@@ -11,37 +11,26 @@
 #include <cnoid/BodyMotionUtil>
 #include <cnoid/ZMPSeq>
 #include <cnoid/Config>
+#include <cnoid/stdx/filesystem>
 #include <QMessageBox>
 #include <fmt/format.h>
 #include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #ifndef _WINDOWS
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #endif
-#include <boost/filesystem.hpp>
 #include <fstream>
 #include <list>
 #include <vector>
 #include <map>
-
-#ifdef CNOID_USE_BOOST_REGEX
-#include <boost/regex.hpp>
-using boost::regex;
-using boost::regex_match;
-using boost::smatch;
-#else
 #include <regex>
-#endif
-
 #include <iostream>
-
 #include "gettext.h"
 
 using namespace std;
 using namespace cnoid;
-namespace filesystem = boost::filesystem;
+namespace filesystem = cnoid::stdx::filesystem;
 using fmt::format;
 
 namespace {
@@ -104,7 +93,7 @@ public:
         boost::iostreams::filtering_istream is;
 
 #ifndef _WINDOWS
-        string ext = filesystem::extension(filesystem::path(filename));
+        string ext = filesystem::path(filename).extension().string();
         if(ext == ".gz"){
             is.push(boost::iostreams::gzip_decompressor());
         } else if(ext == ".bz2"){
@@ -150,7 +139,7 @@ public:
                 vector<double>& frame = frames.back();
                 size_t i;
                 for(i=0; (i < numElements) && (it != tokens.end()); ++i, ++it){
-                    frame[i] = boost::lexical_cast<double>(*it);
+                    frame[i] = std::stod(*it);
                 }
                 if(i < numElements /* || it != tokens.end() */ ){
                     os << format(_("\"{}\" contains different size columns."), filename) << endl;
@@ -230,7 +219,7 @@ public:
                     
                     const string& indexString = match.str(3);
                     if(!indexString.empty()){
-                        element.index = boost::lexical_cast<int>(indexString);
+                        element.index = std::stoi(indexString);
                     }
                     
                     if(element.type == WAIST){
