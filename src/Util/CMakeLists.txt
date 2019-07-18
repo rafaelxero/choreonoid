@@ -2,7 +2,10 @@
 #set_source_files_properties(STLSceneLoader.cpp PROPERTIES COMPILE_FLAGS "-O0 -g")
 
 configure_file(Config.h.in Config.h)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Config.h DESTINATION ${CNOID_HEADER_SUBDIR}/src/Util/)
+
+if(INSTALL_SDK)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Config.h DESTINATION ${CNOID_HEADER_SUBDIR}/src/Util/)
+endif()
 
 set(sources
   Config.cpp
@@ -18,6 +21,7 @@ set(sources
   UTF8.cpp
   EasyScanner.cpp
   NullOut.cpp
+  StringUtil.cpp
   FileUtil.cpp
   ExecutablePath.cpp
   ParametricPathProcessor.cpp
@@ -102,6 +106,8 @@ set(headers
   TimeMeasure.h
   Sleep.h
   Vector3Seq.h
+  StringUtil.h
+  Tokenizer.h
   FileUtil.h
   ExecutablePath.h
   ParametricPathProcessor.h
@@ -164,13 +170,16 @@ set(headers
   ThreadPool.h
   )
 
+include_directories(${LIBYAML_INCLUDE_DIRS})
+link_directories(${LIBYAML_LIBRARY_DIRS})
+
 set(target CnoidUtil)
 make_gettext_mofiles(${target} mofiles)
 add_cnoid_library(${target} SHARED ${sources} ${headers} ${mofiles})
 
 if(UNIX)
   set(libraries 
-    yaml ${PNG_LIBRARY} ${JPEG_LIBRARY}
+    ${LIBYAML_LIBRARIES} ${PNG_LIBRARY} ${JPEG_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY}
     ${GETTEXT_LIBRARIES}
@@ -190,12 +199,7 @@ if(UNIX)
   
 elseif(MSVC)
   set_target_properties(${target} PROPERTIES COMPILE_DEFINITIONS "YAML_DECLARE_STATIC")
-  set(libraries libpng jpeg zlib winmm ${GETTEXT_LIBRARIES} fmt::fmt)
-  if(USE_EXTERNAL_YAML)
-    set(libraries ${libraries} optimized yaml debug yamld)
-  else()
-    set(libraries ${libraries} yaml)
-  endif()
+  set(libraries ${LIBYAML_LIBRARIES} libpng jpeg zlib winmm ${GETTEXT_LIBRARIES} fmt::fmt)
   find_file(XINPUT_DLL "XInput1_4.dll")
   if(XINPUT_DLL)
     target_link_libraries(${target} ${libraries} XInput)
