@@ -13,11 +13,11 @@
 #include "MainWindow.h"
 #include <cnoid/ExecutablePath>
 #include <cnoid/FileUtil>
+#include <cnoid/Tokenizer>
 #include <cnoid/Config>
 #include <QLibrary>
 #include <QRegExp>
 #include <QFileDialog>
-#include <boost/tokenizer.hpp>
 #include <vector>
 #include <map>
 #include <set>
@@ -296,11 +296,7 @@ void PluginManager::scanPluginFilesInPathList(const std::string& pathList)
 
 void PluginManagerImpl::scanPluginFilesInDefaultPath(const std::string& pathList)
 {
-    boost::char_separator<char> sep(PATH_DELIMITER);
-    boost::tokenizer< boost::char_separator<char> > paths(pathList, sep);
-    boost::tokenizer< boost::char_separator<char> >::iterator p;
-    for(p = paths.begin(); p != paths.end(); ++p){
-        const string& path = *p;
+    for(auto& path : Tokenizer<CharSeparator<char>>(pathList, CharSeparator<char>(PATH_DELIMITER))){
         scanPluginFiles(path, false);
     }
 }

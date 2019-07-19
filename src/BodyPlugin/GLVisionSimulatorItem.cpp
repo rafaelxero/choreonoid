@@ -22,14 +22,14 @@
 #include <cnoid/SceneCameras>
 #include <cnoid/SceneLights>
 #include <cnoid/EigenUtil>
+#include <cnoid/StringUtil>
+#include <cnoid/Tokenizer>
 #include <QThread>
 #include <QApplication>
 #include <QOpenGLContext>
 #include <QOffscreenSurface>
 #include <QOpenGLFramebufferObject>
 #include <fmt/format.h>
-#include <boost/tokenizer.hpp>
-#include <boost/algorithm/string.hpp>
 #include <mutex>
 #include <condition_variable>
 #include <queue>
@@ -83,21 +83,16 @@ string getNameListString(const vector<string>& names)
     return nameList;
 }
 
-bool updateNames(const string& nameListString, string& newNameListString, vector<string>& names)
+bool updateNames(const string& nameListString, string& out_newNameListString, vector<string>& out_names)
 {
-    using boost::tokenizer;
-    using boost::char_separator;
-    
-    names.clear();
-    char_separator<char> sep(",");
-    tokenizer<char_separator<char>> tok(nameListString, sep);
-    for(tokenizer<char_separator<char>>::iterator p = tok.begin(); p != tok.end(); ++p){
-        string name = boost::trim_copy(*p);
+    out_names.clear();
+    for(auto& token : Tokenizer<CharSeparator<char>>(nameListString, CharSeparator<char>(","))){
+        auto name = trimmed(token);
         if(!name.empty()){
-            names.push_back(name);
+            out_names.push_back(name);
         }
     }
-    newNameListString = nameListString;
+    out_newNameListString = nameListString;
     return true;
 }
 

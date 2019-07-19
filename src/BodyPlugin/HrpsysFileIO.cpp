@@ -11,10 +11,10 @@
 #include <cnoid/BodyMotionUtil>
 #include <cnoid/ZMPSeq>
 #include <cnoid/Config>
+#include <cnoid/Tokenizer>
 #include <cnoid/stdx/filesystem>
 #include <QMessageBox>
 #include <fmt/format.h>
-#include <boost/tokenizer.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #ifndef _WINDOWS
 #include <boost/iostreams/filter/gzip.hpp>
@@ -46,9 +46,6 @@ public:
            FORCE, TORQUE, ACC, OMEGA,
            ZMP, WAIST, RPY,
            NUM_DATA_TYPES };
-    
-    typedef boost::char_separator<char> Separator;
-    typedef boost::tokenizer<Separator> Tokenizer;
     
     struct Element {
         Element(){
@@ -101,39 +98,37 @@ public:
         }
 #endif
         ifstream ifs(filename.c_str());
-
         if(!ifs){
             os << format(_("\"{}\" cannot be opened."), filename) << endl;
             return false;
         }
-
         is.push(ifs);
         
         elements.clear();
         frames.clear();
-        Separator sep(" \t\r\n", "%");
         string line;
-        
+
+        regex header("(^\\s*%)(.*$)");
+        smatch match; 
         while(getline(is, line)){
-            Tokenizer tokens(line, sep);
-            Tokenizer::iterator it = tokens.begin();
-            if(it != tokens.end()){
-                if(*it == "%"){
-                    readHeader(++it, tokens.end());
+            if(regex_match(line, match, header)){
+                if(match.size() == 3){
+                    readHeader(match[2].str());
+                    break;
                 }
-                break;
             }
         }
-
         if(elements.empty()){
             return false;
         }
 
         const size_t numElements = elements.size();
 
+        Tokenizer<CharSeparator<char>> tokens(CharSeparator<char>(" \t\r\n"));
+
         while(getline(is, line)){
-            Tokenizer tokens(line, sep);
-            Tokenizer::iterator it = tokens.begin();
+            tokens.assign(line);
+            auto it = tokens.begin();
             if(it != tokens.end()){
                 frames.push_back(vector<double>(numElements));
                 vector<double>& frame = frames.back();
@@ -157,7 +152,7 @@ public:
         auto qseq = item->motion()->jointPosSeq();
         auto zmpseq = getOrCreateZMPSeq(*item->motion());
 
-        std::list< std::vector<double> >::iterator p = frames.begin();
+        std::list<std::vector<double>>::iterator p = frames.begin();
         
         for(size_t i=0; i < numFrames; ++i){
             vector<double>& frame = *p++;
@@ -178,28 +173,22 @@ public:
         return true;
     }
 
-    void readHeader(Tokenizer::iterator it, Tokenizer::iterator end)
+    void readHeader(const string& line)
     {
-        smatch match;
-
         for(int i=0; i < NUM_DATA_TYPES; ++i){
             numComponents[i] = 0;
         }
 
+        smatch match;
         int waistIndex = 0;
-        
-        while(it != end){
+        Tokenizer<CharSeparator<char>> tokens(line, CharSeparator<char>(" \t\r\n"));
 
+        for(auto it = tokens.begin(); it != tokens.end(); ++it){
             Element element;
-
             if(regex_match(*it, match, labelPattern)){
-
                 map<string,int>::iterator p = labelToTypeMap.find(match.str(1));
-
                 if(p != labelToTypeMap.end()){
-
                     element.type = p->second;
-
                     const string& axisString = match.str(2);
                     if(!axisString.empty()){
                         if(element.type != WAIST || waistIndex < 3){
@@ -216,12 +205,10 @@ public:
                             }
                         }
                     }
-                    
                     const string& indexString = match.str(3);
                     if(!indexString.empty()){
                         element.index = std::stoi(indexString);
                     }
-                    
                     if(element.type == WAIST){
                         waistIndex++;
                     }
@@ -229,7 +216,6 @@ public:
             }
             elements.push_back(element);
             numComponents[element.type] += 1;
-            ++it;
         }
     }
 };
