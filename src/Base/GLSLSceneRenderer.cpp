@@ -11,23 +11,22 @@
 #include <cnoid/SceneEffects>
 #include <cnoid/EigenUtil>
 #include <cnoid/NullOut>
+#include <fmt/format.h>
 #include <GL/glu.h>
 #include <unordered_map>
 #include <mutex>
+#include <regex>
 #include <iostream>
 #include <stdexcept>
+#include "gettext.h"
 
 using namespace std;
 using namespace cnoid;
 
 namespace {
 
-const bool USE_FBO_FOR_PICKING = true;
-const bool SHOW_IMAGE_FOR_PICKING = false;
-
-const bool USE_GL_FLOAT_FOR_NORMALS = false;
-
 const float MinLineWidthForPicking = 5.0f;
+const bool USE_GL_FLOAT_FOR_NORMALS = false;
 
 typedef vector<Affine3, Eigen::aligned_allocator<Affine3>> Affine3Array;
 
@@ -235,9 +234,8 @@ public:
     GLuint fboForPicking;
     GLuint colorBufferForPicking;
     GLuint depthBufferForPicking;
-    int viewportWidth;
-    int viewportHeight;
-    bool needToChangeBufferSizeForPicking;
+    int pickingBufferWidth;
+    int pickingBufferHeight;
 
     ShaderProgram* currentProgram;
     NolightingProgram* currentNolightingProgram;
@@ -254,6 +252,8 @@ public:
 
     bool isActuallyRendering;
     bool isPicking;
+    bool isPickingBufferImageOutputEnabled;
+    bool isShadowCastingEnabled;
     bool isRenderingShadowMap;
     bool isLightweightRenderingBeingProcessed;
     bool isLowMemoryConsumptionMode;
@@ -355,6 +355,7 @@ public:
     void updateDefaultFramebufferObject();
     bool initializeGL();
     void doRender();
+    void setupFullLightingRendering();
     bool doPick(int x, int y);
     void renderScene();
     bool renderShadowMap(int lightIndex);
@@ -419,13 +420,6 @@ public:
 }
 
 
-GLSLSceneRenderer::GLSLSceneRenderer()
-{
-    impl = new GLSLSceneRendererImpl(this);
-    impl->initialize();
-}
-
-
 GLSLSceneRenderer::GLSLSceneRenderer(SgGroup* sceneRoot)
     : GLSceneRenderer(sceneRoot)
 {
@@ -452,9 +446,8 @@ void GLSLSceneRendererImpl::initialize()
     fboForPicking = 0;
     colorBufferForPicking = 0;
     depthBufferForPicking = 0;
-    viewportWidth = 1;
-    viewportHeight = 1;
-    needToChangeBufferSizeForPicking = true;
+    pickingBufferWidth = 0;
+    pickingBufferHeight = 0;
 
     currentProgram = nullptr;
     currentNolightingProgram = nullptr;
@@ -463,6 +456,8 @@ void GLSLSceneRendererImpl::initialize()
 
     isActuallyRendering = false;
     isPicking = false;
+    isPickingBufferImageOutputEnabled = false;
+    isShadowCastingEnabled = true;
     isRenderingShadowMap = false;
     isLowMemoryConsumptionMode = false;
     isBoundingBoxRenderingMode = false;
@@ -484,7 +479,6 @@ void GLSLSceneRendererImpl::initialize()
     lightingMode = GLSceneRenderer::FULL_LIGHTING;
     defaultSmoothShading = true;
     defaultMaterial = new SgMaterial;
-    defaultMaterial->setDiffuseColor(Vector3f(0.8, 0.8, 0.8));
     defaultPointSize = 1.0f;
     defaultLineWidth = 1.0f;
     isTextureEnabled = true;
@@ -627,7 +621,6 @@ void GLSLSceneRendererImpl::updateDefaultFramebufferObject()
 
 bool GLSLSceneRenderer::initializeGL()
 {
-    GLSceneRenderer::initializeGL();
     return impl->initializeGL();
 }
 
@@ -638,6 +631,44 @@ bool GLSLSceneRendererImpl::initializeGL()
         return false;
     }
 
+    GLint major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+    const GLubyte* version = glGetString(GL_VERSION);
+    const GLubyte* vendor = glGetString(GL_VENDOR);
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    const GLubyte* glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    os() << fmt::format(_("OpenGL {0}.{1} ({2} {3}, GLSL {4}) is available for the \"{5}\" view.\n"),
+                        major, minor, vendor, renderer, glsl, self->name());
+
+    // Check if the GPU driver is Nouveau
+    if(regex_match((const char*)vendor, regex(".*nouveau.*"))){
+        isShadowCastingEnabled = false;
+    }
+        
+    // Check the version of Linux Intel GPU driver (Mesa version)
+    if(isShadowCastingEnabled){
+        std::cmatch match;
+        if(regex_match((const char*)version, match, regex(".*Mesa (\\d+)\\.(\\d+)\\.(\\d+).*$"))){
+            int mesaMajor = stoi(match.str(1));
+            if(mesaMajor >= 19){
+                isShadowCastingEnabled = false;
+            }
+        }
+    }
+
+    // Check if the GPU is AMD's Radeon GPU
+    if(isShadowCastingEnabled && regex_match((const char*)renderer, regex("^AMD Radeon.*"))){
+        isShadowCastingEnabled = false;
+    }
+
+    if(!isShadowCastingEnabled){
+        os() << fmt::format(_(" Shadow casting is disabled for this GPU due to some problems.\n"));
+    }
+    
+    os().flush();
+    
     updateDefaultFramebufferObject();
 
     try {
@@ -645,7 +676,9 @@ bool GLSLSceneRendererImpl::initializeGL()
         solidColorProgram.initialize();
         minimumLightingProgram.initialize();
         phongLightingProgram.initialize();
-        phongShadowLightingProgram.initialize();
+        if(isShadowCastingEnabled){
+            phongShadowLightingProgram.initialize();
+        }
     }
     catch(std::runtime_error& error){
         os() << error.what() << endl;
@@ -681,10 +714,8 @@ void GLSLSceneRenderer::flush()
 
 void GLSLSceneRenderer::setViewport(int x, int y, int width, int height)
 {
-    GLSceneRenderer::setViewport(x, y, width, height);
-    impl->viewportWidth = width;
-    impl->viewportHeight = height;
-    impl->needToChangeBufferSizeForPicking = true;
+    glViewport(x, y, width, height);
+    updateViewportInformation(x, y, width, height);
 }
 
 
@@ -803,57 +834,34 @@ void GLSLSceneRendererImpl::doRender()
     isLightweightRenderingBeingProcessed = false;
     isLowMemoryConsumptionRenderingBeingProcessed = isLowMemoryConsumptionMode;
     isTextureBeingRendered = false;
-    
-    if(lightingMode == GLSceneRenderer::NO_LIGHTING){
+
+    switch(lightingMode){
+
+    case GLSceneRenderer::NO_LIGHTING:
         pushProgram(nolightingProgram);
-        
-    } else if(lightingMode == GLSceneRenderer::SOLID_COLOR_LIGHTING){
+        break;
+
+    case GLSceneRenderer::SOLID_COLOR_LIGHTING:
         pushProgram(solidColorProgram);
-        
-    } else if(lightingMode == GLSceneRenderer::MINIMUM_LIGHTING){
+        break;
+
+    case GLSceneRenderer::MINIMUM_LIGHTING:
         pushProgram(minimumLightingProgram);
         isLightweightRenderingBeingProcessed = true;
         isLowMemoryConsumptionRenderingBeingProcessed = true;
+        break;
 
-    } else {
+    case GLSceneRenderer::FULL_LIGHTING:
+        setupFullLightingRendering();
+        break;
+
+    case GLSceneRenderer::NORMAL_LIGHTING:
+    default:
+        pushProgram(phongLightingProgram);
         isTextureBeingRendered = isTextureEnabled;
-
-        if(shadowLightIndices.empty()){
-            // FULL_LIGHTING without shadows
-            pushProgram(phongLightingProgram);
-            
-        } else {
-            // FULL_LIGHTING with shadows
-            auto& program = phongShadowLightingProgram;
-            Array4i vp = self->viewport();
-            int w, h;
-            program.getShadowMapSize(w, h);
-            self->setViewport(0, 0, w, h);
-            pushProgram(program.shadowMapProgram());
-            isRenderingShadowMap = true;
-            isActuallyRendering = false;
-        
-            int shadowMapIndex = 0;
-            set<int>::iterator iter = shadowLightIndices.begin();
-            while(iter != shadowLightIndices.end() && shadowMapIndex < program.maxNumShadows()){
-                program.activateShadowMapGenerationPass(shadowMapIndex);
-                int shadowLightIndex = *iter;
-                if(renderShadowMap(shadowLightIndex)){
-                    ++shadowMapIndex;
-                }
-                ++iter;
-            }
-            program.setNumShadows(shadowMapIndex);
-        
-            popProgram();
-            isRenderingShadowMap = false;
-            self->setViewport(vp[0], vp[1], vp[2], vp[3]);
-    
-            program.activateMainRenderingPass();
-            pushProgram(program);
-        }
+        break;
     }
-    
+
     isActuallyRendering = true;
     const Vector3f& c = self->backgroundColor();
     glClearColor(c[0], c[1], c[2], 1.0f);
@@ -877,6 +885,46 @@ void GLSLSceneRendererImpl::doRender()
 }
 
 
+void GLSLSceneRendererImpl::setupFullLightingRendering()
+{
+    isTextureBeingRendered = isTextureEnabled;
+
+    if(shadowLightIndices.empty() || !isShadowCastingEnabled){
+        // Same as NORMAL_LIGHTING
+        pushProgram(phongLightingProgram);
+            
+    } else {
+        auto& program = phongShadowLightingProgram;
+        Array4i vp = self->viewport();
+        int w, h;
+        program.getShadowMapSize(w, h);
+        self->setViewport(0, 0, w, h);
+        pushProgram(program.shadowMapProgram());
+        isRenderingShadowMap = true;
+        isActuallyRendering = false;
+        
+        int shadowMapIndex = 0;
+        set<int>::iterator iter = shadowLightIndices.begin();
+        while(iter != shadowLightIndices.end() && shadowMapIndex < program.maxNumShadows()){
+            program.activateShadowMapGenerationPass(shadowMapIndex);
+            int shadowLightIndex = *iter;
+            if(renderShadowMap(shadowLightIndex)){
+                ++shadowMapIndex;
+            }
+            ++iter;
+        }
+        program.setNumShadows(shadowMapIndex);
+        
+        popProgram();
+        isRenderingShadowMap = false;
+        self->setViewport(vp[0], vp[1], vp[2], vp[3]);
+    
+        program.activateMainRenderingPass();
+        pushProgram(program);
+    }
+}
+
+
 bool GLSLSceneRenderer::doPick(int x, int y)
 {
     return impl->doPick(x, y);
@@ -885,47 +933,40 @@ bool GLSLSceneRenderer::doPick(int x, int y)
 
 bool GLSLSceneRendererImpl::doPick(int x, int y)
 {
-    if(USE_FBO_FOR_PICKING){
-        if(!fboForPicking){
-            glGenFramebuffers(1, &fboForPicking);
-            needToChangeBufferSizeForPicking = true;
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, fboForPicking);
+    int vx, vy, width, height;
+    self->getViewport(vx, vy, width, height);
 
-        if(needToChangeBufferSizeForPicking){
-            // color buffer
-            if(colorBufferForPicking){
-                glDeleteRenderbuffers(1, &colorBufferForPicking);
-            }
-            glGenRenderbuffers(1, &colorBufferForPicking);
-            glBindRenderbuffer(GL_RENDERBUFFER, colorBufferForPicking);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, viewportWidth, viewportHeight);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorBufferForPicking);
-            
-            // depth buffer
-            if(depthBufferForPicking){
-                glDeleteRenderbuffers(1, &depthBufferForPicking);
-            }
-            glGenRenderbuffers(1, &depthBufferForPicking);
-            glBindRenderbuffer(GL_RENDERBUFFER, depthBufferForPicking);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, viewportWidth, viewportHeight);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBufferForPicking);
-            
-            needToChangeBufferSizeForPicking = false;
+    if(!fboForPicking){
+        glGenFramebuffers(1, &fboForPicking);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, fboForPicking);
+
+    if(width != pickingBufferWidth || height != pickingBufferHeight){
+        // color buffer
+        if(colorBufferForPicking){
+            glDeleteRenderbuffers(1, &colorBufferForPicking);
         }
+        glGenRenderbuffers(1, &colorBufferForPicking);
+        glBindRenderbuffer(GL_RENDERBUFFER, colorBufferForPicking);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorBufferForPicking);
+            
+        // depth buffer
+        if(depthBufferForPicking){
+            glDeleteRenderbuffers(1, &depthBufferForPicking);
+        }
+        glGenRenderbuffers(1, &depthBufferForPicking);
+        glBindRenderbuffer(GL_RENDERBUFFER, depthBufferForPicking);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBufferForPicking);
+
+        pickingBufferWidth = width;
+        pickingBufferHeight = height;
     }
     
     self->extractPreprocessedNodes();
 
-    GLboolean isMultiSampleEnabled;
-    if(!USE_FBO_FOR_PICKING){
-        isMultiSampleEnabled = glIsEnabled(GL_MULTISAMPLE);
-        if(isMultiSampleEnabled){
-            glDisable(GL_MULTISAMPLE);
-        }
-    }
-    
-    if(!SHOW_IMAGE_FOR_PICKING){
+    if(!isPickingBufferImageOutputEnabled){
         glScissor(x, y, 1, 1);
         glEnable(GL_SCISSOR_TEST);
     }
@@ -944,21 +985,18 @@ bool GLSLSceneRendererImpl::doPick(int x, int y)
     popProgram();
     isPicking = false;
 
-    glDisable(GL_SCISSOR_TEST);
+    if(!isPickingBufferImageOutputEnabled){
+        glDisable(GL_SCISSOR_TEST);
+    }
 
     endRendering();
 
-    if(!USE_FBO_FOR_PICKING){
-        if(isMultiSampleEnabled){
-            glEnable(GL_MULTISAMPLE);
-        }
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fboForPicking);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-    }
-    
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fboForPicking);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
     GLfloat color[4];
     glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, color);
-    if(SHOW_IMAGE_FOR_PICKING){
+    if(isPickingBufferImageOutputEnabled){
         color[2] = 0.0f;
     }
     int id = (int)(color[0] * 255) + ((int)(color[1] * 255) << 8) + ((int)(color[2] * 255) << 16) - 1;
@@ -974,12 +1012,37 @@ bool GLSLSceneRendererImpl::doPick(int x, int y)
         }
     }
 
-    if(USE_FBO_FOR_PICKING){
-        glBindFramebuffer(GL_FRAMEBUFFER, defaultFBO);
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFBO);
-    }
+    glBindFramebuffer(GL_FRAMEBUFFER, defaultFBO);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFBO);
 
     return !pickedNodePath.empty();
+}
+
+
+void GLSLSceneRenderer::setPickingBufferImageOutputEnabled(bool on)
+{
+    impl->isPickingBufferImageOutputEnabled = on;
+}
+
+
+bool GLSLSceneRenderer::getPickingBufferImage(Image& out_image)
+{
+    if(!impl->isPickingBufferImageOutputEnabled){
+        return false;
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, impl->fboForPicking);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, impl->fboForPicking);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    int w = impl->pickingBufferWidth;
+    int h = impl->pickingBufferHeight;
+    out_image.setSize(w, h, 4);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, out_image.pixels());
+    out_image.applyVerticalFlip();
+    glBindFramebuffer(GL_FRAMEBUFFER, impl->defaultFBO);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, impl->defaultFBO);
+
+    return true;
 }
 
 
@@ -1121,7 +1184,8 @@ void GLSLSceneRendererImpl::renderLights(LightingProgram* program)
         Affine3 T;
         self->getLightInfo(i, light, T);
         if(light->on()){
-            bool isCastingShadow = (shadowLightIndices.find(i) != shadowLightIndices.end());
+            bool isCastingShadow =
+                isShadowCastingEnabled && (shadowLightIndices.find(i) != shadowLightIndices.end());
             if(program->setLight(lightIndex, light, T, viewTransform, isCastingShadow)){
                 ++lightIndex;
             }
@@ -1241,7 +1305,7 @@ inline void GLSLSceneRendererImpl::setPickColor(int id)
     color[0] = (id & 0xff) / 255.0;
     color[1] = ((id >> 8) & 0xff) / 255.0;
     color[2] = ((id >> 16) & 0xff) / 255.0;
-    if(SHOW_IMAGE_FOR_PICKING){
+    if(isPickingBufferImageOutputEnabled){
         color[2] = 1.0f;
     }
     solidColorProgram.setColor(color);
@@ -2274,8 +2338,9 @@ void GLSLSceneRendererImpl::renderOverlay(SgOverlay* overlay)
 
     const Matrix4 PV0 = PV;
     SgOverlay::ViewVolume v;
-    const Array4i vp = self->viewport();
-    overlay->calcViewVolume(vp[2], vp[3], v);
+    int x, y, width, height;
+    self->getViewport(x, y, width, height);
+    overlay->calcViewVolume(width, height, v);
     self->getOrthographicProjectionMatrix(v.left, v.right, v.bottom, v.top, v.zNear, v.zFar, PV);
             
     renderGroup(overlay);
@@ -2536,4 +2601,10 @@ void GLSLSceneRenderer::setLowMemoryConsumptionMode(bool on)
         impl->isLowMemoryConsumptionMode = on;
         requestToClearResources();
     }
+}
+
+
+bool GLSLSceneRenderer::isShadowCastingAvailable() const
+{
+    return impl->isShadowCastingEnabled;
 }

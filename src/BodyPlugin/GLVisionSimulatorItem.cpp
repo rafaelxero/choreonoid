@@ -54,21 +54,6 @@ enum ScreenId {
     BACK_SCREEN = FisheyeLensConverter::BACK_SCREEN
 };
 
-double myNearByInt(double x)
-{
-#ifdef Q_OS_WIN32
-    double u = ceil(x);
-    double l = floor(x);
-    if(fabs(u - x) < fabs(x - l)){
-        return u;
-    } else {
-        return l;
-    }
-#else
-    return nearbyint(x);
-#endif
-}
-
 string getNameListString(const vector<string>& names)
 {
     string nameList;
@@ -247,7 +232,6 @@ public:
     vector<SensorRenderer*> renderersInRendering;
     vector<SensorRenderer*> renderersToTurnOff;
 
-    bool useGLSL;
     bool useQueueThreadForAllSensors;
     bool useThreadsForSensors;
     bool useThreadsForScreens;
@@ -322,13 +306,12 @@ GLVisionSimulatorItemImpl::GLVisionSimulatorItemImpl(GLVisionSimulatorItem* self
       os(MessageView::instance()->cout()),
       threadMode(GLVisionSimulatorItem::N_THREAD_MODES, CNOID_GETTEXT_DOMAIN_NAME)
 {
-    simulatorItem = 0;
+    simulatorItem = nullptr;
     maxFrameRate = 1000.0;
     maxLatency = 1.0;
     rangeSensorPrecisionRatio = 2.0;
     depthError = 0.0;
 
-    useGLSL = (getenv("CNOID_USE_GLSL") != 0);
     isVisionDataRecordingEnabled = false;
     isBestEffortModeProperty = false;
     isHeadLightEnabled = true;
@@ -357,9 +340,8 @@ GLVisionSimulatorItemImpl::GLVisionSimulatorItemImpl(GLVisionSimulatorItem* self
       bodyNames(org.bodyNames),
       sensorNames(org.sensorNames)
 {
-    simulatorItem = 0;
+    simulatorItem = nullptr;
 
-    useGLSL = org.useGLSL;
     isVisionDataRecordingEnabled = org.isVisionDataRecordingEnabled;
     rangeSensorPrecisionRatio = org.rangeSensorPrecisionRatio;
     depthError = org.depthError;
@@ -815,10 +797,10 @@ SensorScreenRenderer::SensorScreenRenderer(GLVisionSimulatorItemImpl* simImpl, D
     rangeCameraForRendering = dynamic_cast<RangeCamera*>(screenDevice);
     rangeSensorForRendering = dynamic_cast<RangeSensor*>(screenDevice);
 
-    glContext = 0;
-    offscreenSurface = 0;
-    frameBuffer = 0;
-    renderer = 0;
+    glContext = nullptr;
+    offscreenSurface = nullptr;
+    frameBuffer = nullptr;
+    renderer = nullptr;
     screenId = FRONT_SCREEN;
 }
 
@@ -935,11 +917,14 @@ SgCamera* SensorScreenRenderer::initializeCamera(int bodyIndex)
 void SensorScreenRenderer::initializeGL(SgCamera* sceneCamera)
 {
     glContext = new QOpenGLContext;
+
     QSurfaceFormat format;
     format.setSwapBehavior(QSurfaceFormat::SingleBuffer);
-    if(simImpl->useGLSL){
+    if(GLSceneRenderer::rendererType() == GLSceneRenderer::GLSL_RENDERER){
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(3, 3);
+    } else {
+        format.setVersion(1, 5);
     }
     glContext->setFormat(format);
     glContext->create();
@@ -951,11 +936,7 @@ void SensorScreenRenderer::initializeGL(SgCamera* sceneCamera)
     frameBuffer->bind();
 
     if(!renderer){
-        if(simImpl->useGLSL){
-            renderer = new GLSLSceneRenderer;
-        } else {
-            renderer = new GL1SceneRenderer;
-        }
+        renderer = GLSceneRenderer::create();
     }
 
     renderer->initializeGL();
@@ -1514,12 +1495,12 @@ bool SensorScreenRenderer::getCameraImage(Image& image)
 bool SensorScreenRenderer::getRangeCameraData(Image& image, vector<Vector3f>& points)
 {
 #ifndef _WIN32
-    unsigned char* colorBuf = 0;
+    unsigned char* colorBuf = nullptr;
 #else
     vector<unsigned char> colorBuf;
 #endif
 
-    unsigned char* pixels = 0;
+    unsigned char* pixels = nullptr;
 
     const bool extractColors = (cameraForRendering->imageType() == Camera::COLOR_IMAGE);
     if(extractColors){
@@ -1556,7 +1537,7 @@ bool SensorScreenRenderer::getRangeCameraData(Image& image, vector<Vector3f>& po
     n[3] = 1.0f;
     points.clear();
     points.reserve(pixelWidth * pixelHeight);
-    unsigned char* colorSrc = 0;
+    unsigned char* colorSrc = nullptr;
 
     isDense = true;
     
@@ -1667,7 +1648,7 @@ bool SensorScreenRenderer::getRangeSensorData(vector<double>& rangeData)
                 py = 0;
             } else {
                 const double r = (tan(pitchAngle)/cos(yawAngle) + maxTanPitchAngle) / (maxTanPitchAngle * 2.0);
-                py = myNearByInt(r * (fh - 1.0));
+                py = nearbyint(r * (fh - 1.0));
             }
             const int srcpos = py * pixelWidth;
 
@@ -1676,7 +1657,7 @@ bool SensorScreenRenderer::getRangeSensorData(vector<double>& rangeData)
                 px = 0;
             } else {
                 const double r = (maxTanYawAngle - tan(yawAngle)) / (maxTanYawAngle * 2.0);
-                px = myNearByInt(r * (fw - 1.0));
+                px = nearbyint(r * (fw - 1.0));
             }
             //! \todo add the option to do the interpolation between the adjacent two pixel depths
             const float depth = depthBuf[srcpos + px];
