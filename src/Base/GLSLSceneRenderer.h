@@ -18,8 +18,7 @@ class LightingProgram;
 class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
 {
   public:
-    GLSLSceneRenderer();
-    GLSLSceneRenderer(SgGroup* root);
+    GLSLSceneRenderer(SgGroup* root = nullptr);
     virtual ~GLSLSceneRenderer();
 
     static void addExtension(std::function<void(GLSLSceneRenderer* renderer)> func);
@@ -53,7 +52,6 @@ class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
 
     virtual bool initializeGL() override;
     virtual void flush() override;
-
     virtual void setViewport(int x, int y, int width, int height) override;
 
     virtual const Vector3& pickedPoint() const override;
@@ -80,6 +78,11 @@ class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
     virtual void setBoundingBoxRenderingForLightweightRenderingGroupEnabled(bool on) override;
 
     void setLowMemoryConsumptionMode(bool on);
+
+    virtual void setPickingBufferImageOutputEnabled(bool on) override;
+    virtual bool getPickingBufferImage(Image& out_image) override;
+
+    virtual bool isShadowCastingAvailable() const override;
 
   protected:
     virtual void onSceneGraphUpdated(const SgUpdate& update) override;
