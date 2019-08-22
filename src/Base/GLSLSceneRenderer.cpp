@@ -642,25 +642,31 @@ bool GLSLSceneRendererImpl::initializeGL()
     os() << fmt::format(_("OpenGL {0}.{1} ({2} {3}, GLSL {4}) is available for the \"{5}\" view.\n"),
                         major, minor, vendor, renderer, glsl, self->name());
 
-    // Check if the GPU driver is Nouveau
-    if(regex_match((const char*)vendor, regex(".*nouveau.*"))){
-        isShadowCastingEnabled = false;
-    }
-        
-    // Check the version of Linux Intel GPU driver (Mesa version)
-    if(isShadowCastingEnabled){
-        std::cmatch match;
-        if(regex_match((const char*)version, match, regex(".*Mesa (\\d+)\\.(\\d+)\\.(\\d+).*$"))){
+    std::cmatch match;
+
+    // Check the Intel GPU
+    if(regex_match((const char*)renderer, match, regex("Mesa DRI Intel\\(R\\) (\\S+).*$"))){
+        if(match.str(1) == "Sandybridge"){
+            isShadowCastingEnabled = false;
+        } else if(regex_match((const char*)version, match, regex(".*Mesa (\\d+)\\.(\\d+)\\.(\\d+).*$"))){
             int mesaMajor = stoi(match.str(1));
             if(mesaMajor >= 19){
                 isShadowCastingEnabled = false;
             }
         }
     }
-
     // Check if the GPU is AMD's Radeon GPU
-    if(isShadowCastingEnabled && regex_match((const char*)renderer, regex("^AMD Radeon.*"))){
+    else if(regex_match((const char*)renderer, regex("AMD Radeon.*"))){
         isShadowCastingEnabled = false;
+    }
+    // CHeck if the VMWare's virtual driver is used
+    else if(regex_match((const char*)vendor, regex("VMware, Inc\\..*"))){
+        isShadowCastingEnabled = false;
+    }
+    // Check if the GPU driver is Nouveau
+    else if(regex_match((const char*)vendor, regex(".*nouveau.*"))){
+        isShadowCastingEnabled = false;
+
     }
 
     if(!isShadowCastingEnabled){
