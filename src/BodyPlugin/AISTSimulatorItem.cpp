@@ -102,9 +102,6 @@ public:
     typedef std::map<Body*, int> BodyIndexMap;
     BodyIndexMap bodyIndexMap;
 
-    typedef std::map<Link*, Link*> LinkMap;
-    LinkMap orgLinkToInternalLinkMap;
-
     stdx::optional<int> forcedBodyPositionFunctionId;
     std::mutex forcedBodyPositionMutex;
     DyBody* forcedPositionBody;
@@ -345,7 +342,6 @@ Item* AISTSimulatorItem::doDuplicate() const
 
 bool AISTSimulatorItem::startSimulation(bool doReset)
 {
-    impl->orgLinkToInternalLinkMap.clear();
     return SimulatorItem::startSimulation(doReset);
 }
 
@@ -353,14 +349,13 @@ bool AISTSimulatorItem::startSimulation(bool doReset)
 SimulationBody* AISTSimulatorItem::createSimulationBody(Body* orgBody)
 {
     SimulationBody* simBody = 0;
-    DyBody* body = new DyBody(*orgBody);
+    DyBody* body = new DyBody;
+    body->copyFrom(orgBody);
 
     std::cout << "Rafa, in AISTSimulatorItem::createSimulationBody, early, body->rootLink()->v() = " << body->rootLink()->v() << std::endl;
     
     const int n = orgBody->numLinks();
     for(int i=0; i < n; ++i){
-        impl->orgLinkToInternalLinkMap[orgBody->link(i)] = body->link(i);
-
         auto link = body->link(i);
         if(link->isFreeJoint() && !link->isRoot()){
             MessageView::instance()->putln(

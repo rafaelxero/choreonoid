@@ -61,7 +61,7 @@ DeviceState* ForceSensor::cloneState() const
 }
 
 
-Device* ForceSensor::clone() const
+Device* ForceSensor::doClone(BodyCloneMap*) const
 {
     return new ForceSensor(*this);
 }
