@@ -7,8 +7,8 @@ set(target CnoidBody)
 
 set(sources
   Body.cpp
+  BodyCloneMap.cpp
   Link.cpp
-  Device.cpp
   LinkTraverse.cpp
   LinkPath.cpp
   JointPath.cpp
@@ -25,6 +25,11 @@ set(sources
   AbstractBodyLoader.cpp
   BodyLoader.cpp
   YAMLBodyLoader.cpp
+  Device.cpp
+  HolderDevice.cpp
+  AttachmentDevice.cpp
+  DigitalIoDevice.cpp
+  IoConnectionMap.cpp
   ForceSensor.cpp
   RateGyroSensor.cpp
   AccelerationSensor.cpp
@@ -43,6 +48,11 @@ set(sources
   InverseKinematics.cpp
   CompositeIK.cpp
   PinDragIK.cpp
+  BodyManipulatorManager.cpp
+  ManipulatorPosition.cpp
+  CoordinateFrameSet.cpp
+  CoordinateFrameContainer.cpp
+  CoordinateFrameSetGroup.cpp
   LinkGroup.cpp
   LeggedBodyHelper.cpp
   BodyCollisionDetector.cpp
@@ -71,6 +81,7 @@ set(sources
 
 set(headers
   Body.h
+  BodyCloneMap.h
   BodyHandler.h
   BodyHandlerManager.h
   CustomJointPathHandler.h
@@ -94,6 +105,10 @@ set(headers
   MultiDeviceStateSeq.h
   Device.h
   DeviceList.h
+  HolderDevice.h
+  AttachmentDevice.h
+  DigitalIoDevice.h
+  IoConnectionMap.h
   ForceSensor.h
   RateGyroSensor.h
   AccelerationSensor.h
@@ -113,6 +128,11 @@ set(headers
   CompositeIK.h
   CompositeBodyIK.h
   PinDragIK.h
+  BodyManipulatorManager.h
+  ManipulatorPosition.h
+  CoordinateFrameSet.h
+  CoordinateFrameContainer.h
+  CoordinateFrameSetGroup.h
   LeggedBodyHelper.h
   PenetrationBlocker.h
   ForwardDynamics.h

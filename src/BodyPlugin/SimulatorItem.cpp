@@ -139,7 +139,7 @@ public:
 
     SimulationBodyImpl(SimulationBody* self, Body* body);
     void findControlSrcItems(Item* item, vector<Item*>& io_items, bool doPickCheckedItems = false);
-    bool initialize(SimulatorItemImpl* simImpl, BodyItem* bodyItem);
+    bool initialize(SimulatorItem* simulatorItem, BodyItem* bodyItem);
     bool initialize(SimulatorItemImpl* simImpl, ControllerItem* controllerItem);
     void extractAssociatedItems(bool doReset);
     void copyStateToBodyItem();
@@ -560,9 +560,15 @@ void SimulationBodyImpl::findControlSrcItems(Item* item, vector<Item*>& io_items
 }
 
 
-bool SimulationBodyImpl::initialize(SimulatorItemImpl* simImpl, BodyItem* bodyItem)
+bool SimulationBody::initialize(SimulatorItem* simulatorItem, BodyItem* bodyItem)
 {
-    this->simImpl = simImpl;
+    return impl->initialize(simulatorItem, bodyItem);
+}
+
+
+bool SimulationBodyImpl::initialize(SimulatorItem* simulatorItem, BodyItem* bodyItem)
+{
+    simImpl = simulatorItem->impl;
     this->bodyItem = bodyItem;
     frameRate = simImpl->worldFrameRate;
     deviceStateConnections.disconnect();
@@ -1466,6 +1472,14 @@ void SimulatorItemImpl::clearSimulation()
     postDynamicsFunctions.clear();
 
     subSimulatorItems.clear();
+
+    self->clearSimulation();
+}
+
+
+void SimulatorItem::clearSimulation()
+{
+
 }
 
 
@@ -1524,8 +1538,8 @@ bool SimulatorItemImpl::startSimulation(bool doReset)
             if(simBody->body()){
 
 	        std::cout << "Rafa, in SimulatorItemImpl::startSimulation, after simBody creation, simBody->body()->rootLink()->v() = " << simBody->body()->rootLink()->v() << std::endl;
-	      
-                if(simBody->impl->initialize(this, bodyItem)){
+
+                if(simBody->initialize(self, bodyItem)){
 
                     // copy the body state overwritten by the controller
                     simBody->impl->copyStateToBodyItem();
