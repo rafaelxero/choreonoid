@@ -8,6 +8,7 @@
 
 #include <cnoid/EigenTypes>
 #include <cnoid/DataMap>
+#include <bitset>
 #include "exportdecl.h"
 
 namespace cnoid {
@@ -60,7 +61,6 @@ public:
 #endif
 
 protected:
-
     virtual std::map<std::string, int>& nameToIdMap();
     virtual std::map<int, std::string>& idToNameMap();
     virtual int nextDynamicId();
