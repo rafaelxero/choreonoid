@@ -7,7 +7,6 @@ set(target CnoidBody)
 
 set(sources
   Body.cpp
-  BodyCloneMap.cpp
   Link.cpp
   LinkTraverse.cpp
   LinkPath.cpp
@@ -78,7 +77,6 @@ set(sources
 
 set(headers
   Body.h
-  BodyCloneMap.h
   BodyHandler.h
   BodyHandlerManager.h
   CustomJointPathHandler.h
