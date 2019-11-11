@@ -1559,7 +1559,6 @@ bool SimulatorItemImpl::startSimulation(bool doReset)
                     if(simBody->initialize(self, bodyItem)){
                         // copy the body state overwritten by the controller
                         simBody->impl->copyStateToBodyItem();
-                        
                         allSimBodies.push_back(simBody);
                         simBodiesWithBody.push_back(simBody);
                         simBodyMap[bodyItem] = simBody;
@@ -1567,9 +1566,7 @@ bool SimulatorItemImpl::startSimulation(bool doReset)
                 }
             }
             bodyItem->notifyKinematicStateChange();
-
-	    std::cout << "Rafa, in SimulatorItemImpl::startSimulation, after notifyKinematicsStateChange, bodyItem->body()->rootLink()->v() = " << bodyItem->body()->rootLink()->v() << std::endl;
-            
+	    
         } else if(ControllerItem* controller = dynamic_cast<ControllerItem*>(targetItems.get(i))){
             // ControllerItem which is not associated with a body
             SimulationBodyPtr simBody = new SimulationBody(nullptr);
