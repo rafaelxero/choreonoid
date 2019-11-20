@@ -4,7 +4,7 @@
 
 #include "LinkSelectionView.h"
 #include "LinkTreeWidget.h"
-#include "BodyBar.h"
+#include "BodySelectionManager.h"
 #include <cnoid/ViewManager>
 #include <QBoxLayout>
 #include <QHeaderView>
@@ -14,18 +14,22 @@ using namespace std;
 using namespace cnoid;
 
 namespace {
-LinkSelectionView* mainLinkSelectionView = 0;
+LinkSelectionView* instance = nullptr;
 }
 
 namespace cnoid {
 
-class LinkSelectionViewImpl
+class LinkSelectionView::Impl
 {
 public:
-    LinkSelectionViewImpl(LinkSelectionView* self);
-    ~LinkSelectionViewImpl();
     LinkTreeWidget linkTreeWidget;
-    Connection currentBodyItemChangeConnection;
+    BodySelectionManager* bodySelectionManager;
+    ScopedConnection bodySelectionManagerConnection;
+    ScopedConnection linkTreeWidgetConnection;
+
+    Impl(LinkSelectionView* self);
+    void onBodySelectionManagerCurrentChanged(BodyItem* bodyItem, Link* link);
+    void onLinkTreeWidgetSelectionChanged();
 };
 
 }
@@ -33,25 +37,25 @@ public:
 
 void LinkSelectionView::initializeClass(ExtensionManager* ext)
 {
-    mainLinkSelectionView =
+    ::instance =
         ext->viewManager().registerClass<LinkSelectionView>(
             "LinkSelectionView", N_("Links"), ViewManager::SINGLE_DEFAULT);
 }
 
 
-LinkSelectionView* LinkSelectionView::mainInstance()
+LinkSelectionView* LinkSelectionView::instance()
 {
-    return mainLinkSelectionView;
+    return ::instance;
 }
 
 
 LinkSelectionView::LinkSelectionView()
 {
-    impl = new LinkSelectionViewImpl(this);
+    impl = new Impl(this);
 }
 
 
-LinkSelectionViewImpl::LinkSelectionViewImpl(LinkSelectionView* self)
+LinkSelectionView::Impl::Impl(LinkSelectionView* self)
 {
     self->setDefaultLayoutArea(View::LEFT_BOTTOM);
     self->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -67,9 +71,16 @@ LinkSelectionViewImpl::LinkSelectionViewImpl(LinkSelectionView* self)
     vbox->addWidget(&linkTreeWidget);
     self->setLayout(vbox);
 
-    currentBodyItemChangeConnection =
-        BodyBar::instance()->sigCurrentBodyItemChanged().connect(
-            [&](BodyItem* bodyItem){ linkTreeWidget.setBodyItem(bodyItem); });
+    bodySelectionManager = BodySelectionManager::instance();
+
+    bodySelectionManagerConnection.reset(
+        bodySelectionManager->sigCurrentChanged().connect(
+            [&](BodyItem* bodyItem, Link* link){
+                onBodySelectionManagerCurrentChanged(bodyItem, link); }));
+
+    linkTreeWidgetConnection.reset(
+        linkTreeWidget.sigSelectionChanged().connect(
+            [&](){ onLinkTreeWidgetSelectionChanged(); }));
 }
 
 
@@ -79,9 +90,16 @@ LinkSelectionView::~LinkSelectionView()
 }
 
 
-LinkSelectionViewImpl::~LinkSelectionViewImpl()
+void LinkSelectionView::Impl::onBodySelectionManagerCurrentChanged(BodyItem* bodyItem, Link* link)
 {
-    currentBodyItemChangeConnection.disconnect();
+    linkTreeWidget.setBodyItem(bodyItem);
+    if(bodyItem){
+        if(link){
+            linkTreeWidget.makeSingleSelection(bodyItem, link->index());
+        } else {
+            //linkTreeWidget.setSelection(bodySelectionManager->linkSelection(bodyItem));
+        }
+    }
 }
 
 
@@ -97,19 +115,30 @@ SignalProxy<void()> LinkSelectionView::sigSelectionChanged()
 }
 
 
+void LinkSelectionView::Impl::onLinkTreeWidgetSelectionChanged()
+{
+    bodySelectionManagerConnection.block();
+
+    bodySelectionManager->setLinkSelection(
+        linkTreeWidget.bodyItem(), linkTreeWidget.linkSelection());
+    
+    bodySelectionManagerConnection.unblock();
+}
+
+
 int LinkSelectionView::selectedLinkIndex() const
 {
     return impl->linkTreeWidget.selectedLinkIndex();
 }
 
 
-const std::vector<int>& LinkSelectionView::selectedLinkIndices()
+const std::vector<int>& LinkSelectionView::selectedLinkIndices() const
 {
     return impl->linkTreeWidget.selectedLinkIndices();
 }
 
 
-const boost::dynamic_bitset<>& LinkSelectionView::linkSelection()
+const std::vector<bool>& LinkSelectionView::linkSelection() const
 {
     return impl->linkTreeWidget.linkSelection();
 }
@@ -121,32 +150,22 @@ SignalProxy<void()> LinkSelectionView::sigSelectionChanged(BodyItem* bodyItem)
 }
 
 
-const std::vector<int>& LinkSelectionView::selectedLinkIndices(BodyItem* bodyItem)
+int LinkSelectionView::selectedLinkIndex(BodyItem* bodyItem) const
+{
+    return impl->linkTreeWidget.selectedLinkIndex(bodyItem);
+}
+
+
+const std::vector<int>& LinkSelectionView::selectedLinkIndices(BodyItem* bodyItem) const
 {
     return impl->linkTreeWidget.selectedLinkIndices(bodyItem);
 }
 
 
-const boost::dynamic_bitset<>& LinkSelectionView::linkSelection(BodyItem* bodyItem)
+const std::vector<bool>& LinkSelectionView::linkSelection(BodyItem* bodyItem) const
 {
     return impl->linkTreeWidget.linkSelection(bodyItem);
 }
-
-
-#ifdef CNOID_BACKWARD_COMPATIBILITY
-
-const std::vector<int>& LinkSelectionView::getSelectedLinkIndices(BodyItem* bodyItem)
-{
-    return impl->linkTreeWidget.selectedLinkIndices(bodyItem);
-}
-
-
-const boost::dynamic_bitset<>& LinkSelectionView::getLinkSelection(BodyItem* bodyItem)
-{
-    return impl->linkTreeWidget.linkSelection(bodyItem);
-}
-
-#endif
 
 
 bool LinkSelectionView::makeSingleSelection(BodyItem* bodyItem, int linkIndex)

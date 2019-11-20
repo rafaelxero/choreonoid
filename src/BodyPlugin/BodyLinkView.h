@@ -2,14 +2,12 @@
   @author Shin'ichiro Nakaoka
 */
 
-#ifndef CNOID_BODYPLUGIN_BODY_LINK_VIEW_H_INCLUDED
-#define CNOID_BODYPLUGIN_BODY_LINK_VIEW_H_INCLUDED
+#ifndef CNOID_BODYPLUGIN_BODY_LINK_VIEW_H
+#define CNOID_BODYPLUGIN_BODY_LINK_VIEW_H
 
 #include <cnoid/View>
 
 namespace cnoid {
-
-class BodyLinkViewImpl;
 
 class BodyLinkView : public cnoid::View
 {
@@ -22,12 +20,15 @@ public:
 
     void switchRpyQuat(bool on);
 
-private:
-    BodyLinkViewImpl* impl;
+protected:
+    virtual bool storeState(Archive& archive) override;
+    virtual bool restoreState(const Archive& archive) override;
 
-    virtual bool storeState(Archive& archive);
-    virtual bool restoreState(const Archive& archive);
+private:
+    class Impl;
+    Impl* impl;
 };
+
 }
 
 #endif

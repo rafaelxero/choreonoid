@@ -8,7 +8,7 @@
 #include <cnoid/Item>
 #include <cnoid/RectRegionMarker>
 #include <cnoid/SceneProvider>
-#include <boost/optional.hpp>
+#include <cnoid/stdx/optional>
 #include "exportdecl.h"
 
 namespace cnoid {
@@ -50,6 +50,7 @@ public:
     void setPointSize(double size);
     double pointSize() const;
 
+    static double defaultVoxelSize();
     double voxelSize() const;
     void setVoxelSize(double size);
     
@@ -63,7 +64,7 @@ public:
     SignalProxy<void()> sigAttentionPointsChanged();
     void notifyAttentionPointChange();
     
-    boost::optional<Vector3> attentionPoint() const; // deprecated
+    stdx::optional<Vector3> attentionPoint() const; // deprecated
     SignalProxy<void()> sigAttentionPointChanged();  // deprecated
     void clearAttentionPoint();  // deprecated
     void setAttentionPoint(const Vector3& p);  // deprecated

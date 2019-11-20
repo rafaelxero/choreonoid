@@ -61,19 +61,23 @@ bool MultiSE3Seq::doReadSeq(const Mapping* archive, std::ostream& os)
 {
     GeneralSeqReader reader(os);
 
+    reader.setCustomSeqTypeChecker(
+        [&](GeneralSeqReader& reader, const string& type){
+            if(reader.formatVersion() >= 2.0){
+                return reader.checkSeqType(type);
+            } else {
+                return (type == "MultiSE3Seq" || type == "MultiSe3Seq" || type == "MultiAffine3Seq");
+            }
+        });
+
     if(!reader.readHeaders(archive, this)){
         return false;
     }
     
     string se3format;
-
     if(reader.formatVersion() >= 2.0){
         se3format = archive->get<string>("SE3Format");
     } else {
-        reader.setFuncToCheckSeqType(
-            [&](const string& type){
-                return (type == "MultiSE3Seq" || type == "MultiSe3Seq" || type == "MultiAffine3Seq");
-            });
         se3format = archive->get<string>("format");
     }
 
@@ -289,6 +293,44 @@ bool MultiSE3Seq::saveTopPartAsPlainMatrixFormat(const std::string& filename, st
                 }
             }
             file << " 0 0 0 0 0 0"; // velocity elements (dv, omega)
+            file << "\n";
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+bool MultiSE3Seq::saveTopPartAsPosAndRPYFormat(const std::string& filename, std::ostream& os)
+{
+    const int nFrames = numFrames();
+
+    if(nFrames > 0 && numParts() > 0){
+
+        ofstream file(filename.c_str());
+        if(!file){
+            os << format(_("{0} cannot be opened."), filename) << endl;
+            return false;
+        }
+
+        const double r = frameRate();
+
+        Part base = part(0);
+        for(int i=0; i < nFrames; ++i){
+            file << format("{0:.4f}", (i / r));
+            const SE3& x = base[i];
+            for(int j=0; j < 3; ++j){
+                file << " " << x.translation()[j];
+            }
+            Vector3 rpy(rpyFromRot(Matrix3(x.rotation())));
+            for(int j=0; j < 3; ++j){
+                if(fabs(rpy[j]) < 1.0e-14){
+                    rpy[j] = 0.0;
+                }
+                file << " " << rpy[j];
+            }
             file << "\n";
         }
 

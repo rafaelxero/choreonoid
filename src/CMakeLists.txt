@@ -10,6 +10,7 @@ if(ENABLE_GUI)
   add_subdirectory(Base)
   add_subdirectory(AssimpPlugin)
   add_subdirectory(BodyPlugin)
+  add_subdirectory(ManipulatorPlugin)
 
   add_subdirectory(PoseSeqPlugin)
   add_subdirectory(BalancerPlugin)
@@ -44,7 +45,6 @@ if(ENABLE_GUI)
   add_subdirectory(PCLPlugin)
 
   add_subdirectory(CompetitionPlugin)
-  add_subdirectory(ScenarioPlugin)
 
   add_subdirectory(Choreonoid)
 endif()

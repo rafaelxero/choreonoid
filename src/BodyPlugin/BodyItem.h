@@ -10,16 +10,14 @@
 #include <cnoid/Body>
 #include <cnoid/CollisionLinkPair>
 #include <cnoid/SceneProvider>
-#include <boost/dynamic_bitset.hpp>
-#include <boost/optional.hpp>
+#include <cnoid/stdx/optional>
 #include "exportdecl.h"
 
 namespace cnoid {
 
 class BodyState;
-class BodyItem;
-typedef ref_ptr<BodyItem> BodyItemPtr;
 class BodyItemImpl;
+class LinkKinematicsKit;
 class InverseKinematics;
 class PinDragIK;
 class PenetrationBlocker;
@@ -35,20 +33,18 @@ public:
     virtual ~BodyItem();
 
     bool loadModelFile(const std::string& filename);
-
-    void setBody(Body* body);
-            
-    virtual void setName(const std::string& name) override;
-
     Body* body() const;
-
+    void setBody(Body* body);
+    virtual void setName(const std::string& name) override;
     bool isEditable() const;
     void setEditable(bool on);
+
+    // API for a composite body
+    BodyItem* parentBodyItem();
+    Link* parentLink();
         
-    enum PresetPoseID { INITIAL_POSE, STANDARD_POSE };
-
     void moveToOrigin();
-
+    enum PresetPoseID { INITIAL_POSE, STANDARD_POSE };
     void setPresetPose(PresetPoseID id);
 
     Link* currentBaseLink() const;
@@ -70,9 +66,12 @@ public:
 
     // for undo, redo operations
     void beginKinematicStateEdit();
+    void cancelKinematicStateEdit();
     void acceptKinematicStateEdit();
     bool undoKinematicState();
     bool redoKinematicState();
+
+    LinkKinematicsKit* getLinkKinematicsKit(Link* targetLink = nullptr, Link* baseLink = nullptr);
 
     std::shared_ptr<PinDragIK> pinDragIK();
     std::shared_ptr<InverseKinematics> getCurrentIK(Link* targetLink);
@@ -112,8 +111,8 @@ public:
 
     std::vector<CollisionLinkPairPtr>& collisions() { return collisions_; }
     const std::vector<CollisionLinkPairPtr>& collisions() const { return collisions_; }
-    boost::dynamic_bitset<>& collisionLinkBitSet() { return collisionLinkBitSet_; }
-    const boost::dynamic_bitset<>& collisionLinkBitSet() const { return collisionLinkBitSet_; }
+    std::vector<bool>& collisionLinkBitSet() { return collisionLinkBitSet_; }
+    const std::vector<bool>& collisionLinkBitSet() const { return collisionLinkBitSet_; }
     std::vector<CollisionLinkPairPtr>& collisionsOfLink(int linkIndex) { return collisionsOfLink_[linkIndex]; }
     const std::vector<CollisionLinkPairPtr>& collisionsOfLink(int linkIndex) const { return collisionsOfLink_[linkIndex]; }
     SignalProxy<void()> sigCollisionsUpdated() { return sigCollisionsUpdated_; }
@@ -130,7 +129,7 @@ public:
 
     enum PositionType { CM_PROJECTION, HOME_COP, RIGHT_HOME_COP, LEFT_HOME_COP, ZERO_MOMENT_POINT };
             
-    boost::optional<Vector3> getParticularPosition(PositionType posType);
+    stdx::optional<Vector3> getParticularPosition(PositionType posType);
 
     bool setStance(double width);
             
@@ -151,10 +150,12 @@ private:
     friend class PyBodyPlugin;
     BodyItemImpl* impl;
     std::vector<CollisionLinkPairPtr> collisions_;
-    boost::dynamic_bitset<> collisionLinkBitSet_;
-    std::vector< std::vector<CollisionLinkPairPtr> > collisionsOfLink_;
+    std::vector<bool> collisionLinkBitSet_;
+    std::vector<std::vector<CollisionLinkPairPtr>> collisionsOfLink_;
     Signal<void()> sigCollisionsUpdated_;
 };
+
+typedef ref_ptr<BodyItem> BodyItemPtr;
 
 }
 

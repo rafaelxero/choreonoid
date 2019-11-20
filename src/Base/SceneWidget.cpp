@@ -41,6 +41,7 @@
 #include <QElapsedTimer>
 #include <QMessageBox>
 #include <QCoreApplication>
+#include <QGridLayout>
 #include <fmt/format.h>
 #include <set>
 #include <iostream>
@@ -57,7 +58,6 @@ using namespace cnoid;
 namespace {
 
 const bool TRACE_FUNCTIONS = false;
-const bool SHOW_IMAGE_FOR_PICKING = false;
 
 const int NUM_SHADOWS = 2;
 
@@ -102,19 +102,26 @@ class ConfigDialog : public Dialog
 public:
     SceneWidgetImpl* sceneWidgetImpl;
     QVBoxLayout* vbox;
+
     ScopedConnectionSet builtinCameraConnections;
     SpinBox fieldOfViewSpin;
     DoubleSpinBox zNearSpin;
     DoubleSpinBox zFarSpin;
+    CheckBox restrictCameraRollCheck;
+    ButtonGroup verticalAxisGroup;
+    RadioButton verticalAxisZRadio;
+    RadioButton verticalAxisYRadio;
+
     Selection lightingMode;
     ButtonGroup lightingModeGroup;
     RadioButton fullLightingRadio;
+    RadioButton normalLightingRadio;
     RadioButton minLightingRadio;
     RadioButton solidColorLightingRadio;
-    CheckBox smoothShadingCheck;
     Selection cullingMode;
     ButtonGroup cullingModeGroup;
     RadioButton cullingRadios[GLSceneRenderer::N_CULLING_MODES];
+    CheckBox smoothShadingCheck;
     CheckBox headLightCheck;
     DoubleSpinBox headLightIntensitySpin;
     CheckBox headLightFromBackCheck;
@@ -122,19 +129,20 @@ public:
     DoubleSpinBox worldLightIntensitySpin;
     DoubleSpinBox worldLightAmbientSpin;
     CheckBox additionalLightsCheck;
+    CheckBox textureCheck;
+    CheckBox fogCheck;
     struct Shadow {
         CheckBox check;
+        QLabel lightLabel;
         SpinBox lightSpin;
     };
     Shadow shadows[NUM_SHADOWS];
     CheckBox shadowAntiAliasingCheck;
-    CheckBox fogCheck;
     CheckBox gridCheck[3];
     DoubleSpinBox gridSpanSpin[3];
     DoubleSpinBox gridIntervalSpin[3];
     PushButton backgroundColorButton;
-    PushButton gridColorButton[3];
-    CheckBox textureCheck;
+    CheckBox coordinateAxesCheck;
     PushButton defaultColorButton;
     DoubleSpinBox pointSizeSpin;
     DoubleSpinBox lineWidthSpin;
@@ -142,50 +150,50 @@ public:
     Connection pointRenderingModeCheckConnection;
     CheckBox normalVisualizationCheck;
     DoubleSpinBox normalLengthSpin;
-    CheckBox coordinateAxesCheck;
-    CheckBox fpsCheck;
+    CheckBox lightweightViewChangeCheck;
+    //CheckBox fpsCheck;
     PushButton fpsTestButton;
     SpinBox fpsTestIterationSpin;
-    CheckBox newDisplayListDoubleRenderingCheck;
     CheckBox collisionVisualizationButtonsCheck;
     CheckBox upsideDownCheck;
 
     LazyCaller updateDefaultLightsLater;
 
-    ConfigDialog(SceneWidgetImpl* impl, bool useGLSL);
+    ConfigDialog(SceneWidgetImpl* impl);
+    void showEvent(QShowEvent* event);
     void updateBuiltinCameraConfig();
     void storeState(Archive& archive);
     void restoreState(const Archive& archive);
 };
 
 
-/**
-   \note Z axis should always be the upper vertical direciton.
-*/
-Affine3 normalizedCameraTransform(const Affine3& T)
+class ImageWindow : public QWidget
 {
-    Vector3 x, y;
-    Vector3 z = T.linear().col(2).normalized();
-        
-    if(fabs(z.dot(Vector3::UnitZ())) > 0.9){
-        x = T.linear().col(0).normalized();
-        y = z.cross(x);
-    } else {
-        y = T.linear().col(1);
-        if(y.dot(Vector3::UnitZ()) >= 0.0){
-            x = Vector3::UnitZ().cross(z).normalized();
-            y = z.cross(x);
-        } else {
-            x = z.cross(Vector3::UnitZ()).normalized();
-            y = z.cross(x);
+    QLabel label;
+    QPixmap pixmap;
+public:
+    ImageWindow(int width, int height)
+        : QWidget(nullptr),
+          pixmap(width, height)
+    {
+        setWindowTitle(_("OpengGL image buffer for picking"));
+        auto box = new QHBoxLayout;
+        box->setContentsMargins(0, 0, 0, 0);
+        pixmap.setDevicePixelRatio(devicePixelRatio());
+        label.setPixmap(pixmap);
+        box->addWidget(&label);
+        setLayout(box);
+    }
+    void setImage(const Image& image){
+        if(image.numComponents() == 4){
+            pixmap.convertFromImage(
+                QImage(image.pixels(), image.width(), image.height(), QImage::Format_RGBA8888));
+            pixmap.setDevicePixelRatio(devicePixelRatio());
+            label.setPixmap(pixmap);
         }
     }
-    Affine3 N;
-    N.linear() << x, y, z;
-    N.translation() = T.translation();
-    return N;
-}
-
+};
+            
 Signal<void(SceneWidget*)> sigSceneWidgetCreated;
 
 }
@@ -211,25 +219,34 @@ public:
     SgUpdate added;
     SgUpdate removed;
 
+    InteractiveCameraTransformPtr interactiveCameraTransform;
     InteractiveCameraTransformPtr builtinCameraTransform;
     SgPerspectiveCameraPtr builtinPersCamera;
     SgOrthographicCameraPtr builtinOrthoCamera;
     int numBuiltinCameras;
     bool isBuiltinCameraCurrent;
-
-    InteractiveCameraTransformPtr interactiveCameraTransform;
+    bool isLightweightViewChangeEnabled;
+    bool isCameraPositionInteractivelyChanged;
+    Timer timerToRenderNormallyAfterInteractiveCameraPositionChange;
 
     SgDirectionalLightPtr worldLight;
 
     Signal<void()> sigStateChanged;
     LazyCaller emitSigStateChangedLater;
-    
+
+    bool needToUpdatedViewportInformation;
     bool isEditMode;
 
     Selection viewpointControlMode;
     bool isFirstPersonMode() const { return (viewpointControlMode.which() != SceneWidget::THIRD_PERSON_MODE); }
         
     enum DragMode { NO_DRAGGING, EDITING, VIEW_ROTATION, VIEW_TRANSLATION, VIEW_ZOOM } dragMode;
+
+    bool isDraggingView() const {
+        return (dragMode == VIEW_ROTATION ||
+                dragMode == VIEW_TRANSLATION ||
+                dragMode == VIEW_ZOOM);
+    }
 
     set<SceneWidgetEditable*> editableEntities;
 
@@ -285,6 +302,8 @@ public:
     Signal<void(bool isFocused)> sigWidgetFocusChanged;
     Signal<void()> sigAboutToBeDestroyed;
 
+    ImageWindow* pickingBufferImageWindow;
+
 #ifdef ENABLE_SIMULATION_PROFILING
     int profiling_mode;
 #endif
@@ -292,7 +311,7 @@ public:
     static void onOpenGLVSyncToggled(bool on, bool doConfigOutput);
     static void onLowMemoryConsumptionModeChanged(bool on, bool doConfigOutput);
 
-    SceneWidgetImpl(SceneWidget* self, bool useGLSL);
+    SceneWidgetImpl(SceneWidget* self);
     ~SceneWidgetImpl();
 
     void onVSyncModeChanged();
@@ -301,6 +320,8 @@ public:
     virtual void initializeGL();
     virtual void resizeGL(int width, int height);
     virtual void paintGL();
+
+    void tryToResumeNormalRendering();
 
     void updateGrids();
     SgLineSet* createGrid(int index);
@@ -343,14 +364,13 @@ public:
     void onEntityAdded(SgNode* node);
     void onEntityRemoved(SgNode* node);
 
-    void onNewDisplayListDoubleRenderingToggled(bool on);
-
+    void showPickingBufferImageWindow();
     void onUpsideDownToggled(bool on);
         
     void updateLatestEvent(QKeyEvent* event);
     void updateLatestEvent(int x, int y, int modifiers);
     void updateLatestEvent(QMouseEvent* event);
-    bool updateLatestEventPath();
+    void updateLatestEventPath(bool forceFullPicking = false);
     void updateLastClickedPoint();
         
     SceneWidgetEditable* applyFunction(
@@ -370,6 +390,7 @@ public:
     virtual void focusInEvent(QFocusEvent* event);
     virtual void focusOutEvent(QFocusEvent* event);
 
+    Affine3 getNormalizedCameraTransform(const Affine3& T);
     void startViewChange();
     void startViewRotation();
     void dragViewRotation();
@@ -378,6 +399,7 @@ public:
     void startViewZoom();
     void dragViewZoom();
     void zoomView(double ratio);
+    void notifyCameraPositionInteractivelyChanged();
 
     void rotateBuiltinCameraView(double dPitch, double dYaw);
     void translateBuiltinCameraView(const Vector3& dp_local);
@@ -493,10 +515,9 @@ void SceneWidget::forEachInstance(SgNode* node, std::function<void(SceneWidget* 
 
 SceneWidget::SceneWidget()
 {
-    bool useGLSL = (getenv("CNOID_USE_GLSL") != 0);
-    impl = new SceneWidgetImpl(this, useGLSL);
+    impl = new SceneWidgetImpl(this);
 
-    QVBoxLayout* vbox = new QVBoxLayout();
+    QVBoxLayout* vbox = new QVBoxLayout;
     vbox->setContentsMargins(0, 0, 0, 0);
     vbox->addWidget(impl);
     setLayout(vbox);
@@ -505,7 +526,7 @@ SceneWidget::SceneWidget()
 }
 
 
-SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
+SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self)
     : QOpenGLWidget(self),
       self(self),
       os(MessageView::mainInstance()->cout()),
@@ -516,14 +537,11 @@ SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
 {
     setFocusPolicy(Qt::WheelFocus);
 
-    if(useGLSL){
-        auto r = new GLSLSceneRenderer(sceneRoot);
-        r->setLowMemoryConsumptionMode(isLowMemoryConsumptionMode);
-        renderer = r;
-    } else {
-        renderer = new GL1SceneRenderer(sceneRoot);
+    renderer = GLSceneRenderer::create(sceneRoot);
+    if(auto glslRenderer = dynamic_cast<GLSLSceneRenderer*>(renderer)){
+        glslRenderer->setLowMemoryConsumptionMode(isLowMemoryConsumptionMode);
     }
-    
+        
     renderer->setOutputStream(os);
     renderer->enableUnusedResourceCheck(true);
     renderer->sigRenderingRequest().connect([&](){ update(); });
@@ -549,6 +567,7 @@ SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
     setAutoFillBackground(false);
     setMouseTracking(true);
 
+    needToUpdatedViewportInformation = true;
     isEditMode = false;
     viewpointControlMode.resize(2);
     viewpointControlMode.setSymbol(SceneWidget::THIRD_PERSON_MODE, "thirdPerson");
@@ -565,25 +584,25 @@ SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
     lastClickedPoint.setZero();
     eventFilter = 0;
     
-    indicatorLabel = new QLabel();
+    indicatorLabel = new QLabel;
     indicatorLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     indicatorLabel->setAlignment(Qt::AlignLeft);
     QFont font = indicatorLabel->font();
     font.setFixedPitch(true);
     indicatorLabel->setFont(font);
 
-    builtinCameraTransform = new InteractiveCameraTransform();
+    builtinCameraTransform = new InteractiveCameraTransform;
     builtinCameraTransform->setTransform(
         SgCamera::positionLookingAt(
             Vector3(4.0, 2.0, 1.5), Vector3(0.0, 0.0, 1.0), Vector3::UnitZ()));
     interactiveCameraTransform = builtinCameraTransform;
 
-    builtinPersCamera = new SgPerspectiveCamera();
+    builtinPersCamera = new SgPerspectiveCamera;
     builtinPersCamera->setName("Perspective");
     builtinPersCamera->setFieldOfView(radian(40.0));
     builtinCameraTransform->addChild(builtinPersCamera);
 
-    builtinOrthoCamera = new SgOrthographicCamera();
+    builtinOrthoCamera = new SgOrthographicCamera;
     builtinOrthoCamera->setName("Orthographic");
     builtinOrthoCamera->setHeight(20.0f);
     builtinCameraTransform->addChild(builtinOrthoCamera);
@@ -591,11 +610,16 @@ SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
     isBuiltinCameraCurrent = true;
     numBuiltinCameras = 2;
     systemGroup->addChild(builtinCameraTransform);
+    isLightweightViewChangeEnabled = false;
+    isCameraPositionInteractivelyChanged = false;
+    timerToRenderNormallyAfterInteractiveCameraPositionChange.setSingleShot(true);
+    timerToRenderNormallyAfterInteractiveCameraPositionChange.sigTimeout().connect(
+        [&](){ tryToResumeNormalRendering(); });
 
-    config = new ConfigDialog(this, useGLSL);
+    config = new ConfigDialog(this);
     config->updateBuiltinCameraConfig();
 
-    worldLight = new SgDirectionalLight();
+    worldLight = new SgDirectionalLight;
     worldLight->setName("WorldLight");
     worldLight->setDirection(Vector3(0.0, 0.0, -1.0));
     SgPosTransform* worldLightTransform = new SgPosTransform;
@@ -619,16 +643,19 @@ SceneWidgetImpl::SceneWidgetImpl(SceneWidget* self, bool useGLSL)
 
     updateGrids();
 
-    if(!useGLSL){
-        fpsTimer.sigTimeout().connect([&](){ onFPSUpdateRequest(); });
-        fpsRenderingTimer.setSingleShot(true);
-        fpsRenderingTimer.sigTimeout().connect([&](){ onFPSRenderingRequest(); });
-    }
+    /*
+    fpsTimer.sigTimeout().connect([&](){ onFPSUpdateRequest(); });
+    fpsRenderingTimer.setSingleShot(true);
+    fpsRenderingTimer.sigTimeout().connect([&](){ onFPSRenderingRequest(); });
+    */
+
     isDoingFPSTest = false;
 
     sigVSyncModeChanged.connect([&](){ onVSyncModeChanged(); });
     sigLowMemoryConsumptionModeChanged.connect(
         [&](bool on){ onLowMemoryConsumptionModeChanged(on); });
+
+    pickingBufferImageWindow = nullptr;
 
 #ifdef ENABLE_SIMULATION_PROFILING
     profiling_mode = 1;
@@ -646,9 +673,12 @@ SceneWidget::~SceneWidget()
 SceneWidgetImpl::~SceneWidgetImpl()
 {
     delete renderer;
-    
     delete indicatorLabel;
     delete config;
+
+    if(pickingBufferImageWindow){
+        delete pickingBufferImageWindow;
+    }
 }
 
 
@@ -726,8 +756,7 @@ void SceneWidgetImpl::resizeGL(int width, int height)
     if(TRACE_FUNCTIONS){
         os << "SceneWidgetImpl::resizeGL()" << endl;
     }
-
-    renderer->setViewport(0, 0, width, height);
+    needToUpdatedViewportInformation = true;
 }
 
 
@@ -776,6 +805,29 @@ void SceneWidgetImpl::paintGL()
         os << "SceneWidgetImpl::paintGL() " << counter++ << endl;
     }
 
+    if(needToUpdatedViewportInformation){
+        int viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        renderer->updateViewportInformation(viewport[0], viewport[1], viewport[2], viewport[3]);
+        needToUpdatedViewportInformation = false;
+    }
+
+    bool isLightweightViewChangeActive = false;
+    if(isLightweightViewChangeEnabled){
+        isLightweightViewChangeActive = isCameraPositionInteractivelyChanged;
+    }
+    isCameraPositionInteractivelyChanged = false;
+    
+    renderer->setBoundingBoxRenderingForLightweightRenderingGroupEnabled(
+        isLightweightViewChangeActive);
+
+    if(isLightweightViewChangeActive){
+        timerToRenderNormallyAfterInteractiveCameraPositionChange.start(
+            isDraggingView() ? 0 : 400);
+    } else if(timerToRenderNormallyAfterInteractiveCameraPositionChange.isActive()){
+        timerToRenderNormallyAfterInteractiveCameraPositionChange.stop();
+    }
+
     renderer->render();
 
     if(fpsTimer.isActive()){
@@ -812,6 +864,16 @@ void SceneWidgetImpl::paintGL()
     }
 #endif
 
+}
+
+
+void SceneWidgetImpl::tryToResumeNormalRendering()
+{
+    if(isDraggingView()){
+        timerToRenderNormallyAfterInteractiveCameraPositionChange.start(0);
+    } else {
+        update();
+    }
 }
 
 
@@ -1048,14 +1110,18 @@ void SceneWidgetImpl::viewAll()
     }
 
     interactiveCameraTransform->notifyUpdate(modified);
-    interactiveCameraTransform->onPositionUpdatedInteractively();
 }
 
 
-void SceneWidgetImpl::onNewDisplayListDoubleRenderingToggled(bool on)
+void SceneWidgetImpl::showPickingBufferImageWindow()
 {
-    if(GL1SceneRenderer* gl1Renderer = dynamic_cast<GL1SceneRenderer*>(renderer)){
-        gl1Renderer->setNewDisplayListDoubleRenderingEnabled(on);
+    auto glslRenderer = dynamic_cast<GLSLSceneRenderer*>(renderer);
+    if(glslRenderer){
+        if(!pickingBufferImageWindow){
+            auto vp = renderer->viewport();
+            pickingBufferImageWindow = new ImageWindow(vp[2], vp[3]);
+        }
+        pickingBufferImageWindow->show();
     }
 }
 
@@ -1089,17 +1155,28 @@ void SceneWidgetImpl::updateLatestEvent(QMouseEvent* event)
 }
 
 
-bool SceneWidgetImpl::updateLatestEventPath()
+void SceneWidgetImpl::updateLatestEventPath(bool forceFullPicking)
 {
+    if(needToUpdatedViewportInformation ||
+       (!forceFullPicking && isLightweightViewChangeEnabled)){
+        return;
+    }
+    
+    bool isPickingBufferVisualizationEnabled = pickingBufferImageWindow && pickingBufferImageWindow->isVisible();
+    renderer->setPickingBufferImageOutputEnabled(isPickingBufferVisualizationEnabled);
+
     makeCurrent();
 
-    bool picked = renderer->pick(latestEvent.x(), latestEvent.y());
+    const int r = devicePixelRatio();
+    bool picked = renderer->pick(r * latestEvent.x(), r * latestEvent.y());
 
-    if(SHOW_IMAGE_FOR_PICKING){
-        // This does not work
-        auto cxt = context();
-        cxt->swapBuffers(cxt->surface());
+    if(isPickingBufferVisualizationEnabled){
+        Image image;
+        if(renderer->getPickingBufferImage(image)){
+            pickingBufferImageWindow->setImage(image);
+        }
     }
+
     doneCurrent();
 
     latestEvent.nodePath_.clear();
@@ -1117,8 +1194,6 @@ bool SceneWidgetImpl::updateLatestEventPath()
             }
         }
     }
-
-    return picked;
 }
 
 
@@ -1502,7 +1577,7 @@ void SceneWidgetImpl::updatePointerPosition()
         os << "SceneWidgetImpl::updatePointerPosition()" << endl;
     }
 
-    updateLatestEventPath();
+    updateLatestEventPath(true);
     
     if(!isEditMode){
         static string f1(_("Global Position: ({0:.3f} {1:.3f} {2:.3f})"));
@@ -1577,26 +1652,8 @@ void SceneWidgetImpl::wheelEvent(QWheelEvent* event)
 
 bool SceneWidget::unproject(double x, double y, double z, Vector3& out_projected) const
 {
-    const Array4i& vp = impl->renderer->viewport();
-
-    Vector4 p;
-    p[0] = 2.0 * (x - vp[0]) / vp[2] - 1.0;
-    p[1] = 2.0 * (y - vp[1]) / vp[3] - 1.0;
-    p[2] = 2.0 * z - 1.0;
-    p[3] = 1.0;
-
-    const Matrix4 V = impl->renderer->currentCameraPosition().inverse().matrix();
-    const Vector4 projected = (impl->renderer->projectionMatrix() * V).inverse() * p;
-
-    if(projected[3] == 0.0){
-        return false;
-    }
-
-    out_projected.x() = projected.x() / projected[3];
-    out_projected.y() = projected.y() / projected[3];
-    out_projected.z() = projected.z() / projected[3];
-
-    return true;
+    const int r = devicePixelRatio();
+    return impl->renderer->unproject(r * x, r * y, z, out_projected);
 }
 
 
@@ -1627,6 +1684,43 @@ void SceneWidgetImpl::focusOutEvent(QFocusEvent*)
 SignalProxy<void()> SceneWidget::sigAboutToBeDestroyed()
 {
     return impl->sigAboutToBeDestroyed;
+}
+
+
+/**
+   \note Z axis should always be the upper vertical direciton.
+*/
+Affine3 SceneWidgetImpl::getNormalizedCameraTransform(const Affine3& T)
+{
+    if(!config->restrictCameraRollCheck.isChecked()){
+        return T;
+    }
+    
+    Vector3 verticalAxis;
+    if(config->verticalAxisZRadio.isChecked()){
+        verticalAxis = Vector3::UnitZ();
+    } else {
+        verticalAxis = Vector3::UnitY();
+    }
+    
+    Vector3 x, y;
+    Vector3 z = T.linear().col(2).normalized();
+    if(fabs(z.dot(verticalAxis) > 0.9)){
+        x = T.linear().col(0).normalized();
+    } else {
+        y = T.linear().col(1);
+        if(y.dot(verticalAxis) >= 0.0){
+            x = verticalAxis.cross(z).normalized();
+        } else {
+            x = z.cross(verticalAxis).normalized();
+        }
+    }
+    y = z.cross(x);
+        
+    Affine3 N;
+    N.linear() << x, y, z;
+    N.translation() = T.translation();
+    return N;
 }
 
 
@@ -1695,13 +1789,30 @@ void SceneWidgetImpl::dragViewRotation()
     
     const double dx = latestEvent.x() - orgMouseX;
     const double dy = latestEvent.y() - orgMouseY;
-    const Vector3 right = SgCamera::right(orgCameraPosition);
 
+    Affine3 R;
+    if(config->restrictCameraRollCheck.isChecked()){
+        Vector3 up;
+        if(config->verticalAxisZRadio.isChecked()){
+            up = Vector3::UnitZ();
+        } else {
+            up = Vector3::UnitY();
+        }
+        R = AngleAxis(-dx * dragAngleRatio, up) *
+            AngleAxis(dy * dragAngleRatio, SgCamera::right(orgCameraPosition));
+    } else {
+        if(latestEvent.modifiers() & Qt::ControlModifier){
+            R = AngleAxis(-dx * dragAngleRatio, SgCamera::direction(orgCameraPosition));
+        } else {
+            R = AngleAxis(-dx * dragAngleRatio, SgCamera::up(orgCameraPosition)) *
+                AngleAxis(dy * dragAngleRatio, SgCamera::right(orgCameraPosition));
+        }
+    }
+        
     interactiveCameraTransform->setTransform(
-        normalizedCameraTransform(
+        getNormalizedCameraTransform(
             Translation3(orgPointedPos) *
-            AngleAxis(-dx * dragAngleRatio, Vector3::UnitZ()) *
-            AngleAxis(dy * dragAngleRatio, right) *
+            R *
             Translation3(-orgPointedPos) *
             orgCameraPosition));
 
@@ -1723,8 +1834,7 @@ void SceneWidgetImpl::dragViewRotation()
         T.linear() = S;
     }
     
-    interactiveCameraTransform->notifyUpdate(modified);
-    interactiveCameraTransform->onPositionUpdatedInteractively();
+    notifyCameraPositionInteractivelyChanged();
 }
 
 
@@ -1787,13 +1897,12 @@ void SceneWidgetImpl::dragViewTranslation()
     const double dy = viewTranslationRatioY * (latestEvent.y() - orgMouseY);
 
     interactiveCameraTransform->setTransform(
-        normalizedCameraTransform(
+        getNormalizedCameraTransform(
             Translation3(-dy * SgCamera::up(orgCameraPosition)) *
             Translation3(-dx * SgCamera::right(orgCameraPosition)) *
             orgCameraPosition));
     
-    interactiveCameraTransform->notifyUpdate(modified);
-    interactiveCameraTransform->onPositionUpdatedInteractively();
+    notifyCameraPositionInteractivelyChanged();
 }
 
 
@@ -1842,13 +1951,13 @@ void SceneWidgetImpl::dragViewZoom()
             const double l0 = (lastClickedPoint - C.translation()).dot(v);
             interactiveCameraTransform->setTranslation(C.translation() + v * (l0 * (-ratio + 1.0)));
         }
-        interactiveCameraTransform->notifyUpdate(modified);
-        interactiveCameraTransform->onPositionUpdatedInteractively();
 
     } else if(SgOrthographicCamera* ortho = dynamic_cast<SgOrthographicCamera*>(camera)){
         ortho->setHeight(orgOrthoCameraHeight * ratio);
         ortho->notifyUpdate(modified);
     }
+
+    notifyCameraPositionInteractivelyChanged();
 }
 
 
@@ -1877,15 +1986,22 @@ void SceneWidgetImpl::zoomView(double ratio)
             const double dz = ratio * (lastClickedPoint - C.translation()).dot(v);
             interactiveCameraTransform->translation() -= dz * v;
         }
-        interactiveCameraTransform->notifyUpdate(modified);
-        interactiveCameraTransform->onPositionUpdatedInteractively();
 
     } else if(SgOrthographicCamera* ortho = dynamic_cast<SgOrthographicCamera*>(camera)){
         ortho->setHeight(ortho->height() * expf(ratio));
         ortho->notifyUpdate(modified);
     }
+
+    notifyCameraPositionInteractivelyChanged();
 }
 
+
+void SceneWidgetImpl::notifyCameraPositionInteractivelyChanged()
+{
+    isCameraPositionInteractivelyChanged = true;
+    interactiveCameraTransform->notifyUpdate(modified);
+}
+    
 
 void SceneWidget::startBuiltinCameraViewChange(const Vector3& center)
 {
@@ -1904,7 +2020,7 @@ void SceneWidgetImpl::rotateBuiltinCameraView(double dPitch, double dYaw)
 {
     const Affine3 T = builtinCameraTransform->T();
     builtinCameraTransform->setTransform(
-        normalizedCameraTransform(
+        getNormalizedCameraTransform(
             Translation3(cameraViewChangeCenter) *
             AngleAxis(dYaw, Vector3::UnitZ()) *
             AngleAxis(dPitch, SgCamera::right(T)) *
@@ -1925,7 +2041,7 @@ void SceneWidgetImpl::translateBuiltinCameraView(const Vector3& dp_local)
 {
     const Affine3 T = builtinCameraTransform->T();
     builtinCameraTransform->setTransform(
-        normalizedCameraTransform(
+        getNormalizedCameraTransform(
             Translation3(T.linear() * dp_local) * T));
     builtinCameraTransform->notifyUpdate(modified);
 }
@@ -2089,19 +2205,19 @@ void SceneWidgetImpl::updateCurrentCamera()
         
 SgPosTransform* SceneWidget::builtinCameraTransform()
 {
-    return impl->builtinCameraTransform.get();
+    return impl->builtinCameraTransform;
 }
 
 
 SgPerspectiveCamera* SceneWidget::builtinPerspectiveCamera() const
 {
-    return impl->builtinPersCamera.get();
+    return impl->builtinPersCamera;
 }
 
 
 SgOrthographicCamera* SceneWidget::builtinOrthographicCamera() const
 {
-    return impl->builtinOrthoCamera.get();
+    return impl->builtinOrthoCamera;
 }
 
 
@@ -2432,12 +2548,6 @@ void SceneWidget::setCoordinateAxes(bool on)
 }
 
 
-void SceneWidget::setNewDisplayListDoubleRenderingEnabled(bool on)
-{
-    impl->config->newDisplayListDoubleRenderingCheck.setChecked(on);
-}
-
-
 void SceneWidget::setBackgroundColor(const Vector3& color)
 {
     impl->renderer->setBackgroundColor(color.cast<float>());
@@ -2562,7 +2672,7 @@ bool SceneWidgetImpl::storeState(Archive& archive)
 
     config->storeState(archive);
 
-    ListingPtr cameraListing = new Listing();
+    ListingPtr cameraListing = new Listing;
     set<SgPosTransform*> storedTransforms;
     int numCameras = renderer->numCameras();
     for(int i=0; i < numCameras; ++i){
@@ -2613,7 +2723,7 @@ void SceneWidgetImpl::writeCameraPath(Mapping& archive, const std::string& key, 
 
 Mapping* SceneWidgetImpl::storeCameraState(int cameraIndex, bool isInteractiveCamera, SgPosTransform* cameraTransform)
 {
-    Mapping* state = new Mapping();
+    Mapping* state = new Mapping;
     writeCameraPath(*state, "camera", cameraIndex);
 
     if(cameraIndex == renderer->currentCameraIndex()){
@@ -2735,6 +2845,7 @@ bool SceneWidgetImpl::restoreState(const Archive& archive)
         renderer->setBackgroundColor(color);
         doUpdate = true;
     }
+
     if(readColor(archive, "gridColor", gridColor[FLOOR_GRID])){
         doUpdate = true;
     }
@@ -2745,6 +2856,7 @@ bool SceneWidgetImpl::restoreState(const Archive& archive)
     	doUpdate = true;
     }
     if(doUpdate){
+        updateGrids();
         update();
     }
 
@@ -2937,7 +3049,7 @@ void SceneWidgetImpl::activateSystemNode(SgNode* node, bool on)
 }
 
 
-ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
+ConfigDialog::ConfigDialog(SceneWidgetImpl* impl)
     : sceneWidgetImpl(impl),
       lightingMode(3, CNOID_GETTEXT_DOMAIN_NAME),
       cullingMode(GLSceneRenderer::N_CULLING_MODES, CNOID_GETTEXT_DOMAIN_NAME)
@@ -2946,8 +3058,8 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
 
     auto renderer = sceneWidgetImpl->renderer;
 
-    QVBoxLayout* topVBox = new QVBoxLayout();
-    vbox = new QVBoxLayout();
+    QVBoxLayout* topVBox = new QVBoxLayout;
+    vbox = new QVBoxLayout;
     QHBoxLayout* hbox;
 
     builtinCameraConnections.add(
@@ -2955,7 +3067,7 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
             [&](const SgUpdate&){ updateBuiltinCameraConfig(); }));
     
     vbox->addLayout(new HSeparatorBox(new QLabel(_("Default Camera"))));
-    hbox = new QHBoxLayout();
+    hbox = new QHBoxLayout;
     hbox->addWidget(new QLabel(_("Field of view")));
     fieldOfViewSpin.setRange(1, 179);
     fieldOfViewSpin.sigValueChanged().connect(
@@ -2980,10 +3092,26 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     hbox->addStretch();
     vbox->addLayout(hbox);
 
+    hbox = new QHBoxLayout;
+    restrictCameraRollCheck.setText(_("Restrict camera roll"));
+    restrictCameraRollCheck.setChecked(true);
+    hbox->addWidget(&restrictCameraRollCheck);
+    hbox->addSpacing(8);
+    hbox->addWidget(new QLabel(_("Vertical axis")));
+    verticalAxisYRadio.setText("Y");
+    hbox->addWidget(&verticalAxisYRadio);
+    verticalAxisZRadio.setText("Z");
+    hbox->addWidget(&verticalAxisZRadio);
+    verticalAxisGroup.addButton(&verticalAxisYRadio, 0);
+    verticalAxisGroup.addButton(&verticalAxisZRadio, 1);
+    verticalAxisZRadio.setChecked(true);
+    hbox->addStretch();
+    vbox->addLayout(hbox);
+
     updateDefaultLightsLater.setFunction([=](){ impl->updateDefaultLights(); });
     
     vbox->addLayout(new HSeparatorBox(new QLabel(_("Lighting"))));
-    hbox = new QHBoxLayout();
+    hbox = new QHBoxLayout;
     hbox->addWidget(new QLabel(_("Lighting mode")));
 
     fullLightingRadio.setText(_("Full"));
@@ -2991,6 +3119,12 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     lightingModeGroup.addButton(&fullLightingRadio, GLSceneRenderer::FULL_LIGHTING);
     lightingMode.setSymbol(GLSceneRenderer::FULL_LIGHTING, "full");
     hbox->addWidget(&fullLightingRadio);
+
+    normalLightingRadio.setText(_("Normal"));
+    normalLightingRadio.setChecked(false);
+    lightingModeGroup.addButton(&normalLightingRadio, GLSceneRenderer::NORMAL_LIGHTING);
+    lightingMode.setSymbol(GLSceneRenderer::NORMAL_LIGHTING, "normal");
+    hbox->addWidget(&normalLightingRadio);
     
     minLightingRadio.setText(_("Minimum"));
     lightingModeGroup.addButton(&minLightingRadio, GLSceneRenderer::MINIMUM_LIGHTING);
@@ -3011,16 +3145,17 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
             }
         });
 
-    hbox->addSpacing(10);
+    hbox->addStretch();
+    vbox->addLayout(hbox);
+
+    hbox = new QHBoxLayout;
     smoothShadingCheck.setText(_("Smooth shading"));
     smoothShadingCheck.setChecked(true);
     smoothShadingCheck.sigToggled().connect([=](bool on){ impl->onSmoothShadingToggled(on); });
     hbox->addWidget(&smoothShadingCheck);
-    hbox->addStretch();
-    vbox->addLayout(hbox);
 
-    hbox = new QHBoxLayout();
-    hbox->addWidget(new QLabel(_("Back face culling mode: ")));
+    hbox->addSpacing(10);
+    hbox->addWidget(new QLabel(_("Back face culling: ")));
     cullingMode.setSymbol(GLSceneRenderer::ENABLE_BACK_FACE_CULLING, "enabled");
     cullingMode.setSymbol(GLSceneRenderer::DISABLE_BACK_FACE_CULLING, "disabled");
     cullingMode.setSymbol(GLSceneRenderer::FORCE_BACK_FACE_CULLING, "forced");
@@ -3041,67 +3176,81 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
                 sceneWidgetImpl->update();
             }
         });
+
     hbox->addStretch();
     vbox->addLayout(hbox);
+
+    auto grid = new QGridLayout;
     
-    hbox = new QHBoxLayout();
     headLightCheck.setText(_("Head light"));
     headLightCheck.setChecked(true);
     headLightCheck.sigToggled().connect([&](bool){ updateDefaultLightsLater(); });
-    hbox->addWidget(&headLightCheck);
+    grid->addWidget(&headLightCheck, 0, 0);
 
-    hbox->addWidget(new QLabel(_("Intensity")));
+    grid->addWidget(new QLabel(_("Intensity")), 0, 1);
     headLightIntensitySpin.setDecimals(2);
     headLightIntensitySpin.setSingleStep(0.01);    
     headLightIntensitySpin.setRange(0.0, 2.0);
     headLightIntensitySpin.setValue(0.75);
     headLightIntensitySpin.sigValueChanged().connect([&](bool){ updateDefaultLightsLater(); });
-    hbox->addWidget(&headLightIntensitySpin);
+    grid->addWidget(&headLightIntensitySpin, 0, 2);
 
     headLightFromBackCheck.setText(_("Back lighting"));
     headLightFromBackCheck.sigToggled().connect([&](bool){ updateDefaultLightsLater(); });
-    hbox->addWidget(&headLightFromBackCheck);
-    hbox->addStretch();
-    vbox->addLayout(hbox);
+    grid->addWidget(&headLightFromBackCheck, 0, 3, 1, 2);
 
-    hbox = new QHBoxLayout();
     worldLightCheck.setText(_("World light"));
     worldLightCheck.setChecked(true);
     worldLightCheck.sigToggled().connect([&](bool){ updateDefaultLightsLater(); });
-    hbox->addWidget(&worldLightCheck);
+    grid->addWidget(&worldLightCheck, 1, 0);
 
-    hbox->addWidget(new QLabel(_("Intensity")));
+    grid->addWidget(new QLabel(_("Intensity")), 1, 1);
     worldLightIntensitySpin.setDecimals(2);
     worldLightIntensitySpin.setSingleStep(0.01);    
     worldLightIntensitySpin.setRange(0.0, 2.0);
     worldLightIntensitySpin.setValue(0.5);
     worldLightIntensitySpin.sigValueChanged().connect([&](double){ updateDefaultLightsLater(); });
-    hbox->addWidget(&worldLightIntensitySpin);
+    grid->addWidget(&worldLightIntensitySpin, 1, 2);
 
-    hbox->addWidget(new QLabel(_("Ambient")));
+    grid->addWidget(new QLabel(_("Ambient")), 1, 3);
     worldLightAmbientSpin.setDecimals(2);
     worldLightAmbientSpin.setSingleStep(0.01);    
     worldLightAmbientSpin.setRange(0.0, 1.0);
-    worldLightAmbientSpin.setValue(0.3);
+    worldLightAmbientSpin.setValue(0.25);
     worldLightAmbientSpin.sigValueChanged().connect([&](double){ updateDefaultLightsLater(); });
-    hbox->addWidget(&worldLightAmbientSpin);
+    grid->addWidget(&worldLightAmbientSpin, 1, 4);
 
-    hbox->addSpacing(8);
+    grid->setColumnStretch(5, 1);
     additionalLightsCheck.setText(_("Additional lights"));
     additionalLightsCheck.setChecked(true);
     additionalLightsCheck.sigToggled().connect([&](bool){ updateDefaultLightsLater(); });
-    hbox->addWidget(&additionalLightsCheck);
+    grid->addWidget(&additionalLightsCheck, 1, 6);
+
+    grid->setColumnStretch(7, 10);
+    vbox->addLayout(grid);
+
+    hbox = new QHBoxLayout;
+    textureCheck.setText(_("Texture"));
+    textureCheck.setChecked(true);
+    textureCheck.sigToggled().connect([=](bool on){ impl->onTextureToggled(on); });
+    hbox->addWidget(&textureCheck);
+
+    fogCheck.setText(_("Fog"));
+    fogCheck.setChecked(true);
+    fogCheck.sigToggled().connect([&](bool){ updateDefaultLightsLater(); });
+    hbox->addWidget(&fogCheck);
     hbox->addStretch();
     vbox->addLayout(hbox);
-
-    hbox = new QHBoxLayout();
+    
+    hbox = new QHBoxLayout;
     for(int i=0; i < NUM_SHADOWS; ++i){
         Shadow& shadow = shadows[i];
         shadow.check.setText(QString(_("Shadow %1")).arg(i+1));
         shadow.check.setChecked(false);
         shadow.check.sigToggled().connect([&](bool){ updateDefaultLightsLater(); });
         hbox->addWidget(&shadow.check);
-        hbox->addWidget(new QLabel(_("Light")));
+        shadow.lightLabel.setText(_("Light"));
+        hbox->addWidget(&shadow.lightLabel);
         shadow.lightSpin.setRange(0, 99);
         shadow.lightSpin.setValue(0);
         shadow.lightSpin.sigValueChanged().connect([&](double){ updateDefaultLightsLater(); });
@@ -3115,69 +3264,65 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     hbox->addStretch();
     vbox->addLayout(hbox);
 
-    hbox = new QHBoxLayout();
-    fogCheck.setText(_("Fog"));
-    fogCheck.setChecked(true);
-    fogCheck.sigToggled().connect([&](bool){ updateDefaultLightsLater(); });
-    hbox->addWidget(&fogCheck);
-
-    textureCheck.setText(_("Texture"));
-    textureCheck.setChecked(true);
-    textureCheck.sigToggled().connect([=](bool on){ impl->onTextureToggled(on); });
-    hbox->addWidget(&textureCheck);
-    hbox->addStretch();
-    vbox->addLayout(hbox);
-    
-    
     vbox->addLayout(new HSeparatorBox(new QLabel(_("Background"))));
-    hbox = new QHBoxLayout();
+
+    grid = new QGridLayout;
     backgroundColorButton.setText(_("Background color"));
     backgroundColorButton.sigClicked().connect([=](){ impl->showBackgroundColorDialog(); });
-    hbox->addWidget(&backgroundColorButton);
-    hbox->addStretch();
-    vbox->addLayout(hbox);
-
-    for(int i=0; i < 3; ++i){
-    	hbox = new QHBoxLayout();
-    	gridCheck[i].setChecked(false);
-    	gridCheck[i].sigToggled().connect([=](bool){ impl->updateGridsLater(); });
-    	hbox->addWidget(&gridCheck[i]);
+    grid->addWidget(&backgroundColorButton, 0, 0);
     
-    	hbox->addWidget(new QLabel(_("Span")));
-    	gridSpanSpin[i].setAlignment(Qt::AlignCenter);
-    	gridSpanSpin[i].setDecimals(1);
-    	gridSpanSpin[i].setRange(0.0, 99.9);
-        gridSpanSpin[i].setSingleStep(0.1);
-        gridSpanSpin[i].setValue(10.0);
-        gridSpanSpin[i].sigValueChanged().connect([=](double){ impl->updateGridsLater(); });
-        hbox->addWidget(&gridSpanSpin[i]);
-        hbox->addSpacing(8);
-        
-        hbox->addWidget(new QLabel(_("Interval")));
-        gridIntervalSpin[i].setAlignment(Qt::AlignCenter);
-        gridIntervalSpin[i].setDecimals(2);
-        gridIntervalSpin[i].setRange(0.01, 9.99);
-        gridIntervalSpin[i].setSingleStep(0.01);
-        gridIntervalSpin[i].setValue(0.5);
-        gridIntervalSpin[i].sigValueChanged().connect([=](double){ impl->updateGridsLater(); });
-        hbox->addWidget(&gridIntervalSpin[i]);
-        
-        gridColorButton[i].setText(_("Color"));
-        gridColorButton[i].sigClicked().connect([=](){ impl->showGridColorDialog(i); });
-        hbox->addWidget(&gridColorButton[i]);
-        hbox->addStretch();
-        vbox->addLayout(hbox);
-    }
-    gridCheck[FLOOR_GRID].setText(_("Show the floor grid"));
-    gridCheck[XZ_GRID].setText(_("Show the xz plane grid"));
-    gridCheck[YZ_GRID].setText(_("Show the yz plane grid"));
-    gridCheck[FLOOR_GRID].blockSignals(true);
+    coordinateAxesCheck.setText(_("Coordinate axes"));
+    coordinateAxesCheck.setChecked(true);
+    coordinateAxesCheck.sigToggled().connect(
+        [=](bool on){ impl->activateSystemNode(impl->coordinateAxesOverlay, on); });
+    grid->addWidget(&coordinateAxesCheck, 2, 0);
+
+    grid->addWidget(new VSeparator, 0, 2, 3, 1);
+    grid->setColumnStretch(1, 1);
+    grid->setColumnStretch(3, 1);
+
+    gridCheck[FLOOR_GRID].setText(_("XY Grid"));
     gridCheck[FLOOR_GRID].setChecked(true);
-    gridCheck[FLOOR_GRID].blockSignals(false);
+    gridCheck[XZ_GRID].setText(_("XZ Grid"));
+    gridCheck[YZ_GRID].setText(_("YZ Grid"));
+    
+    for(int i=0; i < 3; ++i){
+        auto& check = gridCheck[i];
+    	check.sigToggled().connect([=](bool){ impl->updateGridsLater(); });
+        grid->addWidget(&check, i, 4);
 
-    vbox->addWidget(new HSeparator());
+        grid->addWidget(new QLabel(_("Span")), i, 5);
+        auto& spanSpin = gridSpanSpin[i];
+        spanSpin.setAlignment(Qt::AlignCenter);
+    	spanSpin.setDecimals(1);
+    	spanSpin.setRange(0.0, 99.9);
+        spanSpin.setSingleStep(0.1);
+        spanSpin.setValue(10.0);
+        spanSpin.sigValueChanged().connect([=](double){ impl->updateGridsLater(); });
+        grid->addWidget(&spanSpin, i, 6);
+        
+        grid->addWidget(new QLabel(_("Interval")), i, 7);
+        auto& intervalSpin = gridIntervalSpin[i];
+        intervalSpin.setAlignment(Qt::AlignCenter);
+        intervalSpin.setDecimals(2);
+        intervalSpin.setRange(0.01, 9.99);
+        intervalSpin.setSingleStep(0.01);
+        intervalSpin.setValue(0.5);
+        intervalSpin.sigValueChanged().connect([=](double){ impl->updateGridsLater(); });
+        grid->addWidget(&intervalSpin, i, 8);
 
-    hbox = new QHBoxLayout();
+        auto button = new PushButton;
+        button->setText(_("Color"));
+        button->sigClicked().connect([=](){ impl->showGridColorDialog(i); });
+        grid->addWidget(button, i, 9);
+    }
+
+    grid->setColumnStretch(10, 10);
+    vbox->addLayout(grid);
+
+    vbox->addWidget(new HSeparator);
+    
+    hbox = new QHBoxLayout;
     defaultColorButton.setText(_("Default color"));
     defaultColorButton.sigClicked().connect([=](){ impl->showDefaultColorDialog(); });
     hbox->addWidget(&defaultColorButton);
@@ -3200,7 +3345,7 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     hbox->addStretch();
     vbox->addLayout(hbox);
     
-    hbox = new QHBoxLayout();
+    hbox = new QHBoxLayout;
     pointRenderingModeCheck.setText(_("Do point rendering in the wireframe mode"));
     pointRenderingModeCheckConnection =
         pointRenderingModeCheck.sigToggled().connect([=](bool on){ impl->onPointRenderingModeToggled(on); });
@@ -3208,7 +3353,7 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     hbox->addStretch();
     vbox->addLayout(hbox);
     
-    hbox = new QHBoxLayout();
+    hbox = new QHBoxLayout;
     normalVisualizationCheck.setText(_("Normal Visualization"));
     normalVisualizationCheck.sigToggled().connect([=](bool){ impl->onNormalVisualizationChanged(); });
     hbox->addWidget(&normalVisualizationCheck);
@@ -3218,44 +3363,40 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     normalLengthSpin.setValue(0.01);
     normalLengthSpin.sigValueChanged().connect([=](double){ impl->onNormalVisualizationChanged(); });
     hbox->addWidget(&normalLengthSpin);
+
+    lightweightViewChangeCheck.setText(_("Lightweight view change"));
+    lightweightViewChangeCheck.sigToggled().connect(
+        [=](bool on){ impl->isLightweightViewChangeEnabled = on; });
+    hbox->addWidget(&lightweightViewChangeCheck);
     hbox->addStretch();
     vbox->addLayout(hbox);
     
-    vbox->addWidget(new HSeparator());
+    vbox->addWidget(new HSeparator);
 
-    hbox = new QHBoxLayout();
-    coordinateAxesCheck.setText(_("Coordinate axes"));
-    coordinateAxesCheck.setChecked(true);
-    coordinateAxesCheck.sigToggled().connect(
-        [=](bool on){ impl->activateSystemNode(impl->coordinateAxesOverlay, on); });
-    hbox->addWidget(&coordinateAxesCheck);
-    
+    hbox = new QHBoxLayout;
+
+    /*
     fpsCheck.setText(_("Show FPS"));
-    fpsCheck.setEnabled(!useGLSL);
     fpsCheck.setChecked(false);
-    if(!useGLSL){
-        fpsCheck.sigToggled().connect([=](bool on){ impl->showFPS(on); });
-    }
+    fpsCheck.sigToggled().connect([=](bool on){ impl->showFPS(on); });
     hbox->addWidget(&fpsCheck);
+    */
 
-    fpsTestButton.setText(_("Test"));
+    fpsTestButton.setText(_("FPS Test"));
     fpsTestButton.sigClicked().connect([=](){ impl->onFPSTestButtonClicked(); });
     hbox->addWidget(&fpsTestButton);
     fpsTestIterationSpin.setRange(1, 99);
     fpsTestIterationSpin.setValue(1);
     hbox->addWidget(&fpsTestIterationSpin);
+
+    auto pickingBufferButton = new PushButton(_("Show the picking buffer image (for debug)"));
+    pickingBufferButton->sigClicked().connect([=](){ impl->showPickingBufferImageWindow(); });
+    hbox->addWidget(pickingBufferButton);
+    
     hbox->addStretch();
     vbox->addLayout(hbox);
 
-    hbox = new QHBoxLayout();
-    newDisplayListDoubleRenderingCheck.setText(_("Do double rendering when a new display list is created."));
-    newDisplayListDoubleRenderingCheck.sigToggled().connect(
-        [=](bool on){ impl->onNewDisplayListDoubleRenderingToggled(on); });
-    hbox->addWidget(&newDisplayListDoubleRenderingCheck);
-    hbox->addStretch();
-    vbox->addLayout(hbox);
-
-    hbox = new QHBoxLayout();
+    hbox = new QHBoxLayout;
     collisionVisualizationButtonsCheck.setText(_("Show collision visualization button set"));
     collisionVisualizationButtonsCheck.setChecked(false);
     collisionVisualizationButtonsCheck.sigToggled().connect(
@@ -3274,7 +3415,7 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
     vbox->addLayout(hbox);
 
     topVBox->addLayout(vbox);
-    topVBox->addWidget(new HSeparator());
+    topVBox->addWidget(new HSeparator);
 
     QPushButton* okButton = new QPushButton(_("&Ok"));
     okButton->setDefault(true);
@@ -3287,6 +3428,22 @@ ConfigDialog::ConfigDialog(SceneWidgetImpl* impl, bool useGLSL)
 }
 
 
+void ConfigDialog::showEvent(QShowEvent* event)
+{
+    if(!sceneWidgetImpl->renderer->isShadowCastingAvailable()){
+        for(int i=0; i < NUM_SHADOWS; ++i){
+            auto& shadow = shadows[i];
+            auto& check = shadow.check;
+            check.setEnabled(false);
+            check.setChecked(false);
+            shadow.lightLabel.setEnabled(false);
+            shadow.lightSpin.setEnabled(false);
+        }
+        shadowAntiAliasingCheck.setEnabled(false);
+    }
+}
+            
+    
 void ConfigDialog::updateBuiltinCameraConfig()
 {
     auto persCamera = sceneWidgetImpl->builtinPersCamera;
@@ -3307,6 +3464,8 @@ void ConfigDialog::updateBuiltinCameraConfig()
 
 void ConfigDialog::storeState(Archive& archive)
 {
+    archive.write("restrictCameraRoll", restrictCameraRollCheck.isChecked());
+    archive.write("verticalAxis", verticalAxisZRadio.isChecked() ? "Z" : "Y");
     archive.write("lightingMode", lightingMode.selectedSymbol());
     archive.write("cullingMode", cullingMode.selectedSymbol());
     archive.write("defaultHeadLight", headLightCheck.isChecked());
@@ -3342,10 +3501,10 @@ void ConfigDialog::storeState(Archive& archive)
     archive.write("pointSize", pointSizeSpin.value());
     archive.write("normalVisualization", normalVisualizationCheck.isChecked());
     archive.write("normalLength", normalLengthSpin.value());
+    archive.write("lightweightViewChange", lightweightViewChangeCheck.isChecked());
     archive.write("coordinateAxes", coordinateAxesCheck.isChecked());
     archive.write("fpsTestIteration", fpsTestIterationSpin.value());
-    archive.write("showFPS", fpsCheck.isChecked());
-    archive.write("enableNewDisplayListDoubleRendering", newDisplayListDoubleRenderingCheck.isChecked());
+    //archive.write("showFPS", fpsCheck.isChecked());
     archive.write("upsideDown", upsideDownCheck.isChecked());
 }
 
@@ -3353,6 +3512,16 @@ void ConfigDialog::storeState(Archive& archive)
 void ConfigDialog::restoreState(const Archive& archive)
 {
     string symbol;
+    
+    restrictCameraRollCheck.setChecked(archive.get("restrictCameraRoll", restrictCameraRollCheck.isChecked()));
+    if(archive.read("verticalAxis", symbol)){
+        if(symbol == "Z"){
+            verticalAxisZRadio.setChecked(true);
+        } else if(symbol == "Y"){
+            verticalAxisYRadio.setChecked(true);
+        }
+    }
+    
     if(archive.read("lightingMode", symbol)){
         if(lightingMode.select(symbol)){
             lightingModeGroup.button(lightingMode.which())->setChecked(true);
@@ -3405,8 +3574,9 @@ void ConfigDialog::restoreState(const Archive& archive)
     normalVisualizationCheck.setChecked(archive.get("normalVisualization", normalVisualizationCheck.isChecked()));
     normalLengthSpin.setValue(archive.get("normalLength", normalLengthSpin.value()));
     coordinateAxesCheck.setChecked(archive.get("coordinateAxes", coordinateAxesCheck.isChecked()));
+    lightweightViewChangeCheck.setChecked(archive.get("lightweightViewChange", lightweightViewChangeCheck.isChecked()));
+
     fpsTestIterationSpin.setValue(archive.get("fpsTestIteration", fpsTestIterationSpin.value()));
-    fpsCheck.setChecked(archive.get("showFPS", fpsCheck.isChecked()));
-    newDisplayListDoubleRenderingCheck.setChecked(archive.get("enableNewDisplayListDoubleRendering", newDisplayListDoubleRenderingCheck.isChecked()));
+    //fpsCheck.setChecked(archive.get("showFPS", fpsCheck.isChecked()));
     upsideDownCheck.setChecked(archive.get("upsideDown", upsideDownCheck.isChecked()));
 }

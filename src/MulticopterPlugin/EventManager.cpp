@@ -25,23 +25,26 @@ EventManager::initialize()
 {
     if( _curBodyChangedCon.connected() == false ){
         _curBodyChangedCon = BodyBar::instance()->sigCurrentBodyItemChanged().connect(
-                                                     boost::bind(&EventManager::onCurrentBodyItemChanged, this, _1));
+            std::bind(&EventManager::onCurrentBodyItemChanged, this, std::placeholders::_1));
     }
 
     if( _lnkSelChangedCon.connected() == false ){
-        LinkSelectionView* lnkSelView = LinkSelectionView::mainInstance();
+        LinkSelectionView* lnkSelView = LinkSelectionView::instance();
         if( lnkSelView ){            
             _lnkSelChangedCon =
-                lnkSelView->sigSelectionChanged(_curBodyItem).connect(bind(&EventManager::onLinkItemSelected, this));
+                lnkSelView->sigSelectionChanged(_curBodyItem).connect(
+                    std::bind(&EventManager::onLinkItemSelected, this));
         }
     }
     
     RootItem* rootItem = RootItem::instance();
     _itemAddCon.disconnect();
-    _itemAddCon = rootItem->sigItemAdded().connect(boost::bind(&EventManager::onItemAdd, this, _1));
+    _itemAddCon = rootItem->sigItemAdded().connect(
+        std::bind(&EventManager::onItemAdd, this, std::placeholders::_1));
 
     _itemRemoveCon.disconnect();
-    _itemRemoveCon = rootItem->sigSubTreeRemoved().connect(boost::bind(&EventManager::onSubTreeRemoved, this, _1, _2));
+    _itemRemoveCon = rootItem->sigSubTreeRemoved().connect(
+        std::bind(&EventManager::onSubTreeRemoved, this, std::placeholders::_1, std::placeholders::_2));
            
     _isInitialized = true;
 
@@ -171,9 +174,9 @@ EventManager::onCurrentBodyItemChanged(BodyItem* bodyItem)
       _lnkSelChangedCon.disconnect();
     }
     if( _lnkSelChangedCon.connected() == false ){
-        LinkSelectionView* lnkSelView = LinkSelectionView::mainInstance();
+        LinkSelectionView* lnkSelView = LinkSelectionView::instance();
         if( lnkSelView ){
-            _lnkSelChangedCon = lnkSelView->sigSelectionChanged(_curBodyItem).connect(bind(&EventManager::onLinkItemSelected, this));
+            _lnkSelChangedCon = lnkSelView->sigSelectionChanged(_curBodyItem).connect(std::bind(&EventManager::onLinkItemSelected, this));
         }
     }
     LinkManager::instance()->setCurrentBodyLink(_curBodyItem->body(), _curLink);
@@ -186,7 +189,7 @@ EventManager::onCurrentBodyItemChanged(BodyItem* bodyItem)
 void
 EventManager::onLinkItemSelected()
 {
-    const vector<int>& selectedLinkIndices = LinkSelectionView::mainInstance()->selectedLinkIndices(_curBodyItem);
+    const vector<int>& selectedLinkIndices = LinkSelectionView::instance()->selectedLinkIndices(_curBodyItem);
     if(selectedLinkIndices.empty()){
         _curLink = _curBodyItem->body()->rootLink();
     } else {
@@ -211,7 +214,7 @@ EventManager::onItemAdd(Item* item)
     }
     SimulatorItem* simItem = dynamic_cast<SimulatorItem*>(item);
     if( simItem != nullptr ){
-        auto con = simItem->sigSimulationStarted().connect(boost::bind(&EventManager::onSimulationStarted, this, simItem));
+        auto con = simItem->sigSimulationStarted().connect(std::bind(&EventManager::onSimulationStarted, this, simItem));
         _simItemConMap[simItem] = con;
     }
 }

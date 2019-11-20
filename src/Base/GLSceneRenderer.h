@@ -12,12 +12,18 @@
 namespace cnoid {
 
 class GLSceneRendererImpl;
+class Image;
     
 class CNOID_EXPORT GLSceneRenderer : public SceneRenderer
 {
 public:
-    GLSceneRenderer();
-    GLSceneRenderer(SgGroup* root);
+    static void initializeClass();
+
+    enum RendererType { GL1_RENDERER, GLSL_RENDERER };
+    static int rendererType();
+    static GLSceneRenderer* create(SgGroup* root = nullptr);
+    
+    GLSceneRenderer(SgGroup* root = nullptr);
     virtual ~GLSceneRenderer();
 
     virtual void setOutputStream(std::ostream& os);
@@ -25,17 +31,14 @@ public:
     virtual SgGroup* sceneRoot() override;
     virtual SgGroup* scene() override;
 
-    virtual bool initializeGL();
+    virtual bool initializeGL() = 0;
     virtual void flush() = 0;
-
-    // The following functions cannot be called bofore calling the initializeGL() function.
-    bool setSwapInterval(int interval);
-    int getSwapInterval() const;
-
-    virtual void setViewport(int x, int y, int width, int height) override;
-    virtual Array4i viewport() const override;
+    
+    virtual void setViewport(int x, int y, int width, int height) = 0;
+    void updateViewportInformation(int x, int y, int width, int height);
+    Array4i viewport() const;
     void getViewport(int& out_x, int& out_y, int& out_width, int& out_height) const;
-    virtual double aspectRatio() const override; // width / height;
+    double aspectRatio() const; // width / height;
 
     void getPerspectiveProjectionMatrix(
         double fovy, double aspect, double zNear, double zFar, Matrix4& out_matrix);
@@ -54,7 +57,12 @@ public:
     void setDefaultColor(const Vector3f& color);
 
     enum LightingMode {
-        FULL_LIGHTING, MINIMUM_LIGHTING, SOLID_COLOR_LIGHTING, NO_LIGHTING, N_LIGHTING_MODES
+        FULL_LIGHTING,
+        NORMAL_LIGHTING,
+        MINIMUM_LIGHTING,
+        SOLID_COLOR_LIGHTING,
+        NO_LIGHTING,
+        N_LIGHTING_MODES
     };
     virtual void setLightingMode(int mode) = 0;
     
@@ -94,9 +102,16 @@ public:
     virtual void setBackFaceCullingMode(int mode) = 0;
     virtual int backFaceCullingMode() const = 0;
 
+    virtual void setBoundingBoxRenderingForLightweightRenderingGroupEnabled(bool on);
+
+    virtual void setPickingBufferImageOutputEnabled(bool on);
+    virtual bool getPickingBufferImage(Image& out_image);
+
+    virtual bool isShadowCastingAvailable() const;
+
 protected:
     virtual void onSceneGraphUpdated(const SgUpdate& update) override;
-    virtual void onImageUpdated(SgImage* image) = 0;
+    virtual void onImageUpdated(SgImage* image);
 
 private:
     GLSceneRendererImpl* impl;

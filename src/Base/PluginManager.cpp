@@ -13,11 +13,11 @@
 #include "MainWindow.h"
 #include <cnoid/ExecutablePath>
 #include <cnoid/FileUtil>
+#include <cnoid/Tokenizer>
 #include <cnoid/Config>
 #include <QLibrary>
 #include <QRegExp>
 #include <QFileDialog>
-#include <boost/tokenizer.hpp>
 #include <vector>
 #include <map>
 #include <set>
@@ -33,7 +33,7 @@
 
 using namespace std;
 using namespace cnoid;
-namespace filesystem = boost::filesystem;
+namespace filesystem = cnoid::stdx::filesystem;
 
 
 #ifdef Q_OS_WIN32
@@ -119,7 +119,7 @@ public:
     LazyCaller reloadPluginsLater;
     
     void clearUnusedPlugins();
-    void scanPluginFilesInDefaultPath(const std::string& pathList);
+    void scanPluginFilesInPathList(const std::string& pathList);
     void scanPluginFilesInDirectoyOfExecFile();
     void scanPluginFiles(const std::string& pathString, bool isRecursive);
     void loadPlugins();
@@ -290,17 +290,13 @@ void PluginManager::doStartupLoading(const char* pluginPathList)
 */
 void PluginManager::scanPluginFilesInPathList(const std::string& pathList)
 {
-    impl->scanPluginFilesInDefaultPath(pathList);
+    impl->scanPluginFilesInPathList(pathList);
 }
 
 
-void PluginManagerImpl::scanPluginFilesInDefaultPath(const std::string& pathList)
+void PluginManagerImpl::scanPluginFilesInPathList(const std::string& pathList)
 {
-    boost::char_separator<char> sep(PATH_DELIMITER);
-    boost::tokenizer< boost::char_separator<char> > paths(pathList, sep);
-    boost::tokenizer< boost::char_separator<char> >::iterator p;
-    for(p = paths.begin(); p != paths.end(); ++p){
-        const string& path = *p;
+    for(auto& path : Tokenizer<CharSeparator<char>>(pathList, CharSeparator<char>(PATH_DELIMITER))){
         scanPluginFiles(path, false);
     }
 }

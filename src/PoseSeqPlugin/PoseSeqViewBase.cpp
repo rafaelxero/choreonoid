@@ -28,24 +28,12 @@ using namespace cnoid;
 using fmt::format;
 
 namespace {
+
 const bool TRACE_FUNCTIONS = false;
 
 inline double degree(double rad) { return (180.0 * rad / 3.14159265358979); }
 inline double radian(double deg) { return (3.14159265358979 * deg / 180.0); }
 
-inline double myNearByInt(double x)
-{
-#ifdef Q_OS_WIN32
-    double u = ceil(x);
-    double l = floor(x);
-    if(fabs(u - x) < fabs(x - l)){
-        return u;
-    } else {
-        return l;
-    }
-#else
-    return nearbyint(x);
-#endif
 }
 
 class ColumnCheckBox : public CheckBox
@@ -60,7 +48,6 @@ public:
     std::function<void(Qt::CheckState)> slotOnClicked;        
 };
 
-
 class LinkTreeWidgetEx : public LinkTreeWidget
 {
 public:
@@ -74,8 +61,6 @@ public:
         return size;
     }
 };
-
-}
 
 namespace cnoid {
 
@@ -499,8 +484,8 @@ void PoseSeqViewBase::initializeLinkTreeIkLinkColumn()
 {
     const Mapping& info = *body->info();
 
-    possibleIkLinkFlag.resize(body->numLinks());
-    possibleIkLinkFlag.reset();
+    possibleIkLinkFlag.clear();
+    possibleIkLinkFlag.resize(body->numLinks(), false);
 
     if(body->numLinks() > 0){
         const Listing& possibleIkLinks = *info.findListing("possibleIkInterpolationLinks");
@@ -1041,7 +1026,7 @@ void PoseSeqViewBase::selectPosesJustHavingSelectedLinks()
         return;
     }
     
-    const boost::dynamic_bitset<>& linkSelection = linkTreeWidget->linkSelection();
+    const auto& linkSelection = linkTreeWidget->linkSelection();
 
     selectedPoseIters.clear();
     for(PoseSeq::iterator p = seq->begin(); p != seq->end(); ++p){
@@ -1552,7 +1537,7 @@ PoseSeq::iterator PoseSeqViewBase::insertPoseUnit(PoseUnitPtr poseUnit)
 double PoseSeqViewBase::quantizedTime(double time)
 {
     double r = timeBar->frameRate();
-    double frame = myNearByInt(r * time);
+    double frame = nearbyint(r * time);
     return frame / r;
 }
 
@@ -1604,8 +1589,8 @@ void PoseSeqViewBase::setCurrentBodyStateToSelectedPoses(bool onlySelected)
 
 bool PoseSeqViewBase::setCurrentBodyStateToPose(PosePtr& pose, bool onlySelected)
 {
-    const boost::dynamic_bitset<>& linkSelection =
-        LinkSelectionView::mainInstance()->linkSelection(currentBodyItem);
+    const auto& linkSelection =
+        LinkSelectionView::instance()->linkSelection(currentBodyItem);
             
     bool updated = false;
             

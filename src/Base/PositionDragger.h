@@ -12,7 +12,6 @@ namespace cnoid {
 
 class TranslationDragger;
 class RotationDragger;
-class PositionDraggerImpl;
 
 /**
    \todo Since the draggable axis set can be specified for PositoinDragger now,
@@ -26,9 +25,7 @@ public:
 
     PositionDragger();
     PositionDragger(const PositionDragger& org);
-    PositionDragger(const PositionDragger& org, SgCloneMap& cloneMap);
-
-    virtual SgObject* clone(SgCloneMap& cloneMap) const;
+    PositionDragger(const PositionDragger& org, CloneMap* cloneMap);
 
     enum Axis { TX = 1 << 0, TY = 1 << 1, TZ = 1 << 2,
                 TRANSLATION_AXES = (TX | TY | TZ),
@@ -46,6 +43,12 @@ public:
     void adjustSize(const BoundingBox& bb);
     void setContentsDragEnabled(bool on);
     bool isContentsDragEnabled() const;
+
+    enum DisplayMode { DisplayAlways, DisplayInEditMode, DisplayInFocus, DisplayNever };
+    DisplayMode displayMode() const;
+    void setDisplayMode(DisplayMode mode);
+
+    // Thw following functions are deprecated. Use displayMode and setDisplayMode instead.
     void setDraggerAlwaysShown(bool on);
     bool isDraggerAlwaysShown() const;
     void setDraggerAlwaysHidden(bool on);
@@ -62,21 +65,27 @@ public:
     SignalProxy<void()> sigPositionDragged();
     SignalProxy<void()> sigDragFinished();
 
-    virtual bool isDragging() const;
-    virtual Affine3 draggedPosition() const;
+    virtual bool isDragEnabled() const override;
+    virtual void setDragEnabled(bool on) override;
 
-    virtual bool onButtonPressEvent(const SceneWidgetEvent& event);
-    virtual bool onButtonReleaseEvent(const SceneWidgetEvent& event);
-    virtual bool onPointerMoveEvent(const SceneWidgetEvent& event);
-    virtual void onPointerLeaveEvent(const SceneWidgetEvent& event);
-    virtual void onFocusChanged(const SceneWidgetEvent& event, bool on);
-    virtual void onSceneModeChanged(const SceneWidgetEvent& event);
-    virtual bool onUndoRequest();
-    virtual bool onRedoRequest();
-        
+    virtual bool isDragging() const override;
+    virtual Affine3 draggedPosition() const override;
+
+    virtual bool onButtonPressEvent(const SceneWidgetEvent& event) override;
+    virtual bool onButtonReleaseEvent(const SceneWidgetEvent& event) override;
+    virtual bool onPointerMoveEvent(const SceneWidgetEvent& event) override;
+    virtual void onPointerLeaveEvent(const SceneWidgetEvent& event) override;
+    virtual void onFocusChanged(const SceneWidgetEvent& event, bool on) override;
+    virtual void onSceneModeChanged(const SceneWidgetEvent& event) override;
+    virtual bool onUndoRequest() override;
+    virtual bool onRedoRequest() override;
+
+protected:
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
+
 private:
-    PositionDraggerImpl* impl;
-    
+    class Impl;
+    Impl* impl;
 };
     
 typedef ref_ptr<PositionDragger> PositionDraggerPtr;

@@ -14,6 +14,7 @@
 #include <cnoid/LazyCaller>
 #include <cnoid/AppUtil>
 #include <cnoid/ConnectionSet>
+#include <cnoid/stdx/optional>
 #include <QBoxLayout>
 #include <QLabel>
 #include <QEventLoop>
@@ -30,6 +31,8 @@ using fmt::format;
 namespace {
 
 const bool TRACE_FUNCTIONS = false;
+
+TaskView* instance_ = nullptr;
 
 typedef PushButton CommandButton;
 //typedef ToolButton CommandButton;
@@ -103,10 +106,10 @@ public:
     int lastUsualPhaseIndex;
     int configPhaseIndex;
     Signal<void()> sigCurrentPhaseChanged;
-    boost::optional<int> nextPhaseIndex;
+    stdx::optional<int> nextPhaseIndex;
     enum { NO_CURRENT_COMMAND = -2, PRE_COMMAND = -1 };
     int currentCommandIndex;
-    boost::optional<int> nextCommandIndex; // -1 means the pre-command
+    stdx::optional<int> nextCommandIndex; // -1 means the pre-command
 
     LazyCaller goToNextCommandLater;
     
@@ -196,7 +199,9 @@ public:
 
 static void onAboutToQuit()
 {
-    TaskView::instance()->clearTasks();
+    if(instance_){
+        instance_->clearTasks();
+    }
 }
 
 
@@ -211,7 +216,9 @@ void TaskView::initializeClass(ExtensionManager* ext)
 
 TaskView* TaskView::instance()
 {
-    static TaskView* instance_ = ViewManager::getOrCreateView<TaskView>();
+    if(!instance_){
+        instance_ = ViewManager::getOrCreateView<TaskView>();
+    }
     return instance_;
 }
 
@@ -1113,7 +1120,7 @@ void TaskViewImpl::executeCommandSuccessively(int commandIndex)
     
     cancelWaiting(false);
 
-    nextCommandIndex = boost::none;
+    nextCommandIndex = stdx::nullopt;
 
     setBusyState(true);
     
@@ -1150,7 +1157,7 @@ void TaskViewImpl::executeCommandSuccessively(int commandIndex)
                 commandFunc = command->function();
                 nextPhaseIndex = command->nextPhaseIndex(currentPhaseIndex_);
                 if(nextPhaseIndex >= currentTask->numPhases()){
-                    nextPhaseIndex = boost::none;
+                    nextPhaseIndex = stdx::nullopt;
                     isCommandToFinishTask = true;
                 }
                 nextCommandIndex = command->nextCommandIndex(commandIndex);
@@ -1197,7 +1204,7 @@ void TaskViewImpl::setTransitionToNextCommand()
         } else {
             if(nextCommandIndex && *nextCommandIndex != currentCommandIndex){
                 int index = *nextCommandIndex;
-                nextCommandIndex = boost::none;
+                nextCommandIndex = stdx::nullopt;
                 bool executeNext = autoModeToggle.isChecked();
                 if(!executeNext){
                     if(currentCommandIndex >= 0){
@@ -1301,8 +1308,8 @@ void TaskViewImpl::onNextOrPrevButtonClicked(int direction)
 
 void TaskViewImpl::breakSequence()
 {
-    nextPhaseIndex = boost::none;
-    nextCommandIndex = boost::none;
+    nextPhaseIndex = stdx::nullopt;
+    nextCommandIndex = stdx::nullopt;
 
     mv->putln(MessageView::HIGHLIGHT,
               "Transition to the next task-command was interrupted.");
@@ -1419,8 +1426,8 @@ void TaskViewImpl::cancelWaiting(bool doBreak)
     } else {
         if(eventLoop.isRunning()){
             autoModeToggle.setChecked(false); // stop the auto mode, too
-            nextPhaseIndex = boost::none;
-            nextCommandIndex = boost::none;
+            nextPhaseIndex = stdx::nullopt;
+            nextCommandIndex = stdx::nullopt;
             stopWaiting(false);
         }
         if(doBreak){
@@ -1595,12 +1602,12 @@ void TaskViewImpl::applyMenuItem(int index, bool on)
 }
                 
 
-boost::dynamic_bitset<> TaskView::menuItemCheckStates() const
+std::vector<bool> TaskView::menuItemCheckStates() const
 {
-    boost::dynamic_bitset<> states;
+    std::vector<bool> states;
     impl->updateMenuItems(false);
     int n = impl->menuItems.size();
-    states.resize(n);
+    states.resize(n, false);
     for(int i=0; i < n; ++i){
         Action* action = impl->menuItems[i].action;
         if(action){
@@ -1617,7 +1624,7 @@ SignalProxy<void()> TaskView::sigMenuRequest()
 }
 
 
-void TaskView::showMenu(boost::dynamic_bitset<> checkStates)
+void TaskView::showMenu(std::vector<bool> checkStates)
 {
     impl->updateMenuItems(true);
 

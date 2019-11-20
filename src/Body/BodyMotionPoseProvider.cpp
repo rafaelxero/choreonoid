@@ -43,7 +43,7 @@ void BodyMotionPoseProvider::initialize(Body* body__, std::shared_ptr<BodyMotion
     if(legged->isValid()){
         for(int i=0; i < legged->numFeet(); ++i){
             Link* link = legged->footLink(i);
-            auto ikPath = getCustomJointPath(body_, body_->rootLink(), link);
+            auto ikPath = JointPath::getCustomPath(body_, body_->rootLink(), link);
             if(ikPath){
                 if(ikPath->hasAnalyticalIK() || ikPath->numJoints() == 6){
                     footLinks.push_back(link);
@@ -192,7 +192,7 @@ bool BodyMotionPoseProvider::getBaseLinkPosition(Position& out_T) const
 }
 
 
-void BodyMotionPoseProvider::getJointPositions(std::vector<boost::optional<double>>& out_q) const
+void BodyMotionPoseProvider::getJointPositions(std::vector<stdx::optional<double>>& out_q) const
 {
     int n = body_->numJoints();
     out_q.resize(n);
@@ -202,7 +202,7 @@ void BodyMotionPoseProvider::getJointPositions(std::vector<boost::optional<doubl
 }
 
 
-boost::optional<Vector3> BodyMotionPoseProvider::ZMP() const
+stdx::optional<Vector3> BodyMotionPoseProvider::ZMP() const
 {
     return ZMP_;
 }

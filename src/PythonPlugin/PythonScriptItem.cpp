@@ -12,7 +12,6 @@
 #include "gettext.h"
 
 using namespace std;
-namespace stdph = std::placeholders;
 using namespace cnoid;
 
 
@@ -21,7 +20,8 @@ void PythonScriptItem::initializeClass(ExtensionManager* ext)
     ext->itemManager().registerClass<PythonScriptItem>(N_("PythonScriptItem"));
     ext->itemManager().addLoader<PythonScriptItem>(
         _("Python Script"), "PYTHON-SCRIPT-FILE", "py",
-        std::bind(&PythonScriptItem::setScriptFilename, stdph::_1, stdph::_2));
+        [](PythonScriptItem* item, const std::string& filename, std::ostream&, Item*){
+            return item->setScriptFilename(filename); });
 }
 
 
@@ -106,7 +106,7 @@ bool PythonScriptItem::waitToFinish(double timeout)
 
 std::string PythonScriptItem::resultString() const
 {
-    return impl->resultString();
+    return impl->exceptionText();
 }
 
 

@@ -48,7 +48,7 @@ void SceneItem::initializeClass(ExtensionManager* ext)
         ext->itemManager().registerClass<SceneItem>(N_("SceneItem"));
 
         ext->itemManager().addLoader<SceneItem>(
-            "Scene", "AVAILABLE-SCENE-FILE", SceneLoader::availableFileExtensions,
+            _("Scene"), "AVAILABLE-SCENE-FILE", SceneLoader::availableFileExtensions,
             [&](SceneItem* item, const std::string& filename, std::ostream& os, Item* parentItem){
                 return ::loadScene(item, filename, os);
             },
@@ -95,6 +95,12 @@ SceneItem::~SceneItem()
 }
 
 
+Item* SceneItem::doDuplicate() const
+{
+    return new SceneItem(*this);
+}
+
+
 void SceneItem::setName(const std::string& name)
 {
     topNode_->setName(name);
@@ -108,10 +114,19 @@ SgNode* SceneItem::getScene()
 }
 
 
-Item* SceneItem::doDuplicate() const
+void SceneItem::setTranslation(const Vector3f& translation)
 {
-    return new SceneItem(*this);
+    topNode_->setTranslation(translation);
+    topNode_->notifyUpdate();
 }
+
+
+void SceneItem::setRotation(const AngleAxisf& rotation)
+{
+    topNode_->setRotation(rotation);
+    topNode_->notifyUpdate();
+}
+
 
 void SceneItem::setLightweightRenderingEnabled(bool on)
 {
@@ -124,8 +139,8 @@ void SceneItem::setLightweightRenderingEnabled(bool on)
     } else {
         auto lightweight = topNode_->findNodeOfType<SgLightweightRenderingGroup>(1);
         if(lightweight){
-            topNode_->removeChild(lightweight);
-            lightweight->moveChildrenTo(topNode_, true);
+            lightweight->moveChildrenTo(topNode_);
+            topNode_->removeChild(lightweight, true);
         }
     }
     isLightweightRenderingEnabled_ = on;
@@ -149,7 +164,7 @@ void SceneItem::doPutProperties(PutPropertyFunction& putProperty)
 
     Vector3 rpy(TO_DEGREE * rpyFromRot(topNode_->rotation()));
     
-    putProperty("RPY", str(rpy),
+    putProperty(_("Rotation"), str(rpy),
                 [&](const std::string& value){
                     Vector3 rpy;
                     if(toVector3(value, rpy)){

@@ -14,7 +14,7 @@
 #include <cnoid/Link>
 #include <cnoid/BasicSensorSimulationHelper>
 #include <cnoid/BodyItem>
-#include <boost/optional.hpp>
+#include <cnoid/stdx/optional>
 #include "gettext.h"
 #include <iostream>
 
@@ -336,7 +336,7 @@ void PhysXLink::createGeometry(PhysXBody* physXBody)
 {
     if(link->collisionShape()){
         MeshExtractor* extractor = new MeshExtractor;
-        if(extractor->extract(link->collisionShape(), std::bind(&PhysXLink::addMesh, this, extractor, physXBody))){
+        if(extractor->extract(link->collisionShape(), [&](){this->addMesh(extractor, physXBody);})) {
             if(!vertices.empty()){
 #ifdef VERSION_3_3_LATER
                 if(pxRigidActor->getType() == PxActorType::eRIGID_STATIC){
@@ -373,7 +373,7 @@ void PhysXLink::addMesh(MeshExtractor* extractor, PhysXBody* physXBody)
         if(mesh->primitiveType() != SgMesh::MESH){
             bool doAddPrimitive = false;
             Vector3 scale;
-            boost::optional<Vector3> translation;
+            stdx::optional<Vector3> translation;
             if(!extractor->isCurrentScaled()){
                 scale.setOnes();
                 doAddPrimitive = true;

@@ -2,6 +2,7 @@
 #define CNOID_AGXDYNAMICS_PLUGIN_AGX_VEHICLE_TRACK_H
 
 #include <cnoid/Device>
+#include <cnoid/SceneDrawables>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,7 @@ struct AGXVehicleContinuousTrackDeviceDesc
     vector<string> rollerNames;
     vector<string> guideNames;
     string materialName;
+    SgShapePtr nodeShape;
 };
 
 struct TrackState{
@@ -81,7 +83,6 @@ public:
     void copyStateFrom(const AGXVehicleContinuousTrackDevice& other);
     virtual void copyStateFrom(const DeviceState& other) override;
     virtual DeviceState* cloneState() const override;
-    virtual Device* clone() const override;
     virtual void forEachActualType(std::function<bool(const std::type_info& type)> func) override;
     virtual int stateSize() const override;
     virtual const double* readState(const double* buf) override;
@@ -98,6 +99,10 @@ public:
     void reserveTrackStateSize(const unsigned int& num );
     void addTrackState(const Vector3& boxSize, const Position& pos);
     TrackStates& getTrackStates();
+    SgShape* getNodeShape();
+
+protected:
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 
 private:
     TrackStates m_trackStates;

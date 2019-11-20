@@ -17,10 +17,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     RotationDragger();
-    RotationDragger(const RotationDragger& org);
-    RotationDragger(const RotationDragger& org, SgCloneMap& cloneMap);
-
-    virtual SgObject* clone(SgCloneMap& cloneMap) const;
+    RotationDragger(const RotationDragger& org, CloneMap* cloneMap = nullptr);
 
     enum Axis { RX = 1, RY = 2, RZ = 4 };
 
@@ -42,19 +39,26 @@ public:
         return sigRotationFinished_;
     }
 
+    virtual bool isDragEnabled() const override;
+    virtual void setDragEnabled(bool on) override;
+
     bool isDragging() const;
     const AngleAxis& draggedAngleAxis() const;
     Affine3 draggedPosition() const;
 
-    virtual bool onButtonPressEvent(const SceneWidgetEvent& event);
-    virtual bool onButtonReleaseEvent(const SceneWidgetEvent& event);
-    virtual bool onPointerMoveEvent(const SceneWidgetEvent& event);
-    virtual void onPointerLeaveEvent(const SceneWidgetEvent& event);
+    virtual bool onButtonPressEvent(const SceneWidgetEvent& event) override;
+    virtual bool onButtonReleaseEvent(const SceneWidgetEvent& event) override;
+    virtual bool onPointerMoveEvent(const SceneWidgetEvent& event) override;
+    virtual void onPointerLeaveEvent(const SceneWidgetEvent& event) override;
+
+protected:
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 
 private:
     int draggableAxes_;
     SgScaleTransformPtr scale;
     SceneDragProjector dragProjector;
+    bool isDragEnabled_;
     Signal<void()> sigRotationStarted_;
     Signal<void(const AngleAxis& rotation)> sigRotationDragged_;
     Signal<void()> sigRotationFinished_;

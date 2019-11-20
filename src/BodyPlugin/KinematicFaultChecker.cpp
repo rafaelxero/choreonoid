@@ -33,7 +33,6 @@
 
 using namespace std;
 using namespace cnoid;
-using boost::dynamic_bitset;
 using fmt::format;
 
 namespace {
@@ -91,7 +90,7 @@ public:
     int checkFaults(
         BodyItem* bodyItem, BodyMotionItem* motionItem, std::ostream& os,
         bool checkPosition, bool checkVelocity, bool checkCollision,
-        dynamic_bitset<> linkSelection, double beginningTime, double endingTime);
+        vector<bool> linkSelection, double beginningTime, double endingTime);
     void putJointPositionFault(int frame, Link* joint, std::ostream& os);
     void putJointVelocityFault(int frame, Link* joint, std::ostream& os);
     void putSelfCollision(Body* body, int frame, const CollisionPair& collisionPair, std::ostream& os);
@@ -99,7 +98,7 @@ public:
 }
 
 
-void KinematicFaultChecker::initialize(ExtensionManager* ext)
+void KinematicFaultChecker::initializeClass(ExtensionManager* ext)
 {
     if(!checkerInstance){
         checkerInstance = ext->manage(new KinematicFaultChecker());
@@ -287,11 +286,11 @@ void KinematicFaultCheckerImpl::apply()
                 mes.notify(format(_("Applying the Kinematic Fault Checker to {} ..."),
                                   motionItem->headItem()->name()));
                 
-                dynamic_bitset<> linkSelection;
+                vector<bool> linkSelection;
                 if(selectedJointsRadio.isChecked()){
-                    linkSelection = LinkSelectionView::mainInstance()->linkSelection(bodyItem);
+                    linkSelection = LinkSelectionView::instance()->linkSelection(bodyItem);
                 } else if(nonSelectedJointsRadio.isChecked()){
-                    linkSelection = LinkSelectionView::mainInstance()->linkSelection(bodyItem);
+                    linkSelection = LinkSelectionView::instance()->linkSelection(bodyItem);
                     linkSelection.flip();
                 } else {
                     linkSelection.resize(bodyItem->body()->numLinks(), true);
@@ -334,8 +333,7 @@ void KinematicFaultCheckerImpl::apply()
 int KinematicFaultChecker::checkFaults
 (BodyItem* bodyItem, BodyMotionItem* motionItem, std::ostream& os, double beginningTime, double endingTime)
 {
-    dynamic_bitset<> linkSelection(bodyItem->body()->numLinks());
-    linkSelection.set();
+    vector<bool> linkSelection(bodyItem->body()->numLinks(), true);
     return impl->checkFaults(
         bodyItem, motionItem, os, true, true, true, linkSelection, beginningTime, endingTime);
 }
@@ -343,7 +341,7 @@ int KinematicFaultChecker::checkFaults
 
 int KinematicFaultCheckerImpl::checkFaults
 (BodyItem* bodyItem, BodyMotionItem* motionItem, std::ostream& os,
- bool checkPosition, bool checkVelocity, bool checkCollision, dynamic_bitset<> linkSelection,
+ bool checkPosition, bool checkVelocity, bool checkCollision, vector<bool> linkSelection,
  double beginningTime, double endingTime)
 {
     numFaults = 0;

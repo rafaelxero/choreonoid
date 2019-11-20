@@ -18,8 +18,7 @@ class LightingProgram;
 class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
 {
   public:
-    GLSLSceneRenderer();
-    GLSLSceneRenderer(SgGroup* root);
+    GLSLSceneRenderer(SgGroup* root = nullptr);
     virtual ~GLSLSceneRenderer();
 
     static void addExtension(std::function<void(GLSLSceneRenderer* renderer)> func);
@@ -36,21 +35,23 @@ class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
 
     virtual const Affine3& currentModelTransform() const override;
     virtual const Matrix4& projectionMatrix() const override;
+    const Affine3& viewTransform() const;
+    const Matrix4& viewProjectionMatrix() const;
     Matrix4 modelViewMatrix() const;
     Matrix4 modelViewProjectionMatrix() const;
-    const Matrix4& viewProjectionMatrix() const;
 
-    void pushShaderProgram(ShaderProgram& program, bool isLightingProgram);
+    void pushShaderProgram(ShaderProgram& program);
     void popShaderProgram();
 
     void renderLights(LightingProgram* program);
     void renderFog(LightingProgram* program);
 
-    void dispatchToTransparentPhase(std::function<void()> renderingFunction);
+    void dispatchToTransparentPhase(
+        Referenced* object, int id,
+        std::function<void(Referenced* object, const Affine3& position, int id)> renderingFunction);
 
     virtual bool initializeGL() override;
     virtual void flush() override;
-
     virtual void setViewport(int x, int y, int width, int height) override;
 
     virtual const Vector3& pickedPoint() const override;
@@ -74,10 +75,17 @@ class CNOID_EXPORT GLSLSceneRenderer : public GLSceneRenderer
     virtual void setUpsideDown(bool on) override;
     virtual void setBackFaceCullingMode(int mode) override;
     virtual int backFaceCullingMode() const override;
+    virtual void setBoundingBoxRenderingForLightweightRenderingGroupEnabled(bool on) override;
 
     void setLowMemoryConsumptionMode(bool on);
 
+    virtual void setPickingBufferImageOutputEnabled(bool on) override;
+    virtual bool getPickingBufferImage(Image& out_image) override;
+
+    virtual bool isShadowCastingAvailable() const override;
+
   protected:
+    virtual void onSceneGraphUpdated(const SgUpdate& update) override;
     virtual void doRender() override;
     virtual bool doPick(int x, int y) override;
     virtual void onImageUpdated(SgImage* image) override;

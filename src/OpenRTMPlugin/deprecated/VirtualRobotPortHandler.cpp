@@ -11,7 +11,7 @@
 #ifdef USE_BUILTIN_CAMERA_IMAGE_IDL
 # include <deprecated/corba/CameraImage.hh>
 #else
-# ifdef WIN32
+# ifdef _WIN32
 #  include <rtm/idl/CameraCommonInterface.hh>
 # else
 #  include <rtm/ext/CameraCommonInterface.hh>
@@ -209,6 +209,20 @@ void LinkDataOutPortHandler::inputDataFromSimulator(BodyRTCItem* bodyRTC)
             value.data[j++] = link->w()(0);
             value.data[j++] = link->w()(1);
             value.data[j++] = link->w()(2);
+        }
+    }
+    break;
+    case ABS_ACCELERATION:
+    {
+        value.data.length(6*n);
+        for(size_t i=0, j=0; i<n; i++){
+            Link* link = body->link(linkNames[i]);
+            value.data[j++] = link->dv()(0);
+            value.data[j++] = link->dv()(1);
+            value.data[j++] = link->dv()(2);
+            value.data[j++] = link->dw()(0);
+            value.data[j++] = link->dw()(1);
+            value.data[j++] = link->dw()(2);
         }
     }
     break;

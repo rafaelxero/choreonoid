@@ -6,7 +6,7 @@
 #ifndef CNOID_UTIL_SCENE_GRAPH_H
 #define CNOID_UTIL_SCENE_GRAPH_H
 
-#include <cnoid/Referenced>
+#include <cnoid/CloneableReferenced>
 #include <cnoid/BoundingBox>
 #include <cnoid/Signal>
 #include <string>
@@ -15,6 +15,8 @@
 #include "exportdecl.h"
 
 namespace cnoid {
+
+class CloneMap;
 
 class SgObject;
 typedef ref_ptr<SgObject> SgObjectPtr;
@@ -50,40 +52,24 @@ private:
 };
 
 
-class SgCloneMapImpl;
-    
-class CNOID_EXPORT SgCloneMap
-{
-public:
-    SgCloneMap();
-    SgCloneMap(const SgCloneMap& org);
-    ~SgCloneMap();
-
-    void setNonNodeCloning(bool on) { isNonNodeCloningEnabled_ = on; }
-    bool isNonNodeCloningEnabled() const { return isNonNodeCloningEnabled_; }
-
-    void clear();
-        
-    template<class ObjType> ObjType* getClone(const ObjType* org){
-        return static_cast<ObjType*>(findOrCreateClone(org));
-    }
-
-private:
-    SgObject* findOrCreateClone(const SgObject* org);
-    SgCloneMapImpl* cloneMap;
-    bool isNonNodeCloningEnabled_;
-};
-
-
-class CNOID_EXPORT SgObject : public Referenced
+class CNOID_EXPORT SgObject : public CloneableReferenced
 {
 public:
     typedef std::set<SgObject*> ParentContainer;
     typedef ParentContainer::iterator parentIter;
     typedef ParentContainer::const_iterator const_parentIter;
-        
-    virtual SgObject* clone(SgCloneMap& cloneMap) const;
 
+    SgObject* clone() const{
+        return static_cast<SgObject*>(doClone(nullptr));
+    }
+
+    SgObject* clone(CloneMap& cloneMap) const{
+        return static_cast<SgObject*>(doClone(&cloneMap));
+    }
+
+    static bool checkNonNodeCloning(const CloneMap& cloneMap);
+    static void setNonNodeCloning(CloneMap& cloneMap, bool on);
+    
     const std::string& name() const { return name_; }
     void setName(const std::string& name) { name_ = name; }
 
@@ -124,6 +110,7 @@ public:
 protected:
     SgObject();
     SgObject(const SgObject& org);
+    virtual Referenced* doClone(CloneMap* cloneMap) const;
     virtual void onUpdated(SgUpdate& update);
             
 private:
@@ -169,10 +156,12 @@ public:
         
     ~SgNode();
     int polymorhicId() const { return polymorhicId_; }
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
     virtual const BoundingBox& boundingBox() const;
 
-    SgNode* cloneNode(SgCloneMap& cloneMap) const {
+    SgNode* cloneNode() const {
+        return static_cast<SgNode*>(this->clone());
+    }
+    SgNode* cloneNode(CloneMap& cloneMap) const {
         return static_cast<SgNode*>(this->clone(cloneMap));
     }
 
@@ -182,6 +171,7 @@ public:
 
 protected:
     SgNode(int polymorhicId);
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 };
 
 
@@ -196,16 +186,9 @@ public:
     typedef Container::const_reverse_iterator const_reverse_iterator;
 
     SgGroup();
-        
-    //! shallow copy
-    SgGroup(const SgGroup& org);
-
-    //! deep copy
-    SgGroup(const SgGroup& org, SgCloneMap& cloneMap);
-        
+    SgGroup(const SgGroup& org, CloneMap* cloneMap = nullptr);
     ~SgGroup();
         
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
     virtual int numChildObjects() const override;
     virtual SgObject* childObject(int index) override;
     virtual void onUpdated(SgUpdate& update) override;
@@ -270,6 +253,7 @@ public:
 
 protected:
     SgGroup(int polymorhicId);
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
     mutable BoundingBox bboxCache;
     mutable bool isBboxCacheValid;
 
@@ -286,10 +270,10 @@ class CNOID_EXPORT SgInvariantGroup : public SgGroup
 {
 public:
     SgInvariantGroup();
-    SgInvariantGroup(const SgInvariantGroup& org);
-    SgInvariantGroup(const SgInvariantGroup& org, SgCloneMap& cloneMap);
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
+    SgInvariantGroup(const SgInvariantGroup& org, CloneMap* cloneMap = nullptr);
 
+protected:
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 };
 typedef ref_ptr<SgInvariantGroup> SgInvariantGroupPtr;
     
@@ -303,8 +287,7 @@ public:
     
 protected:
     SgTransform(int polymorhicId);
-    SgTransform(const SgTransform& org);
-    SgTransform(const SgTransform& org, SgCloneMap& cloneMap);
+    SgTransform(const SgTransform& org, CloneMap* cloneMap = nullptr);
     mutable BoundingBox untransformedBboxCache;
 };
 typedef ref_ptr<SgTransform> SgTransformPtr;
@@ -317,10 +300,8 @@ public:
 
     SgPosTransform();
     SgPosTransform(const Affine3& T);
-    SgPosTransform(const SgPosTransform& org);
-    SgPosTransform(const SgPosTransform& org, SgCloneMap& cloneMap);
+    SgPosTransform(const SgPosTransform& org, CloneMap* cloneMap = nullptr);
 
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
     virtual const BoundingBox& boundingBox() const override;
     virtual void getTransform(Affine3& out_T) const override;
 
@@ -363,6 +344,7 @@ public:
 
 protected:
     SgPosTransform(int polymorhicId);
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 
 private:
     Affine3 T_;
@@ -375,9 +357,7 @@ class CNOID_EXPORT SgScaleTransform : public SgTransform
 public:
     SgScaleTransform();
     SgScaleTransform(const Vector3& scale);
-    SgScaleTransform(const SgScaleTransform& org);
-    SgScaleTransform(const SgScaleTransform& org, SgCloneMap& cloneMap);
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
+    SgScaleTransform(const SgScaleTransform& org, CloneMap* cloneMap);
     virtual const BoundingBox& boundingBox() const override;
     virtual void getTransform(Affine3& out_T) const override;
 
@@ -394,6 +374,7 @@ public:
 
 protected:
     SgScaleTransform(int polymorhicId);
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 
 private:
     Vector3 scale_;
@@ -408,10 +389,8 @@ public:
 
     SgAffineTransform();
     SgAffineTransform(const Affine3& T);
-    SgAffineTransform(const SgAffineTransform& org);
-    SgAffineTransform(const SgAffineTransform& org, SgCloneMap& cloneMap);
+    SgAffineTransform(const SgAffineTransform& org, CloneMap* cloneMap = nullptr);
 
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
     virtual const BoundingBox& boundingBox() const override;
     virtual void getTransform(Affine3& out_T) const override;
 
@@ -447,6 +426,7 @@ public:
 
 protected:
     SgAffineTransform(int polymorhicId);
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 
 private:
     Affine3 T_;
@@ -458,9 +438,7 @@ class CNOID_EXPORT SgSwitch : public SgGroup
 {
 public:
     SgSwitch();
-    SgSwitch(const SgSwitch& org);
-    SgSwitch(const SgSwitch& org, SgCloneMap& cloneMap);
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
+    SgSwitch(const SgSwitch& org, CloneMap* cloneMap = nullptr);
 
     void setTurnedOn(bool on, bool doNotify = false);
     bool isTurnedOn() const { return isTurnedOn_; }
@@ -469,8 +447,11 @@ public:
     void turnOn(bool doNotify = false) { setTurnedOn(true, doNotify); }
     //! \deprecated
     void turnOff(bool doNotify = false) { setTurnedOn(false, doNotify); }
+
+protected:
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
     
-  private:
+private:
     bool isTurnedOn_;
 };
 typedef ref_ptr<SgSwitch> SgSwitchPtr;
@@ -480,9 +461,10 @@ class CNOID_EXPORT SgUnpickableGroup : public SgGroup
 {
 public:
     SgUnpickableGroup();
-    SgUnpickableGroup(const SgUnpickableGroup& org);
-    SgUnpickableGroup(const SgUnpickableGroup& org, SgCloneMap& cloneMap);
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
+    SgUnpickableGroup(const SgUnpickableGroup& org, CloneMap* cloneMap = nullptr);
+
+protected:
+    virtual Referenced* doClone(CloneMap* cloneMap) const override;
 
 };
 typedef ref_ptr<SgUnpickableGroup> SgUnpickableGroupPtr;
@@ -493,9 +475,6 @@ class CNOID_EXPORT SgPreprocessed : public SgNode
 protected:
     SgPreprocessed(int polymorhicId);
     SgPreprocessed(const SgPreprocessed& org);
-
-public:
-    virtual SgObject* clone(SgCloneMap& cloneMap) const override;
 };
 
 

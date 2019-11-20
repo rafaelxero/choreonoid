@@ -42,7 +42,7 @@ Vector6 calcInverseDynamicsSub(Link* link, const Vector3& vo_parent, const Vecto
         const Vector3 dsv = parent->w().cross(sv) + vo_parent.cross(sw);
         const Vector3 dsw = parent->w().cross(sw);
 
-        link->dw()  = parent->dw()  + dsw * link->dq() + sw * link->ddq();
+        link->dw() = parent->dw() + dsw * link->dq() + sw * link->ddq();
         dvo = dvo_parent + dsv * link->dq() + sv * link->ddq();
     }
 
@@ -61,11 +61,13 @@ Vector6 calcInverseDynamicsSub(Link* link, const Vector3& vo_parent, const Vecto
     for(Link* child = link->child(); child; child = child->sibling()){
         f += calcInverseDynamicsSub(child, vo, dvo);
     }
-
+    f -= link->F_ext();
+    
     link->u() = sv.dot(f.head<3>()) + sw.dot(f.tail<3>()) + link->ddq() * link->Jm2() /* rotor inertia */;
 
     return f;
 }
+
 }
     
 namespace cnoid {
@@ -86,4 +88,5 @@ Vector6 calcInverseDynamics(Link* link)
     }
     return calcInverseDynamicsSub(link, vo, dvo);
 }
+
 }

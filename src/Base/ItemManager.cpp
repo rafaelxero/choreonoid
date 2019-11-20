@@ -23,15 +23,15 @@
 #include <QFileDialog>
 #include <QSignalMapper>
 #include <QRegExp>
-#include <boost/tokenizer.hpp>
 #include <fmt/format.h>
+#include <chrono>
 #include <set>
 #include <sstream>
 #include "gettext.h"
 
 using namespace std;
 using namespace cnoid;
-namespace filesystem = boost::filesystem;
+namespace filesystem = cnoid::stdx::filesystem;
 using fmt::format;
 
 namespace cnoid {
@@ -42,23 +42,8 @@ public:
     ItemManagerImpl(const string& moduleName, MenuManager& menuManager);
     ~ItemManagerImpl();
 
-    typedef list<shared_ptr<ItemManager::CreationPanelFilterBase>> CreationPanelFilterList;
-    typedef set<pair<string, shared_ptr<ItemManager::CreationPanelFilterBase>>> CreationPanelFilterSet;
-    
-    class CreationPanelBase : public QDialog
-    {
-    public:
-        CreationPanelBase(const QString& title, ItemPtr protoItem, bool isSingleton);
-        void addPanel(ItemCreationPanel* panel);
-        ItemPtr createItem(ItemPtr parentItem);
-        CreationPanelFilterList preFilters;
-        CreationPanelFilterList postFilters;
-    private:
-        QVBoxLayout* panelLayout;
-        ItemPtr protoItem;
-        bool isSingleton;
-    };
-    
+    class CreationPanelBase;
+
     struct Saver;
     typedef shared_ptr<Saver> SaverPtr;
     
@@ -67,7 +52,7 @@ public:
 
     struct ClassInfo
     {
-        ClassInfo() { creationPanelBase = 0; }
+        ClassInfo() { creationPanelBase = nullptr; }
         ~ClassInfo() { delete creationPanelBase; }
         string moduleName;
         string className;
@@ -82,6 +67,24 @@ public:
     typedef shared_ptr<ClassInfo> ClassInfoPtr;
     
     typedef map<string, ClassInfoPtr> ClassInfoMap;
+
+    typedef list<shared_ptr<ItemManager::CreationPanelFilterBase>> CreationPanelFilterList;
+    typedef set<pair<string, shared_ptr<ItemManager::CreationPanelFilterBase>>> CreationPanelFilterSet;
+    
+    class CreationPanelBase : public QDialog
+    {
+    public:
+        CreationPanelBase(const QString& title, ClassInfo& classInfo, ItemPtr protoItem, bool isSingleton);
+        void addPanel(ItemCreationPanel* panel);
+        ItemPtr createItem(ItemPtr parentItem);
+        CreationPanelFilterList preFilters;
+        CreationPanelFilterList postFilters;
+    private:
+        ClassInfo& classInfo;
+        QVBoxLayout* panelLayout;
+        ItemPtr protoItem;
+        bool isSingleton;
+    };
     
     struct Loader : public QObject
     {
@@ -581,11 +584,8 @@ ItemManagerImpl::CreationPanelBase* ItemManagerImpl::getOrCreateCreationPanelBas
             ItemPtr protoItem;
             if(info->isSingleton){
                 protoItem = info->singletonInstance;
-            } else {
-                protoItem = info->factory();
-                protoItem->setName(info->name);
             }
-            base = new CreationPanelBase(title, protoItem, info->isSingleton);
+            base = new CreationPanelBase(title, *info, protoItem, info->isSingleton);
             base->hide();
             menuManager.setPath("/File/New ...").addItem(translatedName)
                 ->sigTriggered().connect(std::bind(ItemManagerImpl::onNewItemActivated, base));
@@ -615,8 +615,10 @@ void ItemManagerImpl::onNewItemActivated(CreationPanelBase* base)
 }
 
 
-ItemManagerImpl::CreationPanelBase::CreationPanelBase(const QString& title, ItemPtr protoItem, bool isSingleton)
+ItemManagerImpl::CreationPanelBase::CreationPanelBase
+(const QString& title, ClassInfo& classInfo, ItemPtr protoItem, bool isSingleton)
     : QDialog(MainWindow::instance()),
+      classInfo(classInfo),
       protoItem(protoItem),
       isSingleton(isSingleton)
 {
@@ -651,7 +653,7 @@ ItemPtr ItemManagerImpl::CreationPanelBase::createItem(ItemPtr parentItem)
 {
     if(isSingleton){
         if(protoItem->parentItem()){
-            return 0;
+            return nullptr;
         }
     }
             
@@ -668,9 +670,19 @@ ItemPtr ItemManagerImpl::CreationPanelBase::createItem(ItemPtr parentItem)
 
     bool result = true;
 
+    if(!protoItem && (!preFilters.empty() || !postFilters.empty())){
+        protoItem = classInfo.factory();
+        protoItem->setName(classInfo.name);
+    }
+    ItemPtr item = protoItem;
+    if(!item){
+        item = classInfo.factory();
+        item->setName(classInfo.name);
+    }
+
     for(CreationPanelFilterList::iterator p = preFilters.begin(); p != preFilters.end(); ++p){
         auto filter = *p;
-        if(!(*filter)(protoItem.get(), parentItem.get())){
+        if(!(*filter)(item, parentItem)){
             result = false;
             break;
         }
@@ -678,7 +690,7 @@ ItemPtr ItemManagerImpl::CreationPanelBase::createItem(ItemPtr parentItem)
 
     if(result){
         for(size_t i=0; i < panels.size(); ++i){
-            if(!panels[i]->initializePanel(protoItem.get())){
+            if(!panels[i]->initializePanel(item)){
                 result = false;
                 break;
             }
@@ -688,7 +700,7 @@ ItemPtr ItemManagerImpl::CreationPanelBase::createItem(ItemPtr parentItem)
     if(result){
         if(exec() == QDialog::Accepted){
             for(size_t i=0; i < panels.size(); ++i){
-                if(!panels[i]->initializeItem(protoItem.get())){
+                if(!panels[i]->initializeItem(item)){
                     result = false;
                     break;
                 }
@@ -696,7 +708,7 @@ ItemPtr ItemManagerImpl::CreationPanelBase::createItem(ItemPtr parentItem)
             if(result){
                 for(CreationPanelFilterList::iterator p = postFilters.begin(); p != postFilters.end(); ++p){
                     auto filter = *p;
-                    if(!(*filter)(protoItem.get(), parentItem.get())){
+                    if(!(*filter)(item, parentItem)){
                         result = false;
                         break;
                     }
@@ -710,9 +722,11 @@ ItemPtr ItemManagerImpl::CreationPanelBase::createItem(ItemPtr parentItem)
     ItemPtr newItem;
     if(result){
         if(isSingleton){
-            newItem = protoItem;
-        } else {
+            newItem = item;
+        } else if(protoItem){
             newItem = protoItem->duplicate();
+        } else {
+            newItem = item;
         }
     }
     
@@ -814,7 +828,7 @@ bool ItemManagerImpl::load(Item* item, const string& filename, Item* parentItem,
     }
         
     ParametricPathProcessor* pathProcessor = ParametricPathProcessor::instance();
-    boost::optional<string> expanded = pathProcessor->expand(filename);
+    auto expanded = pathProcessor->expand(filename);
     if(!expanded){
         messageView->putln(pathProcessor->errorMessage());
         return false;
@@ -848,7 +862,7 @@ bool ItemManagerImpl::load(Item* item, const string& filename, Item* parentItem,
             }
         }
     } else {
-        string dotextension = filesystem::extension(filepath);
+        string dotextension = filepath.extension().string();
         if(dotextension.size() >= 2){
             string extension = dotextension.substr(1); // remove dot
             for(list<LoaderPtr>::iterator p = loaders.begin(); p != loaders.end(); ++p){
@@ -908,7 +922,7 @@ bool ItemManagerImpl::load(LoaderPtr loader, Item* item, const string& filename_
             messageView->put(MessageView::HIGHLIGHT, _(" -> failed.\n"));
         } else {
             if(item->name().empty()){
-                item->setName(filesystem::basename(filesystem::path(filename)));
+                item->setName(filesystem::path(filename).stem().string());
             }
             item->updateFileInformation(filename, loader->formatId);
             messageView->put(_(" -> ok!\n"));
@@ -1218,7 +1232,7 @@ ItemManagerImpl::SaverPtr ItemManagerImpl::getSaverAndFilenameFromSaveDialog
                     if(!extensions.empty()){
                         bool hasExtension = false;
                         auto exts = separateExtensions(extensions);
-                        string dotextension = filesystem::extension(filesystem::path(io_filename));
+                        string dotextension = filesystem::path(io_filename).extension().string();
                         if(!dotextension.empty()){
                             string extension = dotextension.substr(1); // remove the first dot
                             if(std::find(exts.begin(), exts.end(), extension) != exts.end()){
@@ -1253,7 +1267,7 @@ ItemManagerImpl::SaverPtr ItemManagerImpl::determineSaver
             }
         }
     } else {
-        string dotextension = filesystem::extension(filesystem::path(filename));
+        string dotextension = filesystem::path(filename).extension().string();
         if(!dotextension.empty()){
             string extension = dotextension.substr(1);
             for(list<SaverPtr>::iterator p = savers.begin(); p != savers.end(); ++p){
@@ -1302,7 +1316,7 @@ bool ItemManagerImpl::overwrite(Item* item, bool forceOverwrite, const string& f
         if(!filename.empty()){
             filesystem::path fpath(filename);
             if(!filesystem::exists(fpath) ||
-               filesystem::last_write_time(fpath) > item->fileModificationTime()){
+               filesystem::last_write_time_to_time_t(fpath) > item->fileModificationTime()){
                 needToOverwrite = true;
                 filename.clear();
             }

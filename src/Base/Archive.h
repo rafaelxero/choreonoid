@@ -6,7 +6,7 @@
 #define CNOID_BASE_ARCHIVE_H
 
 #include <cnoid/ValueTree>
-#include <boost/filesystem.hpp>
+#include <cnoid/stdx/filesystem>
 #include <string>
 #include <functional>
 #include "exportdecl.h"
@@ -35,6 +35,7 @@ public:
     const Archive* findSubArchive(const std::string& name) const;
     bool forSubArchive(const std::string& name, std::function<bool(const Archive& archive)> func) const;
     Archive* openSubArchive(const std::string& name);
+    Archive* subArchive(Mapping* node);
 
     ValueNodePtr getItemId(Item* item) const;
     Item* findItem(ValueNodePtr id) const;
@@ -72,7 +73,7 @@ public:
 
     Item* currentParentItem() const;
 
-    boost::filesystem::path getProjectDir() const { return projectDirPath; }
+    stdx::filesystem::path getProjectDir() const { return projectDirPath; }
 
 private:
 
@@ -91,7 +92,7 @@ private:
     friend class ViewManager;
     friend class ProjectManagerImpl;
 
-    boost::filesystem::path projectDirPath;
+    stdx::filesystem::path projectDirPath;
 };
 
 typedef ref_ptr<Archive> ArchivePtr;
